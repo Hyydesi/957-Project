@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NINEFIVESEVEN — Concept-driven design studio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Roboto+Mono:wght@400;500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<nav class="nav" id="nav" data-theme="dark">
+  <div class="nav__inner">
+    <div class="nav__meta">
+      <span class="nav__meta-item"><span class="dim">// time zone:</span> GMT +7 <span id="liveClock" class="nav__clock"></span></span>
+    </div>
+    <a href="#top" class="nav__logo">
+      <img src="assets/logo-nav-white.svg" alt="NINEFIVESEVEN" class="nav__logo-img nav__logo-img--white">
+      <img src="assets/logo-nav-red.svg" alt="NINEFIVESEVEN" class="nav__logo-img nav__logo-img--red">
+    </a>
+    <div class="nav__links">
+      <a href="works.html">[01] WORKS</a>
+      <a href="#about">[02] ABOUT</a>
+      <button class="nav__menu" id="menuToggle" aria-label="Open menu">
+        <span>MENU</span>
+        <span class="nav__menu-icon"><i></i><i></i></span>
+      </button>
+    </div>
+  </div>
+</nav>
+
+<div class="menu-overlay" id="menuOverlay">
+  <div class="menu-overlay__panel">
+    <div class="menu-overlay__top">
+      <button class="menu-overlay__close" id="menuClose">[x] CLOSE</button>
+      <p class="menu-overlay__intro">We partner with <span>global startups and established companies,</span> to deliver memorable brand identities and digital experiences.</p>
+    </div>
+    <nav class="menu-overlay__links">
+      <a href="#about" class="menu-link">ABOUT</a>
+      <a href="works.html" class="menu-link">WORK</a>
+      <a href="#contact" class="menu-link">CONTACT</a>
+    </nav>
+    <div class="menu-overlay__ticker" aria-hidden="true">
+      <span>ninefiveseven@vn.com</span>
+      <span>ninefiveseven@vn.com</span>
+      <span>ninefiveseven@vn.com</span>
+      <span>ninefiveseven@vn.com</span>
+    </div>
+  </div>
+</div>
+
+<main id="top">
+
+  <!-- HERO -->
+  <section class="hero" id="hero" data-theme="dark">
+    <div class="hero__bg">
+      <img src="assets/hero-main.jpg" alt="" class="hero__bg-img">
+    </div>
+
+    <div class="hero__hud" aria-hidden="true">
+      <div class="hero__hud-line hero__hud-line--1"></div>
+      <div class="hero__hud-line hero__hud-line--2"></div>
+      <div class="hero__hud-line hero__hud-line--3"></div>
+      <span class="hud-chip hud-chip--1">123.45678.90</span>
+      <span class="hud-chip hud-chip--2">918.876</span>
+      <span class="hud-chip hud-chip--3">9876.19387.2654</span>
+      <span class="hud-chip hud-chip--4">-876.983.098765</span>
+      <span class="hud-chip hud-chip--5">865.987</span>
+    </div>
+
+    <div class="hero__pin">
+      <img src="assets/hero-pin.jpg" alt="Studio work detail">
+    </div>
+
+    <div class="hero__available">
+      <p>BASED IN VIETNAM</p>
+      <p>AVAILABLE WORLDWIDE</p>
+    </div>
+
+    <div class="hero__wordmark">
+      <img src="assets/logo-hero-white.svg" alt="NINEFIVESEVEN">
+    </div>
+  </section>
+
+  <!-- ABOUT -->
+  <section class="about" id="about" data-theme="dark">
+    <div class="about__inner">
+      <div class="about__logo">
+        <img src="assets/logo-about-stacked.svg" alt="NINEFIVESEVEN">
+      </div>
+      <div class="about__copy">
+        <p class="about__paragraph" data-scroll-reveal>
+          957 is a concept-driven design studio founded in 2025 and based in Vietnam.
+          <br><br>
+          Rooted in modernist design principles and graphic design tradition, our work combines typography, grid systems and motion to create digital experiences that balance clarity, usability and bold visual expression.
+          <br><br>
+          Our team remains intentionally small, under 10 people, which allows creative direction to stay personal and decisions to stay sharp. Every project is led closely by the founders. No layers. No dilution.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- THE CORE (keyword field) -->
+  <section class="corefield" id="services" data-theme="dark">
+    <div class="cf__vignette" aria-hidden="true"></div>
+    <div class="cf__centerline" aria-hidden="true"></div>
+
+    <div class="cf__inner" id="cfField">
+      <div class="cf__col cf__col--left">
+        <ul>
+          <li><span class="cf__word">WEB3 PRODUCT</span></li>
+          <li><span class="cf__word">VISUAL IDENTITY</span></li>
+          <li><span class="cf__word">WEB DESIGN</span></li>
+          <li><span class="cf__word">GAME DESIGN</span></li>
+          <li><span class="cf__word">DEVELOPMENT</span></li>
+          <li><span class="cf__word">MOTION FLOW</span></li>
+          <li><span class="cf__word">PIXEL PERFECT</span></li>
+          <li><span class="cf__word">ART DIRECTION</span></li>
+          <li><span class="cf__word">PURE CODE</span></li>
+        </ul>
+      </div>
+
+      <div class="cf__center">
+        <div class="cf__panel">
+          <div class="cf__panel-lines" aria-hidden="true"></div>
+          <span class="cf__panel-text">( how can<br>we help )</span>
+        </div>
+        <p class="cf__descriptor">concept-driven design studio</p>
+      </div>
+
+      <div class="cf__col cf__col--right">
+        <ul>
+          <li><span class="cf__word">STRATEGY</span></li>
+          <li><span class="cf__word">DESIGN</span></li>
+          <li><span class="cf__word">BRANDING</span></li>
+          <li><span class="cf__word">TYPOGRAPHY</span></li>
+          <li><span class="cf__word">MOTION</span></li>
+          <li><span class="cf__word">SYSTEM</span></li>
+          <li><span class="cf__word">FUTURE</span></li>
+          <li><span class="cf__word">VISION</span></li>
+          <li><span class="cf__word">CRAFT</span></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="cf__cluster cf__cluster--tc" aria-hidden="true">
+      <span>MICRO INTERACTIONS</span>
+      <span>GRID SYSTEMS</span>
+      <span>CREATIVE DIRECTION</span>
+      <span class="cf__cluster-vn">( kỷ luật thị giác · bản sắc táo bạo )</span>
+    </div>
+
+    <div class="cf__cluster cf__cluster--bl" aria-hidden="true">
+      <span>no layers.</span>
+      <span>no dilution.</span>
+    </div>
+
+    <a href="mailto:ninefiveseven@vn.com" class="cf__cluster cf__cluster--br">ninefiveseven@vn.com</a>
+
+    <div class="cf__down" aria-hidden="true">
+      <span>DOWN</span>
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1V13M7 13L1 7M7 13L13 7" stroke="currentColor" stroke-width="1.2"/></svg>
+    </div>
+  </section>
+
+  <!-- WORKS -->
+  <section class="works" id="works" data-theme="dark">
+    <div class="works__topbar">
+      <div class="works__filter" id="categoryFilter">
+        <button data-filter="all" class="is-active">ALL</button>
+        <button data-filter="web">WEB</button>
+        <button data-filter="app">APP</button>
+        <button data-filter="visual">VISUAL</button>
+      </div>
+      <div class="works__view" id="viewToggle">
+        <button data-view="grid" class="is-active">GRID</button>
+        <button data-view="list">LIST</button>
+      </div>
+    </div>
+
+    <div class="works__years" id="yearFilter">
+      <button data-year="2026" class="is-active">2026</button>
+      <button data-year="2025">2025</button>
+      <button data-year="2024">2024</button>
+      <button data-year="2023">2023</button>
+    </div>
+
+    <div class="works__grid" id="worksGrid">
+      <article class="project" data-category="app web" data-year="2026">
+        <header class="project__head"><span>SURFCASH</span><span>MOBILE APP, WEB DESIGN, ART DIRECTION</span></header>
+        <div class="project__img"><img src="assets/project-1.jpg" alt="SURFCASH project"></div>
+      </article>
+
+      <article class="project" data-category="app visual" data-year="2026">
+        <header class="project__head"><span>ECHO_VERSE</span><span>MOBILE APP, WEB DESIGN, ART DIRECTION</span></header>
+        <div class="project__img"><img src="assets/project-2.jpg" alt="ECHO_VERSE project"></div>
+      </article>
+
+      <article class="project" data-category="app" data-year="2025">
+        <header class="project__head"><span>NEW_PAY</span><span>MOBILE APP, WEB DESIGN, ART DIRECTION</span></header>
+        <div class="project__img"><img src="assets/project-4.jpg" alt="NEW_PAY project"></div>
+      </article>
+
+      <article class="project" data-category="web visual" data-year="2025">
+        <a href="klever.html" class="project__link">
+          <header class="project__head"><span>KLEVER</span><span>MOBILE APP, WEB DESIGN, ART DIRECTION</span></header>
+          <div class="project__img"><img src="assets/project-3.jpg" alt="KLEVER project"></div>
+        </a>
+      </article>
+    </div>
+  </section>
+
+  <!-- CTA / FOOTER -->
+  <section class="cta" id="contact" data-theme="dark">
+    <div class="cta__row">
+      <h2>LET'S BUILD YOUR VISION</h2>
+      <a href="mailto:ninefiveseven@vn.com" class="cta__link">WORK WITH US <span>→</span></a>
+    </div>
+
+    <div class="cta__wordmark">
+      <img src="assets/logo-footer-red.svg" alt="NINEFIVESEVEN">
+      <div class="cta__tagline">
+        <p>A creative-first design service studio based out of hcm, Vietnam</p>
+        <p>Specialising in branding, web/ app design.</p>
+      </div>
+    </div>
+
+    <div class="cta__photo">
+      <img src="assets/footer-photo.jpg" alt="">
+    </div>
+
+    <footer class="footer">
+      <span>957STUDIO @ 2026</span>
+      <span class="footer__meta"><span>//location:HCM, Vietnam</span><span>//time zone:GMT +7</span></span>
+      <span class="footer__social"><span class="dim">follow:</span> <a href="#">behance</a> <a href="#">twitter</a> <a href="#">linkedin</a></span>
+    </footer>
+  </section>
+
+</main>
+
+<script src="script.js"></script>
+</body>
+</html>

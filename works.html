@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Works — NINEFIVESEVEN</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Roboto+Mono:wght@400;500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<nav class="nav" id="nav" data-theme="dark">
+  <div class="nav__inner">
+    <div class="nav__meta">
+      <span class="nav__meta-item"><span class="dim">// time zone:</span> GMT +7 <span id="liveClock" class="nav__clock"></span></span>
+    </div>
+    <a href="index.html" class="nav__logo">
+      <img src="assets/logo-nav-white.svg" alt="NINEFIVESEVEN" class="nav__logo-img nav__logo-img--white">
+      <img src="assets/logo-nav-red.svg" alt="NINEFIVESEVEN" class="nav__logo-img nav__logo-img--red">
+    </a>
+    <div class="nav__links">
+      <a href="works.html">[01] WORKS</a>
+      <a href="index.html#about">[02] ABOUT</a>
+      <button class="nav__menu" id="menuToggle" aria-label="Open menu">
+        <span>MENU</span>
+        <span class="nav__menu-icon"><i></i><i></i></span>
+      </button>
+    </div>
+  </div>
+</nav>
+
+<div class="menu-overlay" id="menuOverlay">
+  <div class="menu-overlay__panel">
+    <div class="menu-overlay__top">
+      <button class="menu-overlay__close" id="menuClose">[x] CLOSE</button>
+      <p class="menu-overlay__intro">We partner with <span>global startups and established companies,</span> to deliver memorable brand identities and digital experiences.</p>
+    </div>
+    <nav class="menu-overlay__links">
+      <a href="index.html#about" class="menu-link">ABOUT</a>
+      <a href="works.html" class="menu-link">WORK</a>
+      <a href="index.html#contact" class="menu-link">CONTACT</a>
+    </nav>
+    <div class="menu-overlay__ticker" aria-hidden="true">
+      <span>ninefiveseven@vn.com</span>
+      <span>ninefiveseven@vn.com</span>
+      <span>ninefiveseven@vn.com</span>
+      <span>ninefiveseven@vn.com</span>
+    </div>
+  </div>
+</div>
+
+<main>
+
+  <!-- PROJECT SHOWCASE HERO -->
+  <section class="wp-hero" id="wpHero" data-theme="dark">
+    <div class="wp-hero__bg">
+      <img id="wpHeroImg" src="assets/project-1.jpg" alt="">
+    </div>
+    <div class="wp-hero__scrim"></div>
+
+    <div class="wp-hero__top">
+      <div class="wp-hero__progress" id="wpProgress"></div>
+
+      <div class="wp-hero__badge">
+        <img src="assets/logo-surfcash.svg" alt="" class="wp-hero__badge-icon">
+        <div class="wp-hero__badge-text">
+          <strong id="wpBadgeName">SurfCash</strong>
+          <span id="wpBadgeYear">2024</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="wp-hero__bottom">
+      <div class="wp-hero__title-block">
+        <h1 id="wpTitle" class="wp-hero__title">Surfcash</h1>
+        <p id="wpDesc" class="wp-hero__desc">What are we good at? Branding, design, and websites. But you've heard that before, true. The expertise lies in perfection.</p>
+        <a id="wpCaseLink" class="wp-hero__caselink" href="#" hidden>View Case Study <span>→</span></a>
+      </div>
+      <div class="wp-hero__thumbs" id="wpThumbs"></div>
+    </div>
+  </section>
+
+  <!-- PROJECT LISTING -->
+  <section class="wlist" id="projects-list" data-theme="light">
+    <div class="wlist__head">
+      <h2 class="wlist__headline">OUR PROJECTS<br>DESIGNED FOR IMPACT</h2>
+      <div class="wlist__filter" id="wlistView">
+        <button data-view="grid" class="is-active">Grid</button>
+        <button data-view="list">List</button>
+        <button data-view="full">FULL</button>
+      </div>
+    </div>
+
+    <div class="wlist__grid" id="wlistGrid"></div>
+  </section>
+
+  <!-- CTA / FOOTER (shared with home) -->
+  <section class="cta" id="contact" data-theme="dark">
+    <div class="cta__row">
+      <h2>LET'S BUILD YOUR VISION</h2>
+      <a href="mailto:ninefiveseven@vn.com" class="cta__link">WORK WITH US <span>→</span></a>
+    </div>
+
+    <div class="cta__wordmark">
+      <img src="assets/logo-footer-red.svg" alt="NINEFIVESEVEN">
+      <div class="cta__tagline">
+        <p>A creative-first design service studio based out of hcm, Vietnam</p>
+        <p>Specialising in branding, web/ app design.</p>
+      </div>
+    </div>
+
+    <div class="cta__photo">
+      <img src="assets/footer-photo.jpg" alt="">
+    </div>
+
+    <footer class="footer">
+      <span>957STUDIO @ 2026</span>
+      <span class="footer__meta"><span>//location:HCM, Vietnam</span><span>//time zone:GMT +7</span></span>
+      <span class="footer__social"><span class="dim">follow:</span> <a href="#">behance</a> <a href="#">twitter</a> <a href="#">linkedin</a></span>
+    </footer>
+  </section>
+
+</main>
+
+<script src="script.js"></script>
+<script src="works.js"></script>
+</body>
+</html>
