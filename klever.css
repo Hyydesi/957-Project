@@ -114,6 +114,11 @@
 .kl-sketches img{width:100%;aspect-ratio:1;object-fit:cover;background:#f2f2f2;}
 .kl-caption{font-family:var(--font-body);font-size:16px;color:#999;margin-top:12px;}
 .kl-full-image{width:100%;margin-top:40px;display:block;border-radius:4px;}
+/* Split composite: animated gif (left) + static grid diagram (right),
+   preserving the original 1500x900 layout with a 744/756 vertical split. */
+.kl-media-pair{display:flex;aspect-ratio:1500/900;overflow:hidden;}
+.kl-media-pair__gif{width:calc(744 / 1500 * 100%);height:100%;object-fit:cover;background:#003D12;display:block;}
+.kl-media-pair__still{width:calc(756 / 1500 * 100%);height:100%;object-fit:cover;display:block;}
 
 .kl-type{display:flex;flex-direction:column;}
 .kl-type__block{
