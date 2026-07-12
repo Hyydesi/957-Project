@@ -157,6 +157,15 @@
 
 .kl-showcase{display:flex;flex-direction:column;gap:4px;background:#fff;padding:0 max(24px,calc((100% - 1440px) / 2));}
 .kl-showcase img{width:100%;display:block;}
+.kl-imac{position:relative;line-height:0;}
+.kl-imac > img{width:100%;display:block;}
+/* Animated crystal overlaid on the iMac viewfinder. screen blend drops the
+   video's black background so the viewfinder ticks/labels stay visible and
+   only the glowing crystal animates in place. */
+.kl-imac__crystal{
+  position:absolute;left:60.3%;top:27%;width:18%;height:47%;
+  object-fit:cover;mix-blend-mode:screen;pointer-events:none;
+}
 .kl-showcase__pair{display:flex;flex-wrap:wrap;gap:4px;}
 .kl-showcase__pair img,
 .kl-showcase__video{

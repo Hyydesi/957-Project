@@ -456,21 +456,23 @@ if (categoryFilter && yearFilter && worksGrid) {
   revealProjects();
 }
 
-// ---------- Klever showcase: lazy-load + loop video only while in view ----------
-const kandleVideo = document.querySelector('.kl-showcase__video');
+// ---------- Klever: lazy-load + loop videos only while scrolled into view ----------
+const lazyVideos = document.querySelectorAll('video[data-src]');
 
-if (kandleVideo) {
-  const updateKandleVideo = () => {
-    const rect = kandleVideo.getBoundingClientRect();
-    const inView = rect.bottom > 0 && rect.top < window.innerHeight;
-    if (inView) {
-      if (!kandleVideo.src) kandleVideo.src = kandleVideo.dataset.src;
-      if (kandleVideo.paused) kandleVideo.play().catch(() => {});
-    } else if (!kandleVideo.paused) {
-      kandleVideo.pause();
-    }
+if (lazyVideos.length) {
+  const updateLazyVideos = () => {
+    lazyVideos.forEach((vid) => {
+      const rect = vid.getBoundingClientRect();
+      const inView = rect.bottom > 0 && rect.top < window.innerHeight;
+      if (inView) {
+        if (!vid.src) vid.src = vid.dataset.src;
+        if (vid.paused) vid.play().catch(() => {});
+      } else if (!vid.paused) {
+        vid.pause();
+      }
+    });
   };
-  window.addEventListener('scroll', updateKandleVideo, { passive: true });
-  window.addEventListener('resize', updateKandleVideo);
-  updateKandleVideo();
+  window.addEventListener('scroll', updateLazyVideos, { passive: true });
+  window.addEventListener('resize', updateLazyVideos);
+  updateLazyVideos();
 }
