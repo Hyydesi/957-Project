@@ -97,6 +97,19 @@ if (nav && themedSections.length) {
   themedSections.forEach((section) => navObserver.observe(section));
 }
 
+// ---------- Nav exclusion blend: only while the hero is behind the nav ----------
+const heroForBlend = document.getElementById('hero');
+if (nav && heroForBlend) {
+  const updateNavBlend = () => {
+    // blend while any part of the hero is still behind the fixed nav
+    const heroBottom = heroForBlend.getBoundingClientRect().bottom;
+    nav.classList.toggle('is-blend', heroBottom > 64);
+  };
+  window.addEventListener('scroll', updateNavBlend, { passive: true });
+  window.addEventListener('resize', updateNavBlend);
+  updateNavBlend();
+}
+
 // ---------- Menu overlay ----------
 const menuToggle = document.getElementById('menuToggle');
 const menuOverlay = document.getElementById('menuOverlay');
