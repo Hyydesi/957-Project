@@ -165,6 +165,12 @@
   position:absolute;left:14.8%;top:19.8%;width:70.3%;height:61.6%;
   object-fit:cover;pointer-events:none;
 }
+/* Covers the static screenshot's white decorative bar that peeks out below
+   the video (the video is inset shorter than the full screen height). */
+.kl-imac__blackout{
+  position:absolute;left:13.5%;top:76%;width:72.9%;height:10%;
+  background:#000;pointer-events:none;
+}
 .kl-showcase__pair{display:flex;flex-wrap:wrap;gap:4px;}
 .kl-showcase__pair img{
   flex:1 1 320px;min-width:0;width:100%;aspect-ratio:756/890;
