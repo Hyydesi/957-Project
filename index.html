@@ -6,8 +6,8 @@
 <title>NINEFIVESEVEN — Concept-driven design studio</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Anton&family=Roboto+Mono:wght@400;500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css">
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Roboto+Mono:wght@400;500&family=Inter:wght@400;500;600&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css?v=12">
 </head>
 <body class="home">
 
@@ -93,7 +93,8 @@
     </div>
   </section>
 
-  <!-- THE CORE (keyword field) -->
+  <!-- THE CORE (keyword field) — pinned stage, curtain-wipe entrance (nudot-style) -->
+  <div class="cf-stage" id="cfStage">
   <section class="corefield" id="services" data-theme="dark">
     <div class="cf__vignette" aria-hidden="true"></div>
     <div class="cf__centerline" aria-hidden="true"></div>
@@ -101,46 +102,44 @@
     <div class="cf__inner" id="cfField">
       <div class="cf__col cf__col--left">
         <ul>
-          <li><span class="cf__word">WEB3 PRODUCT</span></li>
-          <li><span class="cf__word">VISUAL IDENTITY</span></li>
-          <li><span class="cf__word">WEB DESIGN</span></li>
-          <li><span class="cf__word">GAME DESIGN</span></li>
-          <li><span class="cf__word">DEVELOPMENT</span></li>
-          <li><span class="cf__word">MOTION FLOW</span></li>
-          <li><span class="cf__word">PIXEL PERFECT</span></li>
-          <li><span class="cf__word">ART DIRECTION</span></li>
-          <li><span class="cf__word">PURE CODE</span></li>
+          <li><span class="cf__word" data-image="assets/img/img 1.jpg">WEB3 PRODUCT</span></li>
+          <li><span class="cf__word" data-image="assets/img/img2.jpg">VISUAL IDENTITY</span></li>
+          <li><span class="cf__word" data-image="assets/img/img 3.jpg">WEB DESIGN</span></li>
+          <li><span class="cf__word" data-image="assets/img/img 5.jpg">GEN-AI VISUAL</span></li>
+          <li><span class="cf__word" data-image="assets/img/img 6.jpg">GAME DESIGN</span></li>
+          <li><span class="cf__word" data-image="assets/img/img7.jpg">WEBGL REALM</span></li>
+          <li><span class="cf__word" data-image="assets/img/img 8.jpg">DEVELOPMENT</span></li>
+          <li><span class="cf__word" data-image="assets/img/img 9.jpg">MOTION FLOW</span></li>
+          <li><span class="cf__word" data-image="assets/img/img10.jpg">PIXEL PERFECT</span></li>
+          <li><span class="cf__word" data-image="assets/img/image1.png">FLUID UI</span></li>
+          <li><span class="cf__word" data-image="assets/img/img 1.png">ART DIRECTION</span></li>
+          <li><span class="cf__word" data-image="assets/img/img2.png">PURE CODE</span></li>
         </ul>
       </div>
 
       <div class="cf__center">
         <div class="cf__panel">
+          <img class="cf__panel-img" id="cfPanelImg" src="assets/img/img 1.jpg" alt="" aria-hidden="true">
           <div class="cf__panel-lines" aria-hidden="true"></div>
-          <span class="cf__panel-text">( how can<br>we help )</span>
         </div>
-        <p class="cf__descriptor">concept-driven design studio</p>
       </div>
 
       <div class="cf__col cf__col--right">
         <ul>
           <li><span class="cf__word">STRATEGY</span></li>
           <li><span class="cf__word">DESIGN</span></li>
+          <li><span class="cf__word">TECH</span></li>
           <li><span class="cf__word">BRANDING</span></li>
           <li><span class="cf__word">TYPOGRAPHY</span></li>
+          <li><span class="cf__word">CREATIVE</span></li>
           <li><span class="cf__word">MOTION</span></li>
           <li><span class="cf__word">SYSTEM</span></li>
+          <li><span class="cf__word">LABS</span></li>
           <li><span class="cf__word">FUTURE</span></li>
           <li><span class="cf__word">VISION</span></li>
           <li><span class="cf__word">CRAFT</span></li>
         </ul>
       </div>
-    </div>
-
-    <div class="cf__cluster cf__cluster--tc" aria-hidden="true">
-      <span>MICRO INTERACTIONS</span>
-      <span>GRID SYSTEMS</span>
-      <span>CREATIVE DIRECTION</span>
-      <span class="cf__cluster-vn">( kỷ luật thị giác · bản sắc táo bạo )</span>
     </div>
 
     <div class="cf__cluster cf__cluster--bl" aria-hidden="true">
@@ -155,6 +154,7 @@
       <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1V13M7 13L1 7M7 13L13 7" stroke="currentColor" stroke-width="1.2"/></svg>
     </div>
   </section>
+  </div>
 
   <!-- WORKS -->
   <section class="works" id="works" data-theme="dark">
@@ -178,29 +178,8 @@
       <button data-year="2023">2023</button>
     </div>
 
-    <div class="works__grid" id="worksGrid">
-      <article class="project" data-category="app web" data-year="2026">
-        <header class="project__head"><span>SURFCASH</span><span>MOBILE APP, WEB DESIGN, ART DIRECTION</span></header>
-        <div class="project__img"><img src="assets/project-1.jpg" alt="SURFCASH project"></div>
-      </article>
-
-      <article class="project" data-category="app visual" data-year="2026">
-        <header class="project__head"><span>ECHO_VERSE</span><span>MOBILE APP, WEB DESIGN, ART DIRECTION</span></header>
-        <div class="project__img"><img src="assets/project-2.jpg" alt="ECHO_VERSE project"></div>
-      </article>
-
-      <article class="project" data-category="app" data-year="2025">
-        <header class="project__head"><span>NEW_PAY</span><span>MOBILE APP, WEB DESIGN, ART DIRECTION</span></header>
-        <div class="project__img"><img src="assets/project-4.jpg" alt="NEW_PAY project"></div>
-      </article>
-
-      <article class="project" data-category="web visual" data-year="2025">
-        <a href="klever.html" class="project__link">
-          <header class="project__head"><span>KLEVER</span><span>MOBILE APP, WEB DESIGN, ART DIRECTION</span></header>
-          <div class="project__img"><img src="assets/project-3.jpg" alt="KLEVER project"></div>
-        </a>
-      </article>
-    </div>
+    <!-- Cards rendered from PROJECTS (projects.js) by script.js -->
+    <div class="works__grid" id="worksGrid"></div>
   </section>
 
   <!-- CTA / FOOTER -->
@@ -231,6 +210,8 @@
 
 </main>
 
-<script src="script.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/lenis@1.1.13/dist/lenis.min.js"></script>
+<script src="projects.js?v=12"></script>
+<script src="script.js?v=12"></script>
 </body>
 </html>
