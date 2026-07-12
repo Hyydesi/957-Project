@@ -111,15 +111,41 @@ if (nav && themedSections.length) {
   }, { rootMargin: '-80px 0px -85% 0px', threshold: 0 });
 
   themedSections.forEach((section) => navObserver.observe(section));
+
+  // Safety net: at the very bottom of the page (incl. trackpad overscroll),
+  // the IntersectionObserver's shrunk rootMargin band can miss the last
+  // section crossing it — force the theme to match whatever section is
+  // actually last on the page once we're at (or past) max scroll.
+  const lastThemedSection = themedSections[themedSections.length - 1];
+  const updateBottomTheme = () => {
+    const atBottom = window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 2;
+    if (atBottom) nav.setAttribute('data-theme', lastThemedSection.dataset.theme);
+  };
+  window.addEventListener('scroll', updateBottomTheme, { passive: true });
+  window.addEventListener('resize', updateBottomTheme);
+  updateBottomTheme();
+}
+
+// ---------- Pinned hero: hide once fully covered by the next section ----------
+const heroPinned = document.getElementById('hero');
+const heroSpacer = document.querySelector('.hero__spacer');
+if (heroPinned && heroSpacer) {
+  const updateHeroCover = () => {
+    const spacerBottom = heroSpacer.getBoundingClientRect().bottom;
+    heroPinned.classList.toggle('is-covered', spacerBottom <= 0);
+  };
+  window.addEventListener('scroll', updateHeroCover, { passive: true });
+  window.addEventListener('resize', updateHeroCover);
+  updateHeroCover();
 }
 
 // ---------- Nav exclusion blend: only while the hero is behind the nav ----------
-const heroForBlend = document.getElementById('hero');
-if (nav && heroForBlend) {
+// The hero itself is position:fixed (pinned), so its own rect never moves with
+// scroll — track the hero__spacer instead, which holds the hero's scroll-flow position.
+if (nav && heroSpacer) {
   const updateNavBlend = () => {
-    // blend while any part of the hero is still behind the fixed nav
-    const heroBottom = heroForBlend.getBoundingClientRect().bottom;
-    nav.classList.toggle('is-blend', heroBottom > 64);
+    const spacerBottom = heroSpacer.getBoundingClientRect().bottom;
+    nav.classList.toggle('is-blend', spacerBottom > 64);
   };
   window.addEventListener('scroll', updateNavBlend, { passive: true });
   window.addEventListener('resize', updateNavBlend);
@@ -423,4 +449,23 @@ if (categoryFilter && yearFilter && worksGrid) {
   window.addEventListener('scroll', revealProjects, { passive: true });
   window.addEventListener('resize', revealProjects);
   revealProjects();
+}
+
+// ---------- Klever showcase: lazy-load + loop video only while in view ----------
+const kandleVideo = document.querySelector('.kl-showcase__video');
+
+if (kandleVideo) {
+  const updateKandleVideo = () => {
+    const rect = kandleVideo.getBoundingClientRect();
+    const inView = rect.bottom > 0 && rect.top < window.innerHeight;
+    if (inView) {
+      if (!kandleVideo.src) kandleVideo.src = kandleVideo.dataset.src;
+      if (kandleVideo.paused) kandleVideo.play().catch(() => {});
+    } else if (!kandleVideo.paused) {
+      kandleVideo.pause();
+    }
+  };
+  window.addEventListener('scroll', updateKandleVideo, { passive: true });
+  window.addEventListener('resize', updateKandleVideo);
+  updateKandleVideo();
 }
