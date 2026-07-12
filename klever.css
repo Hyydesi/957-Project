@@ -159,12 +159,11 @@
 .kl-showcase img{width:100%;display:block;}
 .kl-imac{position:relative;line-height:0;}
 .kl-imac > img{width:100%;display:block;}
-/* Animated crystal overlaid on the iMac viewfinder. screen blend drops the
-   video's black background so the viewfinder ticks/labels stay visible and
-   only the glowing crystal animates in place. */
-.kl-imac__crystal{
-  position:absolute;left:60.3%;top:27%;width:18%;height:47%;
-  object-fit:cover;mix-blend-mode:screen;pointer-events:none;
+/* Website screen-recording that fills the whole iMac screen, replacing the
+   static device-1 screenshot content inside the bezel. */
+.kl-imac__screen{
+  position:absolute;left:13.5%;top:18.8%;width:72.9%;height:63.7%;
+  object-fit:cover;pointer-events:none;
 }
 .kl-showcase__pair{display:flex;flex-wrap:wrap;gap:4px;}
 .kl-showcase__pair img{
