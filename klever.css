@@ -162,7 +162,7 @@
 /* Website screen-recording that fills the whole iMac screen, replacing the
    static device-1 screenshot content inside the bezel. */
 .kl-imac__screen{
-  position:absolute;left:13.5%;top:18.8%;width:72.9%;height:63.7%;
+  position:absolute;left:14.8%;top:19.8%;width:70.3%;height:61.6%;
   object-fit:cover;pointer-events:none;
 }
 .kl-showcase__pair{display:flex;flex-wrap:wrap;gap:4px;}
