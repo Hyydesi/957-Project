@@ -99,7 +99,12 @@ if (liveClock) {
 
 // ---------- Nav theme swap (dark/light) based on section behind it ----------
 const nav = document.getElementById('nav');
-const themedSections = document.querySelectorAll('[data-theme]');
+// Exclude the nav itself — it also carries [data-theme] to set its own
+// initial CSS state, but must never be treated as content to observe
+// (it's fixed at the very top edge, so it can never validly "intersect"
+// the shrunk rootMargin band below, which left it permanently stuck on
+// whichever theme last fired once a page had more than one theme value).
+const themedSections = document.querySelectorAll('[data-theme]:not(nav)');
 
 if (nav && themedSections.length) {
   const navObserver = new IntersectionObserver((entries) => {
