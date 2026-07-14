@@ -346,35 +346,155 @@ button{font:inherit;background:none;border:none;color:inherit;cursor:pointer;}
   display:flex;flex-direction:column;gap:56px;
 }
 @media(min-width:800px){
-  .works__grid{gap:110px;}
-  .project:nth-child(4n+1){width:34%;margin-left:65%;}
-  .project:nth-child(4n+2){width:44%;margin-left:8%;}
-  .project:nth-child(4n+3){width:36%;margin-left:40%;}
-  .project:nth-child(4n+4){width:40%;margin-left:15%;}
+  /* scattered cascade: equal-size cards, one per row, with a tightened vertical gap.
+     pos-N classes are assigned by JS in *visible* order so filters keep working. */
+  .works__grid{gap:0;}
+  .works__grid:not(.is-list) .project{width:40%;}
+  .works__grid:not(.is-list) .project.pos-0{margin-left:58%;}
+  .works__grid:not(.is-list) .project.pos-1{margin-left:8%;}
+  .works__grid:not(.is-list) .project.pos-2{margin-left:40%;}
+  .works__grid:not(.is-list) .project.pos-3{margin-left:15%;}
+  /* % margin resolves against container width, so spacing scales with the cards */
+  .works__grid:not(.is-list) .project:not(.is-first){margin-top:5%;}
+  .works__grid.is-list{gap:24px;}
 }
+/* transform is composed from vars so reveal (--ry), scroll parallax (--par)
+   and hover shrink (--sc) can run together without overriding each other */
+@property --ry{syntax:"<length>";inherits:false;initial-value:0px;}
+@property --sc{syntax:"<number>";inherits:false;initial-value:1;}
 .project{
+  position:relative;
   border:1px solid #525252;
-  opacity:0;filter:blur(14px);transform:translateY(40px);
-  transition:opacity .7s cubic-bezier(.16,1,.3,1),filter .7s cubic-bezier(.16,1,.3,1),transform .7s cubic-bezier(.16,1,.3,1);
+  background:var(--bg-dark);
+  --ry:1.8vw;--sc:1;--par:0px;--rev:0px;
+  opacity:0;
+  transform:translateY(calc(var(--ry) + var(--par) + var(--rev))) scale(var(--sc));
+  transition:opacity .9s cubic-bezier(.37,0,.63,1),--ry .9s cubic-bezier(.37,0,.63,1),--sc .45s cubic-bezier(.16,1,.3,1),background-color .3s ease;
+  will-change:transform;
 }
-.project.is-revealed{opacity:1;filter:blur(0);transform:translateY(0);}
+.project.is-revealed{opacity:1;--ry:0px;}
+
+/* GRID view: reveal is scroll-driven from JS (slide up from below, reversible).
+   opacity comes from --revo so it can't fight the hover-dim rule or list reveal;
+   opacity/--ry transitions are dropped so the JS values track the scroll 1:1 */
+.works__grid:not(.is-list) .project{
+  --ry:0px;
+  opacity:var(--revo,0);
+  transition:--sc .45s cubic-bezier(.16,1,.3,1),background-color .3s ease;
+}
 @media(prefers-reduced-motion:reduce){
-  .project{opacity:1;filter:none;transform:none;transition:none;}
+  .works__grid:not(.is-list) .project{opacity:1;}
+}
+
+/* faint red square frame sitting OUTSIDE the whole card (under the corners) */
+.project::before{
+  content:"";position:absolute;inset:-14px;z-index:4;pointer-events:none;opacity:0;
+  border:1px solid rgba(216,0,0,.32);
+  transition:opacity .35s ease,inset .35s ease;
+}
+/* bright red corner brackets (crop marks) on top of the square */
+.project::after{
+  content:"";position:absolute;inset:-14px;z-index:5;pointer-events:none;opacity:0;
+  transition:opacity .35s ease,inset .35s ease;
+  --l:16px;--t:2px;--c:var(--red);
+  background:
+    linear-gradient(var(--c),var(--c)) 0 0/var(--l) var(--t) no-repeat,
+    linear-gradient(var(--c),var(--c)) 0 0/var(--t) var(--l) no-repeat,
+    linear-gradient(var(--c),var(--c)) 100% 0/var(--l) var(--t) no-repeat,
+    linear-gradient(var(--c),var(--c)) 100% 0/var(--t) var(--l) no-repeat,
+    linear-gradient(var(--c),var(--c)) 0 100%/var(--l) var(--t) no-repeat,
+    linear-gradient(var(--c),var(--c)) 0 100%/var(--t) var(--l) no-repeat,
+    linear-gradient(var(--c),var(--c)) 100% 100%/var(--l) var(--t) no-repeat,
+    linear-gradient(var(--c),var(--c)) 100% 100%/var(--t) var(--l) no-repeat;
+}
+/* hovered card: shrink slightly, reveal the red frame + corners (expanding out) */
+.project:hover{--sc:.94;}
+.project:hover::before,.project:hover::after{opacity:1;inset:-20px;}
+@media(prefers-reduced-motion:reduce){
+  .project{opacity:1;transform:none;transition:none;--ry:0px;}
 }
 .project__link{display:block;color:inherit;}
-.project.is-hidden{display:none;}
+/* extra specificity so the list view's display:grid can't override the hide */
+.project.is-hidden,.works__grid.is-list .project.is-hidden{display:none;}
 .project__head{
   display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;
   background:#515151;padding:10px 14px;
   font-family:var(--font-mono);font-size:13px;letter-spacing:.5px;
 }
-.project__img{aspect-ratio:655/483;overflow:hidden;background:#1a1a1a;}
-.project__img img{width:100%;height:100%;object-fit:cover;transition:transform .5s ease;}
-.project:hover .project__img img{transform:scale(1.04);}
+.project__img{position:relative;aspect-ratio:655/483;overflow:hidden;background:#1a1a1a;}
+.project__img img{width:100%;height:100%;object-fit:cover;transition:transform .5s ease,filter .45s ease;}
 
-.works__grid.is-list .project{width:100%;margin-left:0;display:grid;grid-template-columns:280px 1fr;align-items:center;}
-.works__grid.is-list .project__head{grid-column:2;order:2;height:100%;flex-direction:column;justify-content:center;}
-.works__grid.is-list .project__img{grid-column:1;order:1;aspect-ratio:auto;height:140px;}
+/* dim overlay for the non-hovered cards */
+.project__img::after{
+  content:"";position:absolute;inset:0;z-index:1;pointer-events:none;
+  background:rgba(6,6,6,.5);opacity:0;transition:opacity .4s ease;
+}
+
+/* hovered card: zoom the image */
+.project:hover .project__img img{transform:scale(1.06);}
+
+/* when hovering the grid, fade + desaturate every other card.
+   whole-card opacity only in GRID view: in list view a semi-transparent card
+   would let the hover line show through its middle while fading back in.
+   multiplied by --revo so cards still entering keep their scroll-driven fade */
+.works__grid:not(.is-list):hover .project:not(:hover){opacity:calc(var(--revo,0)*.5);}
+.works__grid:hover .project:not(:hover) .project__img img{filter:grayscale(.75) brightness(.6);}
+.works__grid:hover .project:not(:hover) .project__img::after{opacity:1;}
+
+/* full-width faint grey line behind the hovered card, centred on its height;
+   grows out from the middle with the same timing/easing as the card hover */
+.hover-line{
+  position:fixed;left:0;right:0;top:0;height:2px;z-index:-1;
+  transform:translateY(-50%) scaleX(0);
+  background:rgba(255,255,255,.14);
+  opacity:0;
+  transition:opacity .35s ease,transform .45s cubic-bezier(.16,1,.3,1);
+  pointer-events:none;
+}
+.hover-line.is-visible{opacity:1;transform:translateY(-50%) scaleX(1);}
+
+/* "VIEW" pill that follows the cursor while hovering a card.
+   GRID view: white + difference blending (reference-style invert cursor —
+   white flips against whatever sits underneath). LIST view: solid red, no blend. */
+.cursor-view{
+  position:fixed;top:0;left:0;z-index:300;pointer-events:none;
+  background:#fff;color:#000;white-space:nowrap;
+  font-family:var(--font-mono);font-size:13px;letter-spacing:1px;
+  padding:10px 18px;border-radius:2px;
+  mix-blend-mode:difference;
+  opacity:0;transform:translate(-50%,-50%) scale(.8);
+  transition:opacity .25s ease,transform .25s ease;
+}
+.cursor-view.is-visible{opacity:1;transform:translate(-50%,-50%) scale(1);}
+.cursor-view.is-red{background:var(--red);color:#fff;mix-blend-mode:normal;}
+
+@media(prefers-reduced-motion:reduce){
+  .project,.project::before,.project::after,.project__img img,.project__img::after{transition:none;}
+  .project:hover{transform:none;}
+}
+
+/* LIST view — centred rows of [ title | image | tags ] (Figma "Our works" list) */
+.works__grid.is-list .project__img{aspect-ratio:auto;}
+@media(max-width:799px){
+  .works__grid.is-list .project__img{height:150px;}
+}
+@media(min-width:800px){
+  .works__grid.is-list .project{
+    /* full container width so rows align with the section padding above */
+    width:100%;margin:0;
+    /* left-packed columns: title | image | tags (per Figma update) */
+    display:grid;grid-template-columns:180px 200px 1fr;align-items:center;gap:40px;
+    padding:0 24px;
+  }
+  .works__grid.is-list .project:hover{background:#515151;}
+  /* flatten the link and header wrappers so title / image / tags become grid cells */
+  .works__grid.is-list .project__link,
+  .works__grid.is-list .project__head{display:contents;}
+  .works__grid.is-list .project__head span{font-size:16px;}
+  .works__grid.is-list .project__head span:first-child{grid-column:1;grid-row:1;}
+  .works__grid.is-list .project__head span:last-child{grid-column:3;grid-row:1;white-space:normal;justify-self:end;text-align:right;}
+  .works__grid.is-list .project__img{grid-column:2;grid-row:1;width:200px;height:159px;}
+}
 
 /* ---------- CTA / FOOTER ---------- */
 .cta{padding:120px 24px 0;}
@@ -397,8 +517,13 @@ button{font:inherit;background:none;border:none;color:inherit;cursor:pointer;}
 .cta__photo img{width:100%;max-height:640px;object-fit:cover;}
 .footer{
   display:flex;flex-wrap:wrap;gap:16px;justify-content:space-between;
-  padding:32px;font-family:var(--font-mono);font-size:14px;color:var(--footer-muted);
+  padding:32px 24px;font-family:var(--font-mono);font-size:14px;color:var(--footer-muted);
   max-width:1920px;margin:0 auto;
+}
+
+/* consistent horizontal rhythm: 24px on mobile, 40px on desktop (matches the nav) */
+@media(min-width:1024px){
+  .hero__wordmark,.about,.works,.cta,.footer{padding-left:40px;padding-right:40px;}
 }
 .footer__meta{display:flex;gap:24px;flex-wrap:wrap;}
 .footer__social a{margin-left:8px;}

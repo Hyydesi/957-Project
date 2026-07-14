@@ -1,7 +1,7 @@
 const PROJECTS = [
   {
     name: 'SurfCash',
-    year: '2024',
+    year: '2025',
     image: 'assets/project-1.jpg',
     title: 'Surfcash',
     desc: "What are we good at? Branding, design, and websites. But you've heard that before, true. The expertise lies in perfection.",
@@ -19,7 +19,7 @@ const PROJECTS = [
   },
   {
     name: 'NewPay',
-    year: '2025',
+    year: '2024',
     image: 'assets/project-4.jpg',
     title: 'NewPay',
     desc: 'A new way to spend your crypto — a mobile wallet experience balancing clarity, trust and bold visual identity.',
