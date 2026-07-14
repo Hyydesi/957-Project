@@ -1,43 +1,4 @@
-const PROJECTS = [
-  {
-    name: 'SurfCash',
-    year: '2025',
-    image: 'assets/project-1.jpg',
-    title: 'Surfcash',
-    desc: "What are we good at? Branding, design, and websites. But you've heard that before, true. The expertise lies in perfection.",
-    tags: ['MOBILE APP', 'WEB DESIGN', 'ART DIRECTION'],
-    listTitle: '(SURFCASH) SOLANA MOBILE APPLICATION',
-  },
-  {
-    name: 'Echo Verse',
-    year: '2024',
-    image: 'assets/project-2.jpg',
-    title: 'Echo Verse',
-    desc: 'A PWA social networking platform built for creators — from pixels to perfection, designed to feel alive on every screen.',
-    tags: ['MOBILE APP', 'WEB DESIGN', 'ART DIRECTION'],
-    listTitle: 'ECHO VERSE: PWA SOCIAL NETWORKING PLATFORM',
-  },
-  {
-    name: 'NewPay',
-    year: '2024',
-    image: 'assets/project-4.jpg',
-    title: 'NewPay',
-    desc: 'A new way to spend your crypto — a mobile wallet experience balancing clarity, trust and bold visual identity.',
-    tags: ['MOBILE APP', 'WEB DESIGN', 'ART DIRECTION'],
-    listTitle: '(NEWPAY) A NEW WAY TO SPEND YOUR CRYPTO',
-  },
-  {
-    name: 'Klever',
-    year: '2025',
-    image: 'assets/project-3.jpg',
-    title: 'Klever',
-    desc: 'Illuminating the future of decentralized finance through a clean, confident product and brand system.',
-    tags: ['MOBILE APP', 'WEB DESIGN', 'ART DIRECTION'],
-    listTitle: '(KLEVER) ILLUMINATING THE FUTURE OF DECENTRALIZED FINANCE',
-    href: 'klever.html',
-  },
-];
-
+// PROJECTS is defined in projects.js (loaded before this file) — single source of truth.
 const AUTOPLAY_MS = 6000;
 
 // ---------- Hero showcase ----------
