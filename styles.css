@@ -334,12 +334,16 @@ button{font:inherit;background:none;border:none;color:inherit;cursor:pointer;}
 /* Works rises up OVER the dissolving corefield (overlap handoff, nudot-style).
    Same base colour (#0e0e0e); the top edge fades transparent→solid so the rise
    blends seamlessly into the corefield's vignette instead of a hard step. */
-.works{padding:56px 24px 120px;max-width:1700px;margin:-40vh auto 0;position:relative;z-index:6;
+/* full-bleed like the hero: same edge padding, no centered max-width cap */
+.works{padding:56px 24px 120px;margin:-40vh 0 0;position:relative;z-index:6;
   background:linear-gradient(to bottom, rgba(14,14,14,0) 0, var(--bg-dark) 120px);}
 .works__topbar{
   display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:24px;
   position:sticky;top:var(--nav-h);z-index:5;
   padding:20px 0;margin-bottom:20px;
+  /* the whole bar blends (difference) with the cards scrolling beneath it,
+     so ALL/WEB/APP + GRID/LIST invert over passing imagery */
+  mix-blend-mode:difference;
 }
 .works__filter,.works__view{display:flex;gap:24px;}
 .works__filter button,.works__view button{
@@ -352,6 +356,7 @@ button{font:inherit;background:none;border:none;color:inherit;cursor:pointer;}
 .works__years{
   display:none;flex-direction:column;gap:22px;font-family:var(--font-mono);font-size:15px;color:#595959;
   position:sticky;top:calc(var(--nav-h) + 165px);float:left;margin-right:24px;
+  z-index:6; /* keep the year rail above the fixed line overlays */
 }
 @media(min-width:1100px){.works__years{display:flex;}}
 .works__years button{color:inherit;text-align:left;}
@@ -379,6 +384,7 @@ button{font:inherit;background:none;border:none;color:inherit;cursor:pointer;}
 @property --sc{syntax:"<number>";inherits:false;initial-value:1;}
 .project{
   position:relative;
+  z-index:1; /* above the fixed line overlays (.works-web / .hover-line, z:0) */
   border:1px solid #525252;
   background:var(--bg-dark);
   --ry:1.8vw;--sc:1;--par:0px;--rev:0px;
@@ -422,9 +428,10 @@ button{font:inherit;background:none;border:none;color:inherit;cursor:pointer;}
     linear-gradient(var(--c),var(--c)) 100% 100%/var(--l) var(--t) no-repeat,
     linear-gradient(var(--c),var(--c)) 100% 100%/var(--t) var(--l) no-repeat;
 }
-/* hovered card: shrink slightly, reveal the red frame + corners (expanding out) */
+/* hovered card: shrink slightly; the red frame + corners only show in LIST view */
 .project:hover{--sc:.94;}
-.project:hover::before,.project:hover::after{opacity:1;inset:-20px;}
+.works__grid.is-list .project:hover::before,
+.works__grid.is-list .project:hover::after{opacity:1;inset:-20px;}
 @media(prefers-reduced-motion:reduce){
   .project{opacity:1;transform:none;transition:none;--ry:0px;}
 }
@@ -448,24 +455,45 @@ button{font:inherit;background:none;border:none;color:inherit;cursor:pointer;}
 /* hovered card: zoom the image */
 .project:hover .project__img img{transform:scale(1.06);}
 
-/* when hovering the grid, fade + desaturate every other card.
-   whole-card opacity only in GRID view: in list view a semi-transparent card
-   would let the hover line show through its middle while fading back in.
-   multiplied by --revo so cards still entering keep their scroll-driven fade */
-.works__grid:not(.is-list):hover .project:not(:hover){opacity:calc(var(--revo,0)*.5);}
-.works__grid:hover .project:not(:hover) .project__img img{filter:grayscale(.75) brightness(.6);}
-.works__grid:hover .project:not(:hover) .project__img::after{opacity:1;}
+/* dim the other cards only while one card is actually hovered (:has), so
+   pointing at the empty space between cards doesn't black the whole grid out.
+   NO whole-card opacity here: a translucent card would expose the red thread
+   running beneath it — instead darken the image (filter + overlay) and the
+   header, which keeps every card fully opaque */
+.works__grid:has(.project:hover) .project:not(:hover) .project__img img{filter:grayscale(.75) brightness(.6);}
+.works__grid:has(.project:hover) .project:not(:hover) .project__img::after{opacity:1;}
+.project__head{transition:filter .4s ease;}
+.works__grid:has(.project:hover) .project:not(:hover) .project__head{filter:brightness(.5);}
 
-/* full-width faint grey line behind the hovered card, centred on its height;
+/* GRID view: red threads connecting the viewport centre to each card's centre.
+   Fixed overlay behind the cards (cards have an opaque background), driven
+   from JS on scroll; each line fades in with its card's reveal progress */
+/* z-index:0 (not -1): the works section paints its own opaque gradient
+   backdrop, so the overlay must sit above that backdrop yet below the cards,
+   which get z-index:1 */
+.works-web{
+  position:fixed;inset:0;width:100%;height:100%;z-index:0;pointer-events:none;
+}
+.works-web line{stroke:var(--red);stroke-width:1;transition:opacity .25s ease;}
+
+/* faint grey line behind the hovered card, centred on its height;
+   two segments (left/right) that stop at the red hover frame, so the line
+   never peeks through the gap between the shrunken card and its frame.
    grows out from the middle with the same timing/easing as the card hover */
 .hover-line{
-  position:fixed;left:0;right:0;top:0;height:2px;z-index:-1;
+  position:fixed;left:0;right:0;top:0;height:2px;z-index:0;
+  --cutL:0px;--cutR:0px;
   transform:translateY(-50%) scaleX(0);
-  background:rgba(255,255,255,.14);
   opacity:0;
   transition:opacity .35s ease,transform .45s cubic-bezier(.16,1,.3,1);
   pointer-events:none;
 }
+.hover-line::before,.hover-line::after{
+  content:"";position:absolute;top:0;height:100%;
+  background:rgba(255,255,255,.14);
+}
+.hover-line::before{left:0;width:var(--cutL);}
+.hover-line::after{right:0;width:var(--cutR);}
 .hover-line.is-visible{opacity:1;transform:translateY(-50%) scaleX(1);}
 
 /* "VIEW" pill that follows the cursor while hovering a card.
@@ -473,42 +501,149 @@ button{font:inherit;background:none;border:none;color:inherit;cursor:pointer;}
    white flips against whatever sits underneath). LIST view: solid red, no blend. */
 .cursor-view{
   position:fixed;top:0;left:0;z-index:300;pointer-events:none;
+  width:100px;height:42px;
+  display:flex;align-items:center;justify-content:center;
   background:#fff;color:#000;white-space:nowrap;
-  font-family:var(--font-mono);font-size:13px;letter-spacing:1px;
-  padding:10px 18px;border-radius:2px;
+  font-family:var(--font-mono);font-size:17px;font-weight:500;letter-spacing:1px;
   mix-blend-mode:difference;
+  /* viewfinder shape from Figma: solid rectangle with a small register
+     notch cut into the middle of each edge */
+  clip-path:polygon(
+    calc(50% - 1px) 8px, calc(50% + 1px) 8px, calc(50% + 1px) 0, 100% 0,
+    100% calc(50% - 1px), calc(100% - 8px) calc(50% - 1px),
+    calc(100% - 8px) calc(50% + 1px), 100% calc(50% + 1px),
+    100% 100%, calc(50% + 1px) 100%, calc(50% + 1px) calc(100% - 8px),
+    calc(50% - 1px) calc(100% - 8px), calc(50% - 1px) 100%,
+    0 100%, 0 calc(50% + 1px), 8px calc(50% + 1px),
+    8px calc(50% - 1px), 0 calc(50% - 1px),
+    0 0, calc(50% - 1px) 0
+  );
   opacity:0;transform:translate(-50%,-50%) scale(.8);
   transition:opacity .25s ease,transform .25s ease;
 }
 .cursor-view.is-visible{opacity:1;transform:translate(-50%,-50%) scale(1);}
-.cursor-view.is-red{background:var(--red);color:#fff;mix-blend-mode:normal;}
+
+/* ---------- Works: hover annotation overlays (Figma effect frames) ----------
+   Anchored to the card IMAGE: the image spans the card width with a fixed
+   655/483 aspect ratio and touches the card bottom, so every measurement is
+   derived from the card width alone and survives any responsive size.
+   Each card's frame geometry (left/width/aspect-ratio/translateY) plus its
+   design width (--fxw, for cqw font scaling) is set inline in the markup. */
+.fx-card{
+  display:none;
+  position:absolute;
+  bottom:0;
+  container-type:inline-size;
+  pointer-events:none;
+  z-index:3;
+  opacity:0;
+  transition:opacity .18s ease;
+  font-family:var(--font-mono);text-transform:uppercase;color:#fff;
+}
+@media(min-width:800px){
+  .works__grid:not(.is-list) .fx-card{display:block;}
+  .works__grid:not(.is-list) .project:hover .fx-card{opacity:1;}
+  /* staged reveal: (1) red frames inside the image flicker in first,
+     (2) leader lines / arrows, (3) labels last — each with an on/off blink */
+  .works__grid:not(.is-list) .project:hover .fx-card__box,
+  .works__grid:not(.is-list) .project:hover .fx-card__vec--frame{
+    animation:fxFlicker .45s linear both;
+  }
+  .works__grid:not(.is-list) .project:hover .fx-card__vec:not(.fx-card__vec--frame){
+    animation:fxFlicker .45s linear both;
+    animation-delay:.3s;
+  }
+  .works__grid:not(.is-list) .project:hover .fx-card__label{
+    animation:fxFlicker .45s linear both;
+    animation-delay:.6s;
+  }
+}
+.fx-card__draw{overflow:visible;}
+/* every annotation piece starts hidden; the hover animation brings it in */
+.fx-card__box,.fx-card__vec,.fx-card__label{opacity:0;}
+/* neon-style flicker: hard on/off blinks before settling on */
+@keyframes fxFlicker{
+  0%,18%{opacity:0;}
+  19%,27%{opacity:1;}
+  28%,41%{opacity:0;}
+  42%,56%{opacity:1;}
+  57%,68%{opacity:.35;}
+  69%,100%{opacity:1;}
+}
+/* manual tuning hook: shift a whole group with --gx/--gy inline, e.g.
+   <div class="fx-card__group" style="--gx:2%; --gy:-3%">  (% of the frame) */
+.fx-card__group{position:absolute;inset:0;transform:translate(var(--gx,0%),var(--gy,0%));}
+/* type scales with the frame: 16px (12px for tags) at each frame's design
+   width — 1600cqw / --fxw == (16 / designWidth) * 100cqw */
+.fx-card__label{
+  position:absolute;background:var(--red);white-space:nowrap;
+  font-size:calc(1600cqw / var(--fxw,823));
+  line-height:normal;
+  padding:calc(200cqw / var(--fxw,823)) calc(800cqw / var(--fxw,823));
+}
+.fx-card__label--fixed{text-align:center;} /* width set inline per label */
+.fx-card__label--tag{
+  font-size:calc(1200cqw / var(--fxw,823));
+  padding:calc(200cqw / var(--fxw,823)) calc(400cqw / var(--fxw,823));
+}
+.fx-card__box{
+  position:absolute;border:2px solid var(--red);
+}
+/* triple clipping: overflow alone can glitch in Chromium while an ancestor
+   runs an opacity animation (the flicker), letting the oversized crop img
+   paint outside for a frame — clip-path + contain:paint seal it completely */
+.fx-card__box--zoom{overflow:hidden;clip-path:inset(0);contain:paint;}
+/* the magnified crop (size/offset %) is set inline per card */
+.fx-card__box--zoom img{position:absolute;max-width:none;}
+/* vectors are authored with preserveAspectRatio:none — width AND height are
+   always set inline so each stretches to its exact Figma box */
+.fx-card__vec{position:absolute;max-width:none;}
+@media(prefers-reduced-motion:reduce){
+  .fx-card{transition:none;}
+  .fx-card__box,.fx-card__vec,.fx-card__label{animation:none!important;}
+  .works__grid:not(.is-list) .project:hover .fx-card__box,
+  .works__grid:not(.is-list) .project:hover .fx-card__vec,
+  .works__grid:not(.is-list) .project:hover .fx-card__label{opacity:1;}
+}
+
+/* LIST view: the hovered project's image follows the cursor instead of the pill */
+.cursor-img{
+  position:fixed;top:0;left:0;z-index:300;pointer-events:none;
+  width:280px;aspect-ratio:655/483;object-fit:cover;
+  box-shadow:0 18px 50px rgba(0,0,0,.55);
+  opacity:0;transform:translate(-50%,-50%) scale(.85);
+  transition:opacity .3s ease,transform .3s cubic-bezier(.16,1,.3,1);
+}
+.cursor-img.is-visible{opacity:1;transform:translate(-50%,-50%) scale(1);}
 
 @media(prefers-reduced-motion:reduce){
   .project,.project::before,.project::after,.project__img img,.project__img::after{transition:none;}
   .project:hover{transform:none;}
 }
 
-/* LIST view — centred rows of [ title | image | tags ] (Figma "Our works" list) */
-.works__grid.is-list .project__img{aspect-ratio:auto;}
-@media(max-width:799px){
-  .works__grid.is-list .project__img{height:150px;}
+/* LIST view — compact text rows [ title | tags ]; the project image is not in
+   the row anymore, it follows the cursor on hover instead (.cursor-img) */
+.works__grid.is-list .project__img{display:none;}
+/* no scroll-reveal in list view: rows are always fully visible (no fade either),
+   otherwise switching views mid-page leaves never-revealed rows invisible */
+.works__grid.is-list .project{
+  opacity:1;--ry:0px;
+  transition:--sc .45s cubic-bezier(.16,1,.3,1),background-color .3s ease;
 }
 @media(min-width:800px){
   .works__grid.is-list .project{
     /* full container width so rows align with the section padding above */
     width:100%;margin:0;
-    /* left-packed columns: title | image | tags (per Figma update) */
-    display:grid;grid-template-columns:180px 200px 1fr;align-items:center;gap:40px;
-    padding:0 24px;
+    display:grid;grid-template-columns:auto 1fr;align-items:center;gap:40px;
+    padding:26px 24px;
   }
   .works__grid.is-list .project:hover{background:#515151;}
-  /* flatten the link and header wrappers so title / image / tags become grid cells */
+  /* flatten the link and header wrappers so title / tags become grid cells */
   .works__grid.is-list .project__link,
   .works__grid.is-list .project__head{display:contents;}
   .works__grid.is-list .project__head span{font-size:16px;}
   .works__grid.is-list .project__head span:first-child{grid-column:1;grid-row:1;}
-  .works__grid.is-list .project__head span:last-child{grid-column:3;grid-row:1;white-space:normal;justify-self:end;text-align:right;}
-  .works__grid.is-list .project__img{grid-column:2;grid-row:1;width:200px;height:159px;}
+  .works__grid.is-list .project__head span:last-child{grid-column:2;grid-row:1;white-space:normal;justify-self:end;text-align:right;}
 }
 
 /* ---------- CTA / FOOTER ---------- */
@@ -531,15 +666,16 @@ button{font:inherit;background:none;border:none;color:inherit;cursor:pointer;}
 .cta__tagline{font-family:var(--font-mono);font-size:14px;color:var(--muted-4);line-height:1.6;}
 .cta__photo{max-width:1700px;margin:0 auto;}
 .cta__photo img{width:100%;max-height:640px;object-fit:cover;}
+/* horizontal inset comes from the parent .cta padding (24px / 40px desktop),
+   so the footer text lines up with the hero and works sections */
 .footer{
   display:flex;flex-wrap:wrap;gap:16px;justify-content:space-between;
-  padding:32px;font-family:var(--font-mono);font-size:14px;color:var(--footer-muted);
-  max-width:1700px;margin:0 auto;
+  padding:32px 0;font-family:var(--font-mono);font-size:14px;color:var(--footer-muted);
 }
 
 /* consistent horizontal rhythm: 24px on mobile, 40px on desktop (matches the nav) */
 @media(min-width:1024px){
-  .hero__wordmark,.about,.works,.cta,.footer{padding-left:40px;padding-right:40px;}
+  .hero__wordmark,.about,.works,.cta{padding-left:40px;padding-right:40px;}
 }
 .footer__meta{display:flex;gap:24px;flex-wrap:wrap;}
 .footer__social a{margin-left:8px;}

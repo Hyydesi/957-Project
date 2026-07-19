@@ -416,6 +416,7 @@ if (categoryFilter && yearFilter && worksGrid) {
     });
     layoutCards();
     revealDriver(); // card offsets shift when the set of visible cards changes
+    updateWeb();
   };
   layoutCards();
 
@@ -512,26 +513,60 @@ if (categoryFilter && yearFilter && worksGrid) {
   // ---------- Works: "VIEW" label that follows the cursor ----------
   const cursorView = document.createElement('div');
   cursorView.className = 'cursor-view';
-  cursorView.textContent = 'VIEW ↗';
+  cursorView.textContent = 'VIEW';
   document.body.appendChild(cursorView);
 
-  // full-width red line behind the hovered card, centred on its height
+  // list view: the hovered project's image follows the cursor instead of the pill
+  const cursorImg = document.createElement('img');
+  cursorImg.className = 'cursor-img';
+  cursorImg.alt = '';
+  document.body.appendChild(cursorImg);
+
+  // full-width red line behind the hovered card, centred on its height.
+  // appended INSIDE .works: the section is a stacking context (z-index:6 with
+  // its own opaque backdrop), so overlays parked on <body> would paint under it
   const hoverLine = document.createElement('div');
   hoverLine.className = 'hover-line';
-  document.body.appendChild(hoverLine);
+  worksGrid.closest('.works').appendChild(hoverLine);
+
+  // document-space layout position: transform-free like offsetTop, but summed
+  // through the offsetParent chain so positioned ancestors (.works is
+  // position:relative) don't skew the numbers
+  const layoutTop = (el) => {
+    let t = 0;
+    for (let n = el; n; n = n.offsetParent) t += n.offsetTop;
+    return t;
+  };
+  const layoutLeft = (el) => {
+    let l = 0;
+    for (let n = el; n; n = n.offsetParent) l += n.offsetLeft;
+    return l;
+  };
 
   const positionHoverLine = (project) => {
-    const rect = project.getBoundingClientRect();
-    hoverLine.style.top = `${rect.top + rect.height / 2}px`;
+    // layout values are transform-free, so mid-transition measurements don't
+    // wobble the line. Segments run right up to the shrunken card's edges
+    // (the card scales to .94 on hover), so the line always touches the card
+    const HOVER_SCALE = 0.94;
+    const w = project.offsetWidth;
+    const centerX = layoutLeft(project) + w / 2;
+    const centerY = layoutTop(project) - window.scrollY + project.offsetHeight / 2;
+    const half = (w / 2) * HOVER_SCALE;
+    hoverLine.style.top = `${centerY}px`;
+    hoverLine.style.setProperty('--cutL', `${Math.max(0, centerX - half)}px`);
+    hoverLine.style.setProperty('--cutR', `${Math.max(0, window.innerWidth - centerX - half)}px`);
   };
 
   let cvX = 0, cvY = 0, cvTargetX = 0, cvTargetY = 0, cvRaf = null, cvActive = false;
+  let hoveredProject = null; // read by updateWeb: dims the other cards' threads
 
   const cvLoop = () => {
     cvX += (cvTargetX - cvX) * 0.2;
     cvY += (cvTargetY - cvY) * 0.2;
     cursorView.style.left = `${cvX}px`;
     cursorView.style.top = `${cvY}px`;
+    cursorImg.style.left = `${cvX}px`;
+    cursorImg.style.top = `${cvY}px`;
     if (cvActive || Math.abs(cvTargetX - cvX) > 0.5 || Math.abs(cvTargetY - cvY) > 0.5) {
       cvRaf = requestAnimationFrame(cvLoop);
     } else {
@@ -542,12 +577,19 @@ if (categoryFilter && yearFilter && worksGrid) {
   projects.forEach((project) => {
     project.addEventListener('mouseenter', (e) => {
       cvActive = true;
+      hoveredProject = project;
+      updateWeb();
       // snap to the cursor on entry so it doesn't fly in from the corner
       cvX = cvTargetX = e.clientX;
       cvY = cvTargetY = e.clientY;
-      // list view keeps the original solid red pill (no blending)
-      cursorView.classList.toggle('is-red', worksGrid.classList.contains('is-list'));
-      cursorView.classList.add('is-visible');
+      if (worksGrid.classList.contains('is-list')) {
+        // list view: the project image follows the cursor instead of the pill
+        const src = project.querySelector('.project__img img')?.getAttribute('src');
+        if (src && cursorImg.getAttribute('src') !== src) cursorImg.setAttribute('src', src);
+        cursorImg.classList.add('is-visible');
+      } else {
+        cursorView.classList.add('is-visible');
+      }
       if (!cvRaf) cvRaf = requestAnimationFrame(cvLoop);
       if (worksGrid.classList.contains('is-list')) {
         if (hoverLine.classList.contains('is-visible')) {
@@ -576,7 +618,10 @@ if (categoryFilter && yearFilter && worksGrid) {
     });
     project.addEventListener('mouseleave', () => {
       cvActive = false;
+      hoveredProject = null;
+      updateWeb();
       cursorView.classList.remove('is-visible');
+      cursorImg.classList.remove('is-visible');
       hoverLine.classList.remove('is-visible');
     });
   });
@@ -602,9 +647,9 @@ if (categoryFilter && yearFilter && worksGrid) {
         i++;
         return;
       }
-      // offsetTop/offsetHeight are layout values (transforms excluded),
-      // so no feedback loop with the offsets we apply
-      const center = project.offsetTop - window.scrollY + project.offsetHeight / 2;
+      // layout values (transforms excluded), so no feedback loop with the
+      // offsets we apply
+      const center = layoutTop(project) - window.scrollY + project.offsetHeight / 2;
       const raw = (viewCenter - center) * PAR_SPEED[i % 4];
       const off = Math.max(-PAR_MAX, Math.min(PAR_MAX, raw));
       project.style.setProperty('--par', `${off.toFixed(1)}px`);
@@ -638,7 +683,7 @@ if (categoryFilter && yearFilter && worksGrid) {
         project.style.setProperty('--revo', '1');
         return;
       }
-      const top = project.offsetTop - window.scrollY;
+      const top = layoutTop(project) - window.scrollY;
       const p = Math.max(0, Math.min(1, (start - top) / (start - end)));
       const eased = 1 - Math.pow(1 - p, 3); // easeOutCubic: fast entry, soft landing
       project.style.setProperty('--rev', `${((1 - eased) * REV_DISTANCE).toFixed(1)}px`);
@@ -646,19 +691,77 @@ if (categoryFilter && yearFilter && worksGrid) {
     });
   };
 
+  // ---------- Works: red threads from the viewport centre to each card (grid) ----------
+  // one <line> per project on a fixed SVG overlay behind the cards. One end
+  // pins to the middle of the screen, the other tracks the card's centre;
+  // each line fades in/out with its card's scroll-linked reveal progress
+  const SVG_NS = 'http://www.w3.org/2000/svg';
+  const webSvg = document.createElementNS(SVG_NS, 'svg');
+  webSvg.setAttribute('class', 'works-web');
+  webSvg.setAttribute('aria-hidden', 'true');
+  const webLines = new Map();
+  projects.forEach((project) => {
+    const line = document.createElementNS(SVG_NS, 'line');
+    line.setAttribute('opacity', '0');
+    webSvg.appendChild(line);
+    webLines.set(project, line);
+  });
+  // inside .works for the same stacking-context reason as the hover line
+  const worksSection = worksGrid.closest('.works');
+  worksSection.appendChild(webSvg);
+
+  const updateWeb = () => {
+    const show = parDesktop.matches && !worksGrid.classList.contains('is-list');
+    const cx = window.innerWidth / 2;
+    const cy = window.innerHeight / 2;
+    // threads only live while the works section is around the viewport:
+    // fade in once the section top reaches the middle of the screen (otherwise
+    // an entering card would hang a stray line over the previous section),
+    // fade out as the section bottom leaves past the top of the screen
+    const sectionRect = worksSection.getBoundingClientRect();
+    const vh = window.innerHeight;
+    const fadeIn = Math.max(0, Math.min(1, (vh * 0.5 - sectionRect.top) / 200));
+    // gently dissolve the threads as the footer scrolls in: start fading as the
+    // works section's bottom rises past 85% of the viewport, gone by 55%
+    const fadeOut = Math.max(0, Math.min(1, (sectionRect.bottom - vh * 0.55) / (vh * 0.3)));
+    const sectionFade = fadeIn * fadeOut;
+    projects.forEach((project) => {
+      const line = webLines.get(project);
+      if (!show || project.classList.contains('is-hidden')) {
+        line.setAttribute('opacity', '0');
+        return;
+      }
+      const rect = project.getBoundingClientRect(); // visual centre: follows parallax/reveal
+      const revo = parseFloat(project.style.getPropertyValue('--revo'));
+      const reveal = Number.isFinite(revo) ? revo : 1;
+      // while any card is hovered, every thread dims — including the hovered
+      // card's own, so the annotation overlay takes the spotlight
+      const hoverFactor = hoveredProject ? 0.25 : 1;
+      line.setAttribute('x1', cx.toFixed(1));
+      line.setAttribute('y1', cy.toFixed(1));
+      line.setAttribute('x2', (rect.left + rect.width / 2).toFixed(1));
+      line.setAttribute('y2', (rect.top + rect.height / 2).toFixed(1));
+      line.setAttribute('opacity', (reveal * sectionFade * hoverFactor).toFixed(3));
+    });
+  };
+
   window.addEventListener('scroll', requestParallax, { passive: true });
   window.addEventListener('scroll', revealDriver, { passive: true });
+  window.addEventListener('scroll', updateWeb, { passive: true });
   window.addEventListener('resize', requestParallax);
   window.addEventListener('resize', revealDriver);
+  window.addEventListener('resize', updateWeb);
   const viewToggleEl = document.getElementById('viewToggle');
   if (viewToggleEl) {
     viewToggleEl.addEventListener('click', () => {
       requestParallax();
       revealDriver();
+      updateWeb();
     });
   }
   updateParallax();
   revealDriver();
+  updateWeb();
 }
 
 // Smooth scrolling is handled globally by Lenis (see top of file). The earlier
