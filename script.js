@@ -858,6 +858,51 @@ if (intro && !document.documentElement.classList.contains('intro-seen')) {
 
   buildTiles();
 
+  // ---- entrance: tiles start on a ring around the centre, then fly outward ----
+  const playEntrance = () => {
+    const tiles = [...track.querySelectorAll('.intro__tile')];
+    if (!tiles.length) return;
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+    const cx = -offset + vw / 2; // viewport centre expressed in track coords
+    const cy = vh / 2;
+    const radius = Math.min(vw, vh) * 0.28;
+    const N = tiles.length;
+
+    const seeds = tiles.map((tile, i) => {
+      const x = parseFloat(tile.style.left) || 0;
+      const y = ((parseFloat(tile.style.top) || 0) / 100) * vh;
+      const w = parseFloat(tile.style.width) || 0;
+      const h = parseFloat(tile.style.height) || 0;
+      const a = (i / N) * Math.PI * 2;
+      return {
+        dx: cx + Math.cos(a) * radius - (x + w / 2),
+        dy: cy + Math.sin(a) * radius - (y + h / 2),
+      };
+    });
+
+    tiles.forEach((tile, i) => {
+      tile.style.transition = 'none';
+      tile.style.transform = `translate(${seeds[i].dx}px,${seeds[i].dy}px) scale(.3) rotate(-45deg)`;
+      tile.style.opacity = '0';
+    });
+
+    void track.offsetWidth; // commit the ring before releasing it
+
+    // the stills are dark and tiny while ringed — lift them so the ring reads,
+    // then let them settle back to the muted collage treatment
+    track.classList.add('is-entering');
+    setTimeout(() => track.classList.remove('is-entering'), 2100);
+
+    tiles.forEach((tile, i) => {
+      const delay = (i % (N / 2)) * 28;
+      tile.style.transition =
+        `transform 1.6s cubic-bezier(.16,1,.3,1) ${delay}ms,opacity .9s ease ${delay}ms`;
+      tile.style.transform = 'translate(0,0) scale(1) rotate(0deg)';
+      tile.style.opacity = '1';
+    });
+  };
+
   // ---- preloader: spin until the first copy of the collage has decoded ----
   (() => {
     const countEl = document.getElementById('introCount');
@@ -884,8 +929,11 @@ if (intro && !document.documentElement.classList.contains('intro-seen')) {
       finished = true;
       loaded = total;
       paint();
-      // let 100% land before wiping the loader
-      setTimeout(() => intro.classList.remove('is-loading'), 450);
+      // let 100% land before wiping the loader, then fling the ring open
+      setTimeout(() => {
+        intro.classList.remove('is-loading');
+        playEntrance();
+      }, 450);
     };
 
     imgs.forEach((img) => {

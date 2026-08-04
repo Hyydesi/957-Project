@@ -891,9 +891,12 @@ button{font:inherit;background:none;border:none;color:inherit;cursor:pointer;}
 .intro__count::after{content:"%";}
 @keyframes introSpin{to{transform:rotate(360deg);}}
 
-/* stagger the collage in once loading finishes */
-.intro__track,.intro__center{transition:opacity .9s ease .15s;}
-.intro__meta{transition:opacity .9s ease .35s;}
+/* stagger the collage in once loading finishes.
+   the track itself only needs to un-hide — the per-tile ring animation
+   in script.js does the actual reveal, so keep this fade short. */
+.intro__track{transition:opacity .3s ease;}
+.intro__center{transition:opacity .9s ease .55s;}
+.intro__meta{transition:opacity .9s ease .75s;}
 .intro.is-loading .intro__track,
 .intro.is-loading .intro__center,
 .intro.is-loading .intro__meta{opacity:0;}
@@ -902,3 +905,7 @@ button{font:inherit;background:none;border:none;color:inherit;cursor:pointer;}
   .intro__spinner{animation:none;}
   .intro__track,.intro__center,.intro__meta,.intro__loader{transition:none;}
 }
+
+/* while the ring flies open the stills are small and dark, so lift them;
+   they ease back to the muted collage treatment once settled */
+.intro__track.is-entering .intro__tile img{opacity:1;filter:grayscale(1) contrast(1.15);}
