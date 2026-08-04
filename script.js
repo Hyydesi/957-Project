@@ -789,3 +789,184 @@ if (lazyVideos.length) {
   window.addEventListener('resize', updateLazyVideos);
   updateLazyVideos();
 }
+
+// ---------- Intro / landing: draggable image collage + Discover gate ----------
+const intro = document.getElementById('intro');
+
+if (intro && !document.documentElement.classList.contains('intro-seen')) {
+  const track = document.getElementById('introTrack');
+  const hint = document.getElementById('introHint');
+  const enterBtn = document.getElementById('introEnter');
+
+  // x = px along the strip, y = % from top, w/h = px (all at a 1440px reference width)
+  const TILES = [
+    { src: 'assets/project-1.jpg',          x:    0, y:  9, w: 320, h: 400 },
+    { src: 'assets/img/img2.jpg',           x:  250, y: -7, w: 230, h: 290 },
+    { src: 'assets/img/img 1.jpg',          x:  370, y: 54, w: 260, h: 320 },
+    { src: 'assets/project-2.jpg',          x:  650, y: 17, w: 300, h: 380 },
+    { src: 'assets/klever/hero-banner.jpg', x:  910, y:  2, w: 340, h: 220 },
+    { src: 'assets/img/img 3.jpg',          x:  990, y: 61, w: 240, h: 300 },
+    { src: 'assets/project-3.jpg',          x: 1290, y: 29, w: 280, h: 350 },
+    { src: 'assets/img/img 5.jpg',          x: 1590, y:  7, w: 240, h: 300 },
+    { src: 'assets/img/img 6.jpg',          x: 1610, y: 63, w: 260, h: 210 },
+    { src: 'assets/project-4.jpg',          x: 1890, y: 21, w: 300, h: 380 },
+    { src: 'assets/img/img 8.jpg',          x: 2210, y:  5, w: 260, h: 330 },
+    { src: 'assets/img/img7.jpg',           x: 2230, y: 56, w: 240, h: 300 },
+    { src: 'assets/works-hero.jpg',         x: 2530, y: 34, w: 320, h: 240 },
+    { src: 'assets/img/img 9.jpg',          x: 2870, y: 11, w: 240, h: 300 },
+    { src: 'assets/img/img10.jpg',          x: 2890, y: 61, w: 260, h: 280 },
+    { src: 'assets/footer-photo.jpg',       x: 3190, y: 27, w: 300, h: 360 },
+  ];
+  const SET_W = 3560; // strip length before it repeats
+
+  let scale = 1;
+  let setWidth = SET_W;
+
+  const buildTiles = () => {
+    scale = Math.min(1, window.innerWidth / 1440);
+    // keep tiles substantial on phones instead of shrinking them to stamps
+    scale = Math.max(scale, 0.42);
+    // never let one repeat be narrower than the viewport, or the loop would gap
+    scale = Math.max(scale, window.innerWidth / SET_W);
+    setWidth = SET_W * scale;
+
+    // tall/narrow screens need the rows pushed further apart to fill the height
+    const ySpread = window.innerWidth < 640 ? 1.3 : 1;
+
+    track.innerHTML = '';
+    track.style.width = `${setWidth * 2}px`;
+
+    for (let copy = 0; copy < 2; copy++) {
+      TILES.forEach((t) => {
+        const fig = document.createElement('div');
+        fig.className = 'intro__tile';
+        fig.style.left = `${t.x * scale + copy * setWidth}px`;
+        fig.style.top = `${t.y * ySpread}%`;
+        fig.style.width = `${t.w * scale}px`;
+        fig.style.height = `${t.h * scale}px`;
+
+        const img = document.createElement('img');
+        img.src = t.src;
+        img.alt = '';
+        img.loading = copy === 0 ? 'eager' : 'lazy';
+        img.draggable = false;
+        fig.appendChild(img);
+        track.appendChild(fig);
+      });
+    }
+  };
+
+  buildTiles();
+
+  let offset = -setWidth * 0.5; // start mid-strip so there's content both ways
+  let target = offset;
+  let dragging = false;
+  let startX = 0;
+  let startTarget = 0;
+  let moved = false;
+  let rafId = null;
+
+  const wrap = (v) => ((v % setWidth) - setWidth) % setWidth; // keeps v in [-setWidth, 0)
+
+  const render = () => {
+    offset += (target - offset) * 0.09;
+    if (Math.abs(target - offset) < 0.1) offset = target;
+    const w = wrap(offset);
+    track.style.transform = `translate3d(${w}px,0,0)`;
+    if (offset !== target) {
+      rafId = requestAnimationFrame(render);
+    } else {
+      rafId = null;
+    }
+  };
+
+  const kick = () => { if (!rafId) rafId = requestAnimationFrame(render); };
+
+  const nudgeHint = () => {
+    if (hint && !hint.classList.contains('is-hidden')) hint.classList.add('is-hidden');
+  };
+
+  // wheel / trackpad — use whichever axis the user is actually moving
+  intro.addEventListener('wheel', (e) => {
+    e.preventDefault();
+    const delta = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY;
+    target -= delta;
+    nudgeHint();
+    kick();
+  }, { passive: false });
+
+  // pointer drag
+  intro.addEventListener('pointerdown', (e) => {
+    dragging = true;
+    moved = false;
+    startX = e.clientX;
+    startTarget = target;
+    intro.classList.add('is-dragging');
+    intro.setPointerCapture(e.pointerId);
+  });
+
+  intro.addEventListener('pointermove', (e) => {
+    if (!dragging) return;
+    const dx = e.clientX - startX;
+    if (Math.abs(dx) > 3) { moved = true; nudgeHint(); }
+    target = startTarget + dx;
+    kick();
+  });
+
+  const endDrag = (e) => {
+    if (!dragging) return;
+    dragging = false;
+    intro.classList.remove('is-dragging');
+    if (e.pointerId != null && intro.hasPointerCapture?.(e.pointerId)) {
+      intro.releasePointerCapture(e.pointerId);
+    }
+  };
+  intro.addEventListener('pointerup', endDrag);
+  intro.addEventListener('pointercancel', endDrag);
+
+  window.addEventListener('resize', () => {
+    const ratio = setWidth ? offset / setWidth : 0;
+    buildTiles();
+    offset = ratio * setWidth;
+    target = offset;
+    kick();
+  });
+
+  // lock the page behind the intro
+  document.documentElement.classList.add('intro-open');
+  if (typeof lenis !== 'undefined' && lenis) lenis.stop();
+
+  let dismissed = false;
+  const dismissIntro = () => {
+    if (dismissed) return;
+    dismissed = true;
+
+    intro.classList.add('is-leaving');
+    document.documentElement.classList.remove('intro-open');
+    if (typeof lenis !== 'undefined' && lenis) lenis.start();
+    try { sessionStorage.setItem('957IntroSeen', '1'); } catch (e) {}
+
+    // the hero video is behind the intro — make sure it's rolling on reveal
+    const heroVideo = document.querySelector('.hero__bg-video');
+    if (heroVideo) heroVideo.play().catch(() => {});
+
+    setTimeout(() => {
+      intro.remove();
+      window.dispatchEvent(new Event('scroll'));
+      window.dispatchEvent(new Event('resize'));
+    }, 800);
+  };
+
+  enterBtn.addEventListener('click', dismissIntro);
+  // a click that wasn't a drag anywhere on the collage also enters
+  intro.addEventListener('click', (e) => {
+    if (moved || e.target.closest('.intro__enter')) return;
+    dismissIntro();
+  });
+  window.addEventListener('keydown', (e) => {
+    if (dismissed) return;
+    if (e.key === 'Enter' || e.key === 'Escape' || e.key === ' ') dismissIntro();
+  });
+
+  render();
+}
