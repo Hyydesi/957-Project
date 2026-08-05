@@ -866,41 +866,57 @@ if (intro && !document.documentElement.classList.contains('intro-seen')) {
     const vh = window.innerHeight;
     const cx = -offset + vw / 2; // viewport centre expressed in track coords
     const cy = vh / 2;
-    const radius = Math.min(vw, vh) * 0.28;
     const N = tiles.length;
+    const R_TIGHT = Math.min(vw, vh) * 0.06; // barely bigger than a dot
+    const R_OPEN = Math.min(vw, vh) * 0.36;
 
-    const seeds = tiles.map((tile, i) => {
+    // where tile i sits on a ring of the given radius, spun by `turn` radians
+    const ringPos = (tile, i, radius, turn) => {
       const x = parseFloat(tile.style.left) || 0;
       const y = ((parseFloat(tile.style.top) || 0) / 100) * vh;
       const w = parseFloat(tile.style.width) || 0;
       const h = parseFloat(tile.style.height) || 0;
-      const a = (i / N) * Math.PI * 2;
+      const a = (i / N) * Math.PI * 2 + turn;
       return {
         dx: cx + Math.cos(a) * radius - (x + w / 2),
         dy: cy + Math.sin(a) * radius - (y + h / 2),
       };
-    });
+    };
 
+    const SWELL = 1200; // ring grows
+    const BREAK = 1500; // ring scatters into the collage
+
+    // 1. clenched: a tiny ring of specks in the middle
     tiles.forEach((tile, i) => {
+      const p = ringPos(tile, i, R_TIGHT, 0);
       tile.style.transition = 'none';
-      tile.style.transform = `translate(${seeds[i].dx}px,${seeds[i].dy}px) scale(.3) rotate(-45deg)`;
+      tile.style.transform = `translate(${p.dx}px,${p.dy}px) scale(.05) rotate(-120deg)`;
       tile.style.opacity = '0';
     });
 
-    void track.offsetWidth; // commit the ring before releasing it
+    void track.offsetWidth; // commit the tight ring before letting it grow
 
-    // the stills are dark and tiny while ringed — lift them so the ring reads,
-    // then let them settle back to the muted collage treatment
+    // stills are small and dark while ringed — lift them so it reads
     track.classList.add('is-entering');
-    setTimeout(() => track.classList.remove('is-entering'), 2100);
 
+    // 2. the ring winds open, growing outward as it turns
     tiles.forEach((tile, i) => {
-      const delay = (i % (N / 2)) * 28;
+      const p = ringPos(tile, i, R_OPEN, 0.62);
       tile.style.transition =
-        `transform 1.6s cubic-bezier(.16,1,.3,1) ${delay}ms,opacity .9s ease ${delay}ms`;
-      tile.style.transform = 'translate(0,0) scale(1) rotate(0deg)';
+        `transform ${SWELL}ms cubic-bezier(.4,0,.15,1),opacity .55s ease`;
+      tile.style.transform = `translate(${p.dx}px,${p.dy}px) scale(.52) rotate(-24deg)`;
       tile.style.opacity = '1';
     });
+
+    // 3. it breaks apart and every still slots into the collage
+    setTimeout(() => {
+      tiles.forEach((tile, i) => {
+        const delay = (i % (N / 2)) * 26;
+        tile.style.transition = `transform ${BREAK}ms cubic-bezier(.16,1,.3,1) ${delay}ms`;
+        tile.style.transform = 'translate(0,0) scale(1) rotate(0deg)';
+      });
+      setTimeout(() => track.classList.remove('is-entering'), BREAK + 26 * (N / 2));
+    }, SWELL - 120);
   };
 
   // ---- preloader: spin until the first copy of the collage has decoded ----
