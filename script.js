@@ -919,37 +919,18 @@ if (intro && !document.documentElement.classList.contains('intro-seen')) {
     }, SWELL - 120);
   };
 
-  // ---- preloader: spin until the first copy of the collage has decoded ----
+  // ---- run the ring entrance once the first copy of the collage has decoded ----
   (() => {
-    const countEl = document.getElementById('introCount');
-    const arc = document.querySelector('.intro__spinner-arc');
-    const CIRC = 2 * Math.PI * 46;
     const imgs = [...track.querySelectorAll('.intro__tile img')].slice(0, TILES.length);
     const total = imgs.length || 1;
     let loaded = 0;
     let finished = false;
 
-    if (arc) {
-      arc.style.strokeDasharray = `${CIRC}`;
-      arc.style.strokeDashoffset = `${CIRC}`;
-    }
-
-    const paint = () => {
-      const ratio = Math.min(1, loaded / total);
-      if (countEl) countEl.textContent = `${Math.round(ratio * 100)}`;
-      if (arc) arc.style.strokeDashoffset = `${CIRC * (1 - ratio)}`;
-    };
-
     const finish = () => {
       if (finished) return;
       finished = true;
-      loaded = total;
-      paint();
-      // let 100% land before wiping the loader, then fling the ring open
-      setTimeout(() => {
-        intro.classList.remove('is-loading');
-        playEntrance();
-      }, 450);
+      intro.classList.add('is-ready');
+      playEntrance();
     };
 
     imgs.forEach((img) => {
@@ -959,16 +940,14 @@ if (intro && !document.documentElement.classList.contains('intro-seen')) {
       }
       const done = () => {
         loaded++;
-        paint();
         if (loaded >= total) finish();
       };
       img.addEventListener('load', done, { once: true });
       img.addEventListener('error', done, { once: true });
     });
 
-    paint();
     if (loaded >= total) finish();
-    // never strand the visitor on the spinner if an image stalls
+    // never strand the visitor if an image stalls
     setTimeout(finish, 8000);
   })();
 
