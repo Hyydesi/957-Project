@@ -14,7 +14,7 @@ const PROJECTS = [
     title: 'Surfcash',
     desc: "What are we good at? Branding, design, and websites. But you've heard that before, true. The expertise lies in perfection.",
     tags: ['MOBILE APP', 'WEB DESIGN', 'ART DIRECTION'],
-    listTitle: '(SURFCASH) SOLANA MOBILE APPLICATION',
+    listTitle: '[SURFCASH] SOLANA MOBILE APPLICATION',
   },
   {
     code: 'ECHO_VERSE',
@@ -25,7 +25,7 @@ const PROJECTS = [
     title: 'Echo Verse',
     desc: 'A PWA social networking platform built for creators — from pixels to perfection, designed to feel alive on every screen.',
     tags: ['MOBILE APP', 'WEB DESIGN', 'ART DIRECTION'],
-    listTitle: 'ECHO VERSE: PWA SOCIAL NETWORKING PLATFORM',
+    listTitle: '[ECHO VERSE] PWA SOCIAL NETWORKING PLATFORM',
   },
   {
     code: 'NEW_PAY',
@@ -36,7 +36,7 @@ const PROJECTS = [
     title: 'NewPay',
     desc: 'A new way to spend your crypto — a mobile wallet experience balancing clarity, trust and bold visual identity.',
     tags: ['MOBILE APP', 'WEB DESIGN', 'ART DIRECTION'],
-    listTitle: '(NEWPAY) A NEW WAY TO SPEND YOUR CRYPTO',
+    listTitle: '[NEWPAY] A NEW WAY TO SPEND YOUR CRYPTO',
   },
   {
     code: 'KLEVER',
@@ -47,7 +47,7 @@ const PROJECTS = [
     title: 'Klever',
     desc: 'Illuminating the future of decentralized finance through a clean, confident product and brand system.',
     tags: ['MOBILE APP', 'WEB DESIGN', 'ART DIRECTION'],
-    listTitle: '(KLEVER) ILLUMINATING THE FUTURE OF DECENTRALIZED FINANCE',
+    listTitle: '[KLEVER] ILLUMINATING THE FUTURE OF DECENTRALIZED FINANCE',
     href: 'klever.html',
   },
 ];

@@ -77,7 +77,6 @@ restartAutoplay();
 
 // ---------- Project listing ----------
 const wlistGrid = document.getElementById('wlistGrid');
-const wlistView = document.getElementById('wlistView');
 
 wlistGrid.innerHTML = PROJECTS.map((p) => {
   const Tag = p.href ? 'a' : 'div';
@@ -98,13 +97,3 @@ wlistGrid.innerHTML = PROJECTS.map((p) => {
   </article>
 `;
 }).join('');
-
-wlistView.addEventListener('click', (e) => {
-  const btn = e.target.closest('button');
-  if (!btn) return;
-  wlistView.querySelectorAll('button').forEach((b) => b.classList.remove('is-active'));
-  btn.classList.add('is-active');
-  wlistGrid.classList.remove('is-list', 'is-full');
-  if (btn.dataset.view === 'list') wlistGrid.classList.add('is-list');
-  if (btn.dataset.view === 'full') wlistGrid.classList.add('is-full');
-});
