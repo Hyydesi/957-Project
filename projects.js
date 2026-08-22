@@ -6,6 +6,19 @@
 //   year      → used by both the home year filter and the works listing
 const PROJECTS = [
   {
+    code: 'KLEVER',
+    name: 'Klever',
+    year: '2025',
+    category: 'web visual',
+    image: 'assets/project-3.jpg',
+    video: 'https://player.vimeo.com/video/1220387401?background=1&autoplay=1&loop=1&muted=1',
+    title: 'Klever',
+    desc: 'Illuminating the future of decentralized finance through a clean, confident product and brand system.',
+    tags: ['MOBILE APP', 'WEB DESIGN', 'ART DIRECTION'],
+    listTitle: '[KLEVER] ILLUMINATING THE FUTURE OF DECENTRALIZED FINANCE',
+    href: 'klever.html',
+  },
+  {
     code: 'SURFCASH',
     name: 'SurfCash',
     year: '2024',
@@ -37,17 +50,5 @@ const PROJECTS = [
     desc: 'A new way to spend your crypto — a mobile wallet experience balancing clarity, trust and bold visual identity.',
     tags: ['MOBILE APP', 'WEB DESIGN', 'ART DIRECTION'],
     listTitle: '[NEWPAY] A NEW WAY TO SPEND YOUR CRYPTO',
-  },
-  {
-    code: 'KLEVER',
-    name: 'Klever',
-    year: '2025',
-    category: 'web visual',
-    image: 'assets/project-3.jpg',
-    title: 'Klever',
-    desc: 'Illuminating the future of decentralized finance through a clean, confident product and brand system.',
-    tags: ['MOBILE APP', 'WEB DESIGN', 'ART DIRECTION'],
-    listTitle: '[KLEVER] ILLUMINATING THE FUTURE OF DECENTRALIZED FINANCE',
-    href: 'klever.html',
   },
 ];

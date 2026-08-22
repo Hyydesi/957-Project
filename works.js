@@ -84,7 +84,9 @@ wlistGrid.innerHTML = PROJECTS.map((p) => {
   return `
   <article class="wcard">
     <${Tag} class="wcard__link" ${hrefAttr}>
-      <div class="wcard__img"><img src="${p.image}" alt="${p.name}"></div>
+      <div class="wcard__img">${p.video
+        ? `<iframe class="wcard__video" src="${p.video}" title="${p.name}" frameborder="0" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe><div class="wcard__video-mask"></div>`
+        : `<img src="${p.image}" alt="${p.name}">`}</div>
       <div class="wcard__meta">
         <div class="wcard__logo">${p.name.charAt(0)}</div>
         <div class="wcard__info">

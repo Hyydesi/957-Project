@@ -686,6 +686,9 @@ button{font:inherit;background:none;border:none;color:inherit;cursor:pointer;}
   display:flex;flex-direction:column;justify-content:flex-end;
   padding-top:var(--nav-h);color:var(--white);
 }
+@media(min-width:900px){
+  .wp-hero{min-height:72vh;}
+}
 .wp-hero__bg{position:absolute;inset:0;z-index:0;}
 .wp-hero__bg img{width:100%;height:100%;object-fit:cover;transition:opacity .6s ease;}
 .wp-hero__scrim{
@@ -720,6 +723,7 @@ button{font:inherit;background:none;border:none;color:inherit;cursor:pointer;}
 .wp-hero__title{
   font-family:var(--font-display);font-size:clamp(40px,6vw,64px);
   text-align:left;letter-spacing:-.5px;margin-bottom:16px;
+  text-transform:uppercase;
 }
 .wp-hero__desc{font-family:var(--font-body);font-size:16px;color:var(--muted-4);line-height:1.5;}
 .wp-hero__caselink{
@@ -742,7 +746,7 @@ button{font:inherit;background:none;border:none;color:inherit;cursor:pointer;}
 .wp-thumb:hover{border-color:rgba(255,255,255,.5);}
 
 /* ---------- WORKS: project listing ---------- */
-.wlist{background:#efebe4;color:#101010;padding:100px max(24px,calc((100% - 1600px) / 2)) 120px;width:100%;}
+.wlist{background:var(--bg-dark);color:var(--white);padding:100px max(24px,calc((100% - 1600px) / 2)) 120px;width:100%;}
 
 .wlist__grid{
   display:grid;grid-template-columns:1fr;column-gap:40px;row-gap:56px;
@@ -751,115 +755,19 @@ button{font:inherit;background:none;border:none;color:inherit;cursor:pointer;}
 @media(min-width:1100px){.wlist__grid{grid-template-columns:1fr 1fr 1fr;}}
 
 .wcard__link{display:block;color:inherit;}
-.wcard__img{aspect-ratio:7/5;overflow:hidden;background:#1a1a1a;}
+.wcard__img{aspect-ratio:7/5;overflow:hidden;background:#1a1a1a;position:relative;}
 .wcard__img img{width:100%;height:100%;object-fit:cover;transition:transform .5s ease;}
+.wcard__video{position:absolute;inset:0;width:100%;height:100%;border:0;pointer-events:none;}
+.wcard__video-mask{position:absolute;top:0;left:0;right:0;height:13%;background:#eee;pointer-events:none;}
 .wcard:hover .wcard__img img{transform:scale(1.04);}
 .wcard__meta{display:flex;align-items:flex-start;gap:16px;padding-top:20px;flex-wrap:wrap;}
 .wcard__logo{display:none;}
 .wcard__info{flex:1;min-width:200px;display:flex;flex-direction:column;gap:10px;}
 .wcard__title{
   order:-1;font-family:'DM Sans',var(--font-body);font-weight:700;font-size:16px;
-  letter-spacing:.02em;text-transform:uppercase;color:#101010;
+  letter-spacing:.02em;text-transform:uppercase;color:var(--white);
 }
-.wcard__tags{display:flex;flex-direction:column;gap:2px;font-family:'DM Sans',var(--font-body);font-size:15px;color:#98938c;}
+.wcard__tags{display:flex;flex-direction:column;gap:2px;font-family:'DM Sans',var(--font-body);font-size:15px;color:var(--muted-3);}
 .wcard__tags span::after{content:none;}
 .wcard__year{display:none;}
 
-/* ---------- INTRO / LANDING ---------- */
-.intro{
-  position:fixed;inset:0;z-index:300;
-  background:var(--bg-dark);overflow:hidden;
-  cursor:grab;touch-action:none;user-select:none;
-  transition:opacity .8s cubic-bezier(.76,0,.24,1),visibility .8s;
-}
-.intro.is-dragging{cursor:grabbing;}
-.intro.is-leaving{opacity:0;visibility:hidden;pointer-events:none;}
-.intro-seen .intro{display:none;}
-.intro-open,.intro-open body{overflow:hidden;}
-
-.intro__track{position:absolute;top:0;left:0;height:100%;will-change:transform;}
-.intro__tile{position:absolute;overflow:hidden;background:#1a1a1a;}
-.intro__tile img{
-  width:100%;height:100%;object-fit:cover;display:block;
-  filter:grayscale(1) contrast(1.05);opacity:.62;
-  transition:filter .5s ease,opacity .5s ease,transform .8s cubic-bezier(.16,1,.3,1);
-}
-.intro__tile:hover img{filter:grayscale(0) contrast(1);opacity:1;transform:scale(1.04);}
-
-/* keeps the wordmark + button legible over the collage */
-.intro__scrim{
-  position:absolute;inset:0;pointer-events:none;
-  background:radial-gradient(ellipse 46% 42% at 50% 50%,rgba(14,14,14,.94) 0%,rgba(14,14,14,.72) 45%,rgba(14,14,14,0) 78%);
-}
-
-.intro__center{
-  position:absolute;inset:0;z-index:2;pointer-events:none;
-  display:flex;flex-direction:column;align-items:center;justify-content:center;
-  gap:clamp(28px,5vh,56px);padding:0 24px;
-}
-.intro__logo{width:min(56vw,620px);height:auto;}
-.intro__enter{
-  pointer-events:auto;
-  font-family:var(--font-mono);font-size:14px;letter-spacing:.18em;
-  color:var(--white);background:transparent;
-  border:1px solid rgba(255,255,255,.35);border-radius:999px;
-  padding:16px 44px;position:relative;overflow:hidden;
-  transition:color .45s cubic-bezier(.76,0,.24,1),border-color .45s ease;
-}
-@media(min-width:640px){.intro__enter{font-size:15px;padding:18px 54px;}}
-.intro__enter::before{
-  content:"";position:absolute;inset:0;z-index:-1;background:var(--red);
-  transform:scaleX(0);transform-origin:left center;
-  transition:transform .45s cubic-bezier(.76,0,.24,1);
-}
-.intro__enter:hover{border-color:var(--red);}
-.intro__enter:hover::before{transform:scaleX(1);}
-.intro__enter:focus-visible{outline:2px solid var(--red);outline-offset:4px;}
-
-.intro__meta{
-  position:absolute;z-index:2;
-  font-family:var(--font-mono);font-size:11px;letter-spacing:.12em;
-  color:var(--muted-3);white-space:nowrap;pointer-events:none;
-}
-@media(min-width:640px){.intro__meta{font-size:13px;}}
-.intro__meta--tl{top:24px;left:24px;}
-.intro__meta--tr{top:24px;right:24px;}
-.intro__meta--bl{bottom:24px;left:24px;}
-.intro__meta--br{bottom:24px;right:24px;}
-@media(min-width:640px){
-  .intro__meta--tl{top:32px;left:40px;}
-  .intro__meta--tr{top:32px;right:40px;}
-  .intro__meta--bl{bottom:32px;left:40px;}
-  .intro__meta--br{bottom:32px;right:40px;}
-}
-#introHint{transition:opacity .4s ease;}
-#introHint.is-hidden{opacity:0;}
-
-@media(prefers-reduced-motion:reduce){
-  .intro,.intro__enter,.intro__enter::before,.intro__tile img{transition:none;}
-}
-
-@media(max-width:639px){
-  /* the two top labels would collide on narrow screens */
-  .intro__meta--tr{display:none;}
-  .intro__meta--tl .dim{display:none;}
-}
-
-/* keep the collage hidden until the ring entrance is about to run, so there's
-   no flash of the fully-laid-out collage before it clenches into a ring.
-   the track only needs a quick un-hide — the per-tile ring animation in
-   script.js does the actual reveal. */
-.intro__track{opacity:0;transition:opacity .3s ease;}
-.intro__center{opacity:0;transition:opacity .9s ease .55s;}
-.intro__meta{opacity:0;transition:opacity .9s ease .75s;}
-.intro.is-ready .intro__track,
-.intro.is-ready .intro__center,
-.intro.is-ready .intro__meta{opacity:1;}
-
-@media(prefers-reduced-motion:reduce){
-  .intro__track,.intro__center,.intro__meta{transition:none;}
-}
-
-/* while the ring flies open the stills are small and dark, so lift them;
-   they ease back to the muted collage treatment once settled */
-.intro__track.is-entering .intro__tile img{opacity:1;filter:grayscale(1) contrast(1.15);}
