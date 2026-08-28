@@ -7,9 +7,47 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=Roboto+Mono:wght@400;500&family=Inter:wght@400;500;600&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=19">
+<link rel="stylesheet" href="styles.css?v=37">
+<script>try{if(!matchMedia('(prefers-reduced-motion: reduce)').matches)document.documentElement.classList.add('is-loading');}catch(e){}</script>
 </head>
 <body class="home">
+
+<!-- LOADING -->
+<div class="load" id="load" role="status" aria-label="Loading">
+  <span class="load__bar" aria-hidden="true"></span>
+
+  <div class="load__grid" aria-hidden="true">
+    <span class="load__line load__line--l"></span>
+    <span class="load__line load__line--r"></span>
+    <span class="load__line load__line--t"></span>
+    <span class="load__line load__line--b"></span>
+  </div>
+
+  <div class="load__stage" aria-hidden="true">
+    <div class="load__clock"><span class="load__hand"></span></div>
+
+    <div class="load__logo">
+      <span class="load__frame"></span>
+      <div class="load__row">
+        <span class="load__word">NINEFIVE</span>
+        <img class="load__seven" src="assets/logo-seven-red.svg" alt="">
+      </div>
+      <span class="load__slot" id="loadSlot"></span>
+    </div>
+  </div>
+
+  <div class="load__chips" aria-hidden="true">
+    <span class="load__chip load__chip--a">9876.19387.2654</span>
+    <span class="load__chip load__chip--b">918.876</span>
+    <span class="load__chip load__chip--c">-98.76543.0987654210</span>
+  </div>
+
+  <p class="load__count" id="loadCount">00</p>
+
+  <div class="load__tagline" aria-hidden="true">
+    <span>ALIGN</span><span>DRIVE</span><span>VISION</span>
+  </div>
+</div>
 
 <nav class="nav" id="nav" data-theme="dark">
   <div class="nav__inner">
@@ -61,35 +99,80 @@
 
   <!-- HERO -->
   <section class="hero" id="hero" data-theme="dark">
-    <div class="hero__bg">
-      <video class="hero__bg-video" src="assets/hero-video.mp4" autoplay muted loop playsinline></video>
+    <div class="hero__head">
+      <!-- two marks pushed to the edges, as in the design — together they fill the row -->
+      <div class="hero__wordmark" role="img" aria-label="NINEFIVESEVEN">
+        <img class="hero__wordmark-a" src="assets/hero/wordmark-ninefive.svg" alt="">
+        <img class="hero__wordmark-b" src="assets/hero/wordmark-seven.svg" alt="">
+      </div>
+
+      <div class="hero__available">
+        <p>BASED IN VIETNAM</p>
+        <p>AVAILABLE WORLDWIDE</p>
+      </div>
     </div>
 
-    <div class="hero__available">
-      <p>BASED IN VIETNAM</p>
-      <p>AVAILABLE WORLDWIDE</p>
-    </div>
-
-    <div class="hero__wordmark">
-      <img src="assets/logo-hero-white.svg" alt="NINEFIVESEVEN">
+    <!-- the set is listed twice so the right-to-left loop wraps seamlessly -->
+    <div class="hero__reel" aria-hidden="true">
+      <div class="hero__reel-track">
+        <div class="hero__reel-card"><img src="assets/hero/reel-1.png" alt=""></div>
+        <div class="hero__reel-card"><img src="assets/hero/reel-2.png" alt=""></div>
+        <div class="hero__reel-card"><img src="assets/hero/reel-3.png" alt=""></div>
+        <div class="hero__reel-card"><img src="assets/hero/reel-4.png" alt=""></div>
+        <div class="hero__reel-card"><img src="assets/hero/reel-5.png" alt=""></div>
+        <div class="hero__reel-card"><img src="assets/hero/reel-6.png" alt=""></div>
+        <div class="hero__reel-card"><img src="assets/hero/reel-7.png" alt=""></div>
+        <div class="hero__reel-card"><img src="assets/hero/reel-8.png" alt=""></div>
+        <div class="hero__reel-card"><img src="assets/hero/reel-1.png" alt=""></div>
+        <div class="hero__reel-card"><img src="assets/hero/reel-2.png" alt=""></div>
+        <div class="hero__reel-card"><img src="assets/hero/reel-3.png" alt=""></div>
+        <div class="hero__reel-card"><img src="assets/hero/reel-4.png" alt=""></div>
+        <div class="hero__reel-card"><img src="assets/hero/reel-5.png" alt=""></div>
+        <div class="hero__reel-card"><img src="assets/hero/reel-6.png" alt=""></div>
+        <div class="hero__reel-card"><img src="assets/hero/reel-7.png" alt=""></div>
+        <div class="hero__reel-card"><img src="assets/hero/reel-8.png" alt=""></div>
+      </div>
     </div>
   </section>
   <div class="hero__spacer" aria-hidden="true"></div>
 
-  <!-- ABOUT -->
+  <!-- ABOUT — pinned stage: the copy reveals, then the services list walks -->
   <section class="about" id="about" data-theme="dark">
-    <div class="about__inner">
-      <div class="about__logo">
-        <img src="assets/logo-about-stacked.svg" alt="NINEFIVESEVEN">
-      </div>
-      <div class="about__copy">
-        <p class="about__paragraph" data-scroll-reveal>
-          957 is a concept-driven design studio founded in 2025 and based in Vietnam.
-          <br><br>
-          Rooted in modernist design principles and graphic design tradition, our work combines typography, grid systems and motion to create digital experiences that balance clarity, usability and bold visual expression.
-          <br><br>
-          Our team remains intentionally small, under 10 people, which allows creative direction to stay personal and decisions to stay sharp. Every project is led closely by the founders. No layers. No dilution.
-        </p>
+    <div class="about__sticky">
+      <div class="about__inner">
+        <div class="about__copy">
+          <p class="about__paragraph" data-scroll-reveal>
+            <span class="about__mark" aria-hidden="true"></span>
+            957 is a concept-driven design studio founded in 2025 and based in Vietnam. Rooted in modernist design principles and graphic design tradition, our work combines typography, grid systems and motion to create digital experiences that balance clarity, usability and bold visual expression. Our team remains intentionally small, under 10 people, which allows creative direction to stay personal and decisions to stay sharp. Every project is led closely by the founders. No layers. No dilution.
+          </p>
+        </div>
+
+        <div class="about__row">
+          <div class="about__services-col">
+            <span class="about__label">SERVICES</span>
+            <img class="about__logo-mark" src="assets/logo-about-stacked.svg" alt="NINEFIVESEVEN">
+          </div>
+
+          <ul class="about__list">
+            <li>WEB3 PRODUCT</li>
+            <li>VISUAL IDENTITY</li>
+            <li>WEB DESIGN</li>
+            <li>GAME DESIGN</li>
+            <li>MOTION VIDEO</li>
+          </ul>
+
+          <!-- one still per service, in list order; motion video is a muted loop -->
+          <div class="about__preview" aria-hidden="true">
+            <img class="about__shot is-on" src="assets/services/web3-product.png" alt="">
+            <img class="about__shot" src="assets/services/visual-identity.png" alt="">
+            <img class="about__shot" src="assets/services/web-design.png" alt="">
+            <img class="about__shot" src="assets/services/game-design.png" alt="">
+            <div class="about__shot about__shot--video">
+              <iframe src="https://player.vimeo.com/video/1222122809?background=1&amp;autoplay=1&amp;loop=1&amp;muted=1"
+                      title="Motion video reel" tabindex="-1" allow="autoplay" frameborder="0"></iframe>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </section>
@@ -389,7 +472,7 @@
 </main>
 
 <script src="https://cdn.jsdelivr.net/npm/lenis@1.1.13/dist/lenis.min.js"></script>
-<script src="projects.js?v=13"></script>
-<script src="script.js?v=13"></script>
+<script src="projects.js?v=16"></script>
+<script src="script.js?v=22"></script>
 </body>
 </html>

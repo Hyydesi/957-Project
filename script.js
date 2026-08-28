@@ -144,19 +144,6 @@ if (heroPinned && heroSpacer) {
   updateHeroCover();
 }
 
-// ---------- Nav exclusion blend: only while the hero is behind the nav ----------
-// The hero itself is position:fixed (pinned), so its own rect never moves with
-// scroll — track the hero__spacer instead, which holds the hero's scroll-flow position.
-if (nav && heroSpacer) {
-  const updateNavBlend = () => {
-    const spacerBottom = heroSpacer.getBoundingClientRect().bottom;
-    nav.classList.toggle('is-blend', spacerBottom > 64);
-  };
-  window.addEventListener('scroll', updateNavBlend, { passive: true });
-  window.addEventListener('resize', updateNavBlend);
-  updateNavBlend();
-}
-
 // ---------- Menu overlay ----------
 const menuToggle = document.getElementById('menuToggle');
 const menuOverlay = document.getElementById('menuOverlay');
@@ -178,6 +165,95 @@ if (menuToggle && menuOverlay && menuClose) {
   menuOverlay.querySelectorAll('.menu-link').forEach((link) => {
     link.addEventListener('click', () => menuOverlay.classList.remove('is-open'));
   });
+}
+
+// ---------- About stage: pinned copy, then the services walk ----------
+// The copy is sticky-pinned, so its own rect stops moving and can no longer
+// drive the word reveal — the stage's scroll progress drives both instead:
+//   0 → COPY_END   the words light up
+//   COPY_END → LIST_END   the highlight walks the list, swapping the preview
+// Registered before the reveal below so __progress is fresh when it runs.
+const aboutStage = document.getElementById('about');
+const aboutPara = aboutStage && aboutStage.querySelector('.about__paragraph');
+
+if (aboutStage && aboutPara) {
+  const COPY_END = 0.45;
+  const LIST_END = 0.92; // the last service holds lit through the exit
+  const aboutSticky = aboutStage.querySelector('.about__sticky');
+  const items = Array.from(aboutStage.querySelectorAll('.about__list li'));
+  const shots = Array.from(aboutStage.querySelectorAll('.about__shot'));
+  const clamp01 = (v) => Math.min(1, Math.max(0, v));
+
+  // Whether the stage actually pins — the section is taller than the viewport
+  // either way, so height alone can't tell us; the media query decides.
+  let pinned = false;
+  const measure = () => {
+    pinned = !!aboutSticky && getComputedStyle(aboutSticky).position === 'sticky';
+  };
+
+  let active = -1;
+  const setActive = (i) => {
+    if (i === active) return;
+    const prev = active;
+    active = i;
+    items.forEach((li, n) => li.classList.toggle('is-active', n === i));
+
+    // Slide mask: the incoming still wipes up from its bottom edge while the
+    // outgoing one stays fully drawn just underneath, so the wipe reads as one
+    // image sliding over another — and it plays the same way scrolling back up.
+    const cur = Math.max(0, i);
+    shots.forEach((img, n) => {
+      img.classList.toggle('is-on', n === cur);
+      if (n === cur) {
+        img.style.transition = 'none';
+        img.style.zIndex = '2';
+        img.style.clipPath = 'inset(100% 0 0 0)';
+        void img.offsetWidth; // flush, so the wipe always starts from closed
+        img.style.transition = '';
+        img.style.clipPath = 'inset(0 0 0 0)';
+      } else if (n === prev) {
+        img.style.transition = 'none';
+        img.style.zIndex = '1';
+        img.style.clipPath = 'inset(0 0 0 0)';
+      } else {
+        img.style.transition = 'none';
+        img.style.zIndex = '0';
+        img.style.clipPath = 'inset(100% 0 0 0)';
+      }
+    });
+  };
+
+  const updateAboutStage = () => {
+    const rect = aboutStage.getBoundingClientRect();
+    const span = rect.height - window.innerHeight;
+
+    // Not pinned (mobile): leave the copy on its own rect-based reveal and
+    // light whichever service sits closest to the middle of the screen.
+    if (!pinned || span <= 0) {
+      aboutPara.__progress = null;
+      const mid = window.innerHeight / 2;
+      let best = 0;
+      let bestDist = Infinity;
+      items.forEach((li, n) => {
+        const r = li.getBoundingClientRect();
+        const d = Math.abs(r.top + r.height / 2 - mid);
+        if (d < bestDist) { bestDist = d; best = n; }
+      });
+      setActive(best);
+      return;
+    }
+
+    const p = clamp01(-rect.top / span);
+    aboutPara.__progress = clamp01(p / COPY_END);
+
+    const q = (p - COPY_END) / (LIST_END - COPY_END);
+    setActive(q <= 0 ? -1 : Math.min(items.length - 1, Math.floor(q * items.length)));
+  };
+
+  window.addEventListener('scroll', updateAboutStage, { passive: true });
+  window.addEventListener('resize', () => { measure(); updateAboutStage(); });
+  measure();
+  updateAboutStage();
 }
 
 // ---------- Scroll-reveal paragraph (word-by-word, like reactbits ScrollReveal) ----------
@@ -205,16 +281,23 @@ if (revealParagraphs.length) {
     });
   });
 
+  // A pinned paragraph can't read its own rect (it stops moving), so a stage
+  // may hand it progress directly via __progress; otherwise fall back to the
+  // paragraph's own travel through the viewport.
+  const progressFor = (p) => {
+    if (typeof p.__progress === 'number') return p.__progress;
+    const rect = p.getBoundingClientRect();
+    const start = window.innerHeight * 0.9;
+    const end = window.innerHeight * 0.35;
+    const total = rect.height + (start - end);
+    return Math.min(1, Math.max(0, (start - rect.top) / total));
+  };
+
   const updateScrollReveal = () => {
     revealParagraphs.forEach((p) => {
       const words = p.querySelectorAll('.sr-word');
       const n = words.length;
-      const rect = p.getBoundingClientRect();
-      const start = window.innerHeight * 0.9;
-      const end = window.innerHeight * 0.35;
-      const total = rect.height + (start - end);
-      const scrolled = start - rect.top;
-      const progress = Math.min(1, Math.max(0, scrolled / total));
+      const progress = progressFor(p);
 
       words.forEach((w, i) => {
         const wordStart = i / n;
@@ -745,6 +828,100 @@ if (categoryFilter && yearFilter && worksGrid) {
     });
   };
 
+  // ---------- Works: cards take a knock when the cursor crosses their edge ----------
+  // the pointer behaves like a physical object: crossing an edge shoves the card
+  // along that edge's normal, then a spring drags it home with a couple of light
+  // bounces. Off-centre hits also twist it slightly, like a real nudge would.
+  const finePointer = window.matchMedia('(hover:hover) and (pointer:fine)');
+  const SPRING = 0.14;    // stiffness — how hard the card is pulled back to rest
+  const DAMPING = 0.8;    // velocity kept per frame; under 1 it overshoots, hence the bounce
+  const REST = 0.02;      // px/deg under which the card is parked exactly at 0
+  const HIT_MIN = 2.2;    // impulse from a slow crossing
+  const HIT_MAX = 7;      // impulse from a fast one
+  const SPEED_CAP = 45;   // px/frame of cursor travel that counts as "fast"
+  const SPIN = 0.09;      // how much of an off-centre hit turns into rotation
+  const SPIN_CAP = 0.3;   // deg/frame, so the twist stays a hint
+  const EXIT_SCALE = 0.6; // leaving is a softer knock than arriving
+  const COOLDOWN = 240;   // ms — a card that just took a hit ignores the next one, so a
+                          // card sliding out from under the cursor can't retrigger itself
+
+  const bodies = new Map();
+  projects.forEach((project) => {
+    bodies.set(project, { x: 0, y: 0, r: 0, vx: 0, vy: 0, vr: 0, hit: 0 });
+  });
+  let physRaf = null;
+
+  // last cursor sample, so a bump knows how fast the pointer was moving
+  let pxLast = 0, pyLast = 0, pSpeed = 0, pTime = 0;
+  document.addEventListener('mousemove', (e) => {
+    const now = performance.now();
+    const dt = now - pTime;
+    if (pTime && dt > 0 && dt < 120) {
+      // normalise to px per 16ms frame, then smooth so one jumpy sample can't spike it
+      const step = Math.hypot(e.clientX - pxLast, e.clientY - pyLast) * (16 / dt);
+      pSpeed += (step - pSpeed) * 0.5;
+    }
+    pxLast = e.clientX; pyLast = e.clientY; pTime = now;
+  }, { passive: true });
+
+  const settle = (v, x) => Math.abs(v) < REST && Math.abs(x) < REST;
+
+  const physStep = () => {
+    let awake = false;
+    bodies.forEach((b, project) => {
+      if (!b.vx && !b.vy && !b.vr && !b.x && !b.y && !b.r) return;
+      b.vx = (b.vx - b.x * SPRING) * DAMPING;
+      b.vy = (b.vy - b.y * SPRING) * DAMPING;
+      b.vr = (b.vr - b.r * SPRING) * DAMPING;
+      b.x += b.vx; b.y += b.vy; b.r += b.vr;
+      if (settle(b.vx, b.x)) { b.x = 0; b.vx = 0; }
+      if (settle(b.vy, b.y)) { b.y = 0; b.vy = 0; }
+      if (settle(b.vr, b.r)) { b.r = 0; b.vr = 0; }
+      project.style.setProperty('--fx', `${b.x.toFixed(2)}px`);
+      project.style.setProperty('--fy', `${b.y.toFixed(2)}px`);
+      project.style.setProperty('--fr', `${b.r.toFixed(3)}deg`);
+      if (b.x || b.y || b.r || b.vx || b.vy || b.vr) awake = true;
+    });
+    physRaf = awake ? requestAnimationFrame(physStep) : null;
+  };
+
+  const bump = (project, e, outward) => {
+    if (!finePointer.matches || parReduced.matches) return;
+    const b = bodies.get(project);
+    const now = performance.now();
+    if (!b || now - b.hit < COOLDOWN) return;
+    b.hit = now;
+
+    // whichever edge the cursor is closest to is the one it just came through
+    const rect = project.getBoundingClientRect();
+    const dl = e.clientX - rect.left, dr = rect.right - e.clientX;
+    const dt = e.clientY - rect.top, db = rect.bottom - e.clientY;
+    const near = Math.min(dl, dr, dt, db);
+    let nx = 0, ny = 0;
+    if (near === dl) nx = 1;
+    else if (near === dr) nx = -1;
+    else if (near === dt) ny = 1;
+    else ny = -1;
+    // leaving pushes the other way: the cursor is on its way back out
+    if (outward) { nx = -nx; ny = -ny; }
+
+    const speed = Math.min(1, pSpeed / SPEED_CAP);
+    const force = (HIT_MIN + speed * (HIT_MAX - HIT_MIN)) * (outward ? EXIT_SCALE : 1);
+    b.vx += nx * force;
+    b.vy += ny * force;
+    // hit above the centre line and the card tips one way, below and the other
+    const offX = (e.clientX - (rect.left + rect.width / 2)) / (rect.width / 2);
+    const offY = (e.clientY - (rect.top + rect.height / 2)) / (rect.height / 2);
+    const spin = (nx * offY - ny * offX) * force * SPIN;
+    b.vr += Math.max(-SPIN_CAP, Math.min(SPIN_CAP, spin));
+    if (!physRaf) physRaf = requestAnimationFrame(physStep);
+  };
+
+  projects.forEach((project) => {
+    project.addEventListener('mouseenter', (e) => bump(project, e, false));
+    project.addEventListener('mouseleave', (e) => bump(project, e, true));
+  });
+
   window.addEventListener('scroll', requestParallax, { passive: true });
   window.addEventListener('scroll', revealDriver, { passive: true });
   window.addEventListener('scroll', updateWeb, { passive: true });
@@ -790,3 +967,99 @@ if (lazyVideos.length) {
   updateLazyVideos();
 }
 
+
+// ---------- Loading screen (home): dial → wordmark → split reveal ----------
+const load = document.getElementById('load');
+
+if (load && document.documentElement.classList.contains('is-loading')) {
+  const countEl = document.getElementById('loadCount');
+  const slot = document.getElementById('loadSlot');
+
+  const MIN_MS = 4200; // long enough for the dial, the wordmark and the split to read
+  const MAX_MS = 10000; // never strand the visitor behind one stalled asset
+  const HOLD = 92;     // where the count waits on the page itself
+  const SHOT_MS = 260; // how fast the stills swap once the wordmark is open
+
+  // the stills that ride out of the gap, straight from the shared project list
+  const SHOT_RUN = 10; // how many flash past once the wordmark splits open
+  const pool = (typeof PROJECTS !== 'undefined' ? PROJECTS : [])
+    .map((p) => p.image)
+    .filter(Boolean);
+
+  // a random run — the pool is smaller than the run, so stills repeat by design
+  for (let i = 0; pool.length && i < SHOT_RUN; i += 1) {
+    const img = document.createElement('img');
+    img.src = pool[Math.floor(Math.random() * pool.length)];
+    img.alt = '';
+    if (i === 0) img.className = 'is-on';
+    slot.appendChild(img);
+  }
+
+  let shotIndex = 0;
+  let shotTimer = null;
+  const cycleShots = () => {
+    if (shotTimer || slot.children.length < 2) return;
+    shotTimer = setInterval(() => {
+      const imgs = slot.children;
+      imgs[shotIndex].classList.remove('is-on');
+      shotIndex = (shotIndex + 1) % imgs.length;
+      imgs[shotIndex].classList.add('is-on');
+    }, SHOT_MS);
+  };
+
+  let phase = '';
+  const setPhase = (next) => {
+    if (phase === next) return;
+    phase = next;
+    load.classList.remove('is-clock', 'is-mark', 'is-split');
+    load.classList.add(next);
+    if (next === 'is-split') cycleShots();
+  };
+
+  let ready = document.readyState === 'complete';
+  window.addEventListener('load', () => { ready = true; }, { once: true });
+
+  let done = false;
+  const finish = () => {
+    if (done) return;
+    done = true;
+    clearInterval(shotTimer);
+
+    load.classList.add('is-done');
+    document.documentElement.classList.remove('is-loading');
+    if (lenis) lenis.start();
+
+    setTimeout(() => {
+      load.remove();
+      window.dispatchEvent(new Event('scroll'));
+      window.dispatchEvent(new Event('resize'));
+    }, 800);
+  };
+
+  const start = performance.now();
+  let p = 0;
+
+  const step = (now) => {
+    const elapsed = now - start;
+    // the count never outruns the clock, and never stalls past MAX_MS
+    const capped = HOLD * Math.min(1, elapsed / MIN_MS);
+    const target = (ready && elapsed >= MIN_MS) || elapsed >= MAX_MS ? 100 : capped;
+
+    p += (target - p) * 0.1;
+    if (target === 100 && p > 99.5) p = 100;
+
+    load.style.setProperty('--p', p.toFixed(2));
+    countEl.textContent = String(Math.round(p)).padStart(2, '0');
+
+    if (p < 55) setPhase('is-clock');
+    else if (p < 65) setPhase('is-mark');
+    else setPhase('is-split');
+
+    if (p >= 100) finish();
+    else requestAnimationFrame(step);
+  };
+
+  if (lenis) lenis.stop();
+  setPhase('is-clock');
+  requestAnimationFrame(step);
+}

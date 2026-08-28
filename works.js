@@ -9,17 +9,24 @@ const wpBadgeName = document.getElementById('wpBadgeName');
 const wpBadgeYear = document.getElementById('wpBadgeYear');
 const wpProgress = document.getElementById('wpProgress');
 const wpThumbs = document.getElementById('wpThumbs');
-const wpCaseLink = document.getElementById('wpCaseLink');
+const wpBadgeIcon = document.getElementById('wpBadgeIcon');
 
 let activeSlide = 0;
 let autoplayTimer = null;
 
+// Swap an image back to the project still if its logo file isn't there yet,
+// so a missing asset degrades instead of showing a broken image.
+function withFallback(img, fallback) {
+  img.addEventListener('error', () => { img.src = fallback; }, { once: true });
+}
+
 function renderThumbs() {
   wpThumbs.innerHTML = PROJECTS.map((p, i) => `
-    <button class="wp-thumb${i === activeSlide ? ' is-active' : ''}" data-index="${i}">
-      <img src="${p.image}" alt="${p.name}">
+    <button class="wp-thumb${i === activeSlide ? ' is-active' : ''}" data-index="${i}" aria-label="${p.name}">
+      <img src="${p.logo || p.image}" alt="">
     </button>
   `).join('');
+  wpThumbs.querySelectorAll('img').forEach((img, i) => withFallback(img, PROJECTS[i].image));
 }
 
 function renderProgress() {
@@ -33,20 +40,26 @@ function renderProgress() {
 function goToSlide(index) {
   activeSlide = (index + PROJECTS.length) % PROJECTS.length;
   const p = PROJECTS[activeSlide];
-  wpHeroImg.style.opacity = 0;
-  setTimeout(() => {
-    wpHeroImg.src = p.image;
-    wpHeroImg.style.opacity = 1;
-  }, 200);
+  // skip the cross-fade when the image is already the one on screen (first paint)
+  if (wpHeroImg.getAttribute('src') !== p.image) {
+    wpHeroImg.style.opacity = 0;
+    setTimeout(() => {
+      wpHeroImg.src = p.image;
+      wpHeroImg.style.opacity = 1;
+    }, 200);
+  }
   wpTitle.textContent = p.title;
   wpDesc.textContent = p.desc;
   wpBadgeName.textContent = p.name;
   wpBadgeYear.textContent = p.year;
-  if (p.href) {
-    wpCaseLink.href = p.href;
-    wpCaseLink.hidden = false;
+  // each project carries its own mark; hidden until one is supplied
+  if (p.logo) {
+    wpBadgeIcon.hidden = false;
+    withFallback(wpBadgeIcon, p.image);
+    wpBadgeIcon.src = p.logo;
   } else {
-    wpCaseLink.hidden = true;
+    wpBadgeIcon.removeAttribute('src');
+    wpBadgeIcon.hidden = true;
   }
   renderThumbs();
   renderProgress();
@@ -71,9 +84,9 @@ wpThumbs.addEventListener('click', (e) => {
   goToSlide(Number(btn.dataset.index));
 });
 
-renderThumbs();
-renderProgress();
-restartAutoplay();
+// drive the first slide through the same path as every other one, so the badge
+// icon and the rest can't drift from the markup's placeholder text
+goToSlide(0);
 
 // ---------- Project listing ----------
 const wlistGrid = document.getElementById('wlistGrid');
@@ -92,6 +105,7 @@ wlistGrid.innerHTML = PROJECTS.map((p) => {
         <div class="wcard__info">
           <div class="wcard__tags">${p.tags.map((t) => `<span>${t}</span>`).join('')}</div>
           <h3 class="wcard__title">${p.listTitle}</h3>
+          ${p.href ? '' : '<p class="wcard__soon">Coming soon</p>'}
         </div>
         <span class="wcard__year">${p.year}</span>
       </div>
