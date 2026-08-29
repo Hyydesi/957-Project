@@ -40,11 +40,14 @@ function renderProgress() {
 function goToSlide(index) {
   activeSlide = (index + PROJECTS.length) % PROJECTS.length;
   const p = PROJECTS[activeSlide];
+  // hero uses a dedicated cover image when one exists, falling back to the
+  // project still — the listing grid below always keeps using p.image
+  const heroSrc = p.cover || p.image;
   // skip the cross-fade when the image is already the one on screen (first paint)
-  if (wpHeroImg.getAttribute('src') !== p.image) {
+  if (wpHeroImg.getAttribute('src') !== heroSrc) {
     wpHeroImg.style.opacity = 0;
     setTimeout(() => {
-      wpHeroImg.src = p.image;
+      wpHeroImg.src = heroSrc;
       wpHeroImg.style.opacity = 1;
     }, 200);
   }
