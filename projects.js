@@ -15,7 +15,7 @@ const PROJECTS = [
     video: 'https://player.vimeo.com/video/1220387401?background=1&autoplay=1&loop=1&muted=1',
     title: 'Klever',
     desc: 'Illuminating the future of decentralized finance through a clean, confident product and brand system.',
-    tags: ['MOBILE APP', 'WEB DESIGN', 'ART DIRECTION'],
+    tags: ['WEB APP', 'VISUAL IDENTITY', 'BLOCKCHAIN'],
     listTitle: '[KLEVER] ILLUMINATING THE FUTURE OF DECENTRALIZED FINANCE',
     href: 'klever.html',
   },
@@ -28,7 +28,7 @@ const PROJECTS = [
     logo: 'assets/logos/surfcash.png',
     title: 'Surfcash',
     desc: "What are we good at? Branding, design, and websites. But you've heard that before, true. The expertise lies in perfection.",
-    tags: ['MOBILE APP', 'WEB DESIGN', 'ART DIRECTION'],
+    tags: ['MOBILE APP', 'VISUAL IDENTITY', 'BLOCKCHAIN'],
     listTitle: '[SURFCASH] SOLANA MOBILE APPLICATION',
   },
   {
@@ -40,7 +40,7 @@ const PROJECTS = [
     logo: 'assets/logos/echo-verse.png',
     title: 'Echo Verse',
     desc: 'A PWA social networking platform built for creators — from pixels to perfection, designed to feel alive on every screen.',
-    tags: ['MOBILE APP', 'WEB DESIGN', 'ART DIRECTION'],
+    tags: ['MOBILE APP', 'SOCIAL MEDIA APP', 'VISUAL IDENTITY'],
     listTitle: '[ECHO VERSE] PWA SOCIAL NETWORKING PLATFORM',
   },
   {
@@ -52,7 +52,7 @@ const PROJECTS = [
     logo: 'assets/logos/newpay.png',
     title: 'NewPay',
     desc: 'A new way to spend your crypto — a mobile wallet experience balancing clarity, trust and bold visual identity.',
-    tags: ['MOBILE APP', 'WEB DESIGN', 'ART DIRECTION'],
+    tags: ['COMPANY WEBSITE', 'MOBILE APP', 'CARD DESIGN', 'VISUAL IDENTITY'],
     listTitle: '[NEWPAY] A NEW WAY TO SPEND YOUR CRYPTO',
   },
 ];
