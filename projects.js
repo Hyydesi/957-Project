@@ -24,7 +24,7 @@ const PROJECTS = [
     code: 'SURFCASH',
     name: 'SurfCash',
     year: '2024',
-    category: 'app web',
+    category: 'app',
     image: 'assets/project-1.jpg',
     cover: 'assets/covers/surfcash.jpg',
     logo: 'assets/logos/surfcash.png',

@@ -526,8 +526,10 @@ button{font:inherit;background:none;border:none;color:inherit;cursor:pointer;}
 }
 /* hovered card: shrink slightly; the red frame + corners only show in LIST view */
 .project:hover{--sc:.94;}
+.works__grid.is-list .project::before,
+.works__grid.is-list .project::after{inset:-16px;transition:opacity .35s ease;}
 .works__grid.is-list .project:hover::before,
-.works__grid.is-list .project:hover::after{opacity:1;inset:-20px;}
+.works__grid.is-list .project:hover::after{opacity:1;inset:-16px;}
 @media(prefers-reduced-motion:reduce){
   .project{opacity:1;transform:none;transition:none;--ry:0px;}
 }
@@ -553,13 +555,16 @@ button{font:inherit;background:none;border:none;color:inherit;cursor:pointer;}
 
 /* dim the other cards only while one card is actually hovered (:has), so
    pointing at the empty space between cards doesn't black the whole grid out.
-   NO whole-card opacity here: a translucent card would expose the red thread
+   NO whole-card opacity here in GRID view: a translucent card would expose the red thread
    running beneath it — instead darken the image (filter + overlay) and the
    header, which keeps every card fully opaque */
-.works__grid:has(.project:hover) .project:not(:hover) .project__img img{filter:grayscale(.75) brightness(.6);}
-.works__grid:has(.project:hover) .project:not(:hover) .project__img::after{opacity:1;}
-.project__head{transition:filter .4s ease;}
-.works__grid:has(.project:hover) .project:not(:hover) .project__head{filter:brightness(.5);}
+.works__grid:not(.is-list):has(.project:hover) .project:not(:hover) .project__img img{filter:grayscale(.75) brightness(.6);}
+.works__grid:not(.is-list):has(.project:hover) .project:not(:hover) .project__img::after{opacity:1;}
+.works__grid:not(.is-list) .project__head{transition:filter .4s ease;}
+.works__grid:not(.is-list):has(.project:hover) .project:not(:hover) .project__head{filter:brightness(.5);}
+
+/* dim other rows in LIST view cleanly with opacity */
+.works__grid.is-list:has(.project:hover) .project:not(:hover){opacity:.45;}
 
 /* GRID view: red threads connecting the viewport centre to each card's centre.
    Fixed overlay behind the cards (cards have an opaque background), driven
@@ -724,7 +729,7 @@ button{font:inherit;background:none;border:none;color:inherit;cursor:pointer;}
    otherwise switching views mid-page leaves never-revealed rows invisible */
 .works__grid.is-list .project{
   opacity:1;--ry:0px;
-  transition:--sc .45s cubic-bezier(.16,1,.3,1),background-color .3s ease;
+  transition:--sc .45s cubic-bezier(.16,1,.3,1),background-color .3s ease,opacity .3s ease;
 }
 @media(min-width:800px){
   .works__grid.is-list .project{
@@ -736,7 +741,7 @@ button{font:inherit;background:none;border:none;color:inherit;cursor:pointer;}
   .works__grid.is-list .project:hover{background:#515151;}
   /* flatten the link and header wrappers so title / tags become grid cells */
   .works__grid.is-list .project__link,
-  .works__grid.is-list .project__head{display:contents;}
+  .works__grid.is-list .project__head{display:contents;background:transparent;padding:0;}
   .works__grid.is-list .project__head span{font-size:16px;}
   .works__grid.is-list .project__head span:first-child{grid-column:1;grid-row:1;}
   .works__grid.is-list .project__head span:last-child{grid-column:2;grid-row:1;white-space:normal;justify-self:end;text-align:right;}
