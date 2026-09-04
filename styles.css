@@ -7,7 +7,6 @@
   --muted-1:#555454;
   --muted-3:#a8a1a1;
   --muted-4:#ececeb;
-  --footer-muted:#a8a1a1;
   --font-display:'Anton', sans-serif;
   --font-mono:'Roboto Mono', monospace;
   --font-body:'Inter', sans-serif;
@@ -379,20 +378,6 @@ button{font:inherit;background:none;border:none;color:inherit;cursor:pointer;}
 }
 @keyframes cfScan{from{background-position:0 0;}to{background-position:60px 0;}}
 
-.cf__cluster{
-  position:absolute;z-index:3;pointer-events:none;
-  display:flex;flex-direction:column;gap:4px;
-  font-family:var(--font-mono);font-size:13px;line-height:1.6;color:rgba(255,255,255,.32);
-}
-.cf__cluster--bl{bottom:40px;left:40px;}
-.cf__cluster--br{
-  bottom:40px;right:40px;pointer-events:auto;
-  font-family:var(--font-mono);font-size:13px;color:rgba(255,255,255,.4);
-  transition:color .25s ease;
-}
-.cf__cluster--br:hover{color:var(--white);}
-@media(max-width:1023px){.cf__cluster--bl{display:none;}}
-
 .cf__down{
   position:absolute;z-index:3;bottom:26px;left:50%;transform:translateX(-50%);
   display:flex;flex-direction:column;align-items:center;gap:6px;
@@ -406,12 +391,11 @@ button{font:inherit;background:none;border:none;color:inherit;cursor:pointer;}
 
 /* entrance: words are pre-placed on the wave (nudot has no per-word entrance);
    only the centre panel and corner clusters fade in with the curtain */
-.cf__center,.cf__cluster{opacity:0;transition:opacity .8s ease .15s,transform .8s ease .15s;}
+.cf__center{opacity:0;transition:opacity .8s ease .15s,transform .8s ease .15s;}
 .cf__center{transform:scale(.94);}
 .corefield.is-revealed .cf__center{opacity:1;transform:scale(1);}
-.corefield.is-revealed .cf__cluster{opacity:1;}
 @media(prefers-reduced-motion:reduce){
-  .cf__center,.cf__cluster{opacity:1;transform:none;transition:none;}
+  .cf__center{opacity:1;transform:none;transition:none;}
 }
 
 @media(max-width:719px){
@@ -420,7 +404,6 @@ button{font:inherit;background:none;border:none;color:inherit;cursor:pointer;}
   .cf__col ul{align-items:center;}
   .cf__col--right ul{align-items:center;}
   .cf__word{font-size:26px;}
-  .cf__cluster--br{display:none;}
 }
 
 /* ---------- WORKS ---------- */
@@ -476,6 +459,15 @@ button{font:inherit;background:none;border:none;color:inherit;cursor:pointer;}
    without overriding each other */
 @property --ry{syntax:"<length>";inherits:false;initial-value:0px;}
 @property --sc{syntax:"<number>";inherits:false;initial-value:1;}
+/* Each project carries its own accent, taken from the product's own brand:
+   it paints the leading tag chip and every mark the card reveals on hover, so
+   pointing at a card floods it with that project's colour. --accent-ink is the
+   text that has to sit ON the accent, which flips to dark for light accents. */
+.project{--accent:#ff723b;--accent-ink:var(--white);}
+.project[data-code="KLEVER"]{--accent:#7dff4e;--accent-ink:#0b0f08;}
+.project[data-code="SURFCASH"]{--accent:#002fe9;--accent-ink:var(--white);}
+.project[data-code="NEW_PAY"]{--accent:#f04a0a;--accent-ink:var(--white);}
+
 .project{
   position:relative;
   z-index:1; /* above the fixed line overlays (.works-web / .hover-line, z:0) */
@@ -506,14 +498,14 @@ button{font:inherit;background:none;border:none;color:inherit;cursor:pointer;}
 /* faint red square frame sitting OUTSIDE the whole card (under the corners) */
 .project::before{
   content:"";position:absolute;inset:-14px;z-index:4;pointer-events:none;opacity:0;
-  border:1px solid rgba(216,0,0,.32);
+  border:1px solid color-mix(in srgb,var(--accent) 32%,transparent);
   transition:opacity .35s ease,inset .35s ease;
 }
 /* bright red corner brackets (crop marks) on top of the square */
 .project::after{
   content:"";position:absolute;inset:-14px;z-index:5;pointer-events:none;opacity:0;
   transition:opacity .35s ease,inset .35s ease;
-  --l:16px;--t:2px;--c:var(--red);
+  --l:16px;--t:2px;--c:var(--accent);
   background:
     linear-gradient(var(--c),var(--c)) 0 0/var(--l) var(--t) no-repeat,
     linear-gradient(var(--c),var(--c)) 0 0/var(--t) var(--l) no-repeat,
@@ -536,13 +528,30 @@ button{font:inherit;background:none;border:none;color:inherit;cursor:pointer;}
 .project__link{display:block;color:inherit;}
 /* extra specificity so the list view's display:grid can't override the hide */
 .project.is-hidden,.works__grid.is-list .project.is-hidden{display:none;}
+/* the bar carries the project code alone — the tags moved onto the still below */
 .project__head{
-  display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;
-  background:#515151;padding:10px 14px;
-  font-family:var(--font-mono);font-size:13px;letter-spacing:.5px;
+  display:flex;align-items:center;
+  background:#525252;padding:8px;
+  /* 16px at the design's 1920 canvas, scaling down with the card below that */
+  font-family:var(--font-mono);font-size:clamp(11px,.95vw,16px);
+  text-transform:uppercase;
 }
 .project__img{position:relative;aspect-ratio:655/483;overflow:hidden;background:#1a1a1a;}
 .project__img img{width:100%;height:100%;object-fit:cover;transition:transform .5s ease,filter .45s ease;}
+
+/* Tag chips ride the foot of the still, butted edge to edge and colour-cycled
+   in the design's order — orange, near-black, sand — so a card reads as one
+   continuous band rather than separate pills. */
+.project__tags{
+  position:absolute;left:8px;bottom:14px;z-index:2;
+  display:flex;flex-wrap:wrap;
+  font-family:var(--font-mono);font-size:clamp(11px,.95vw,16px);line-height:1;
+  text-transform:uppercase;
+}
+.project__tag{padding:2px 8px;white-space:nowrap;}
+.project__tag--a{background:var(--accent);color:var(--accent-ink);}
+.project__tag--b{background:#030700;color:var(--white);}
+.project__tag--c{background:#d1bda5;color:#000;}
 
 /* dim overlay for the non-hovered cards */
 .project__img::after{
@@ -677,7 +686,7 @@ button{font:inherit;background:none;border:none;color:inherit;cursor:pointer;}
 /* type scales with the frame: 16px (12px for tags) at each frame's design
    width — 1600cqw / --fxw == (16 / designWidth) * 100cqw */
 .fx-card__label{
-  position:absolute;background:var(--red);white-space:nowrap;
+  position:absolute;background:var(--accent);color:var(--accent-ink);white-space:nowrap;
   font-size:calc(1600cqw / var(--fxw,823));
   line-height:normal;
   padding:calc(200cqw / var(--fxw,823)) calc(800cqw / var(--fxw,823));
@@ -688,7 +697,7 @@ button{font:inherit;background:none;border:none;color:inherit;cursor:pointer;}
   padding:calc(200cqw / var(--fxw,823)) calc(400cqw / var(--fxw,823));
 }
 .fx-card__box{
-  position:absolute;border:2px solid var(--red);
+  position:absolute;border:2px solid var(--accent);
 }
 /* triple clipping: overflow alone can glitch in Chromium while an ancestor
    runs an opacity animation (the flicker), letting the oversized crop img
@@ -722,9 +731,16 @@ button{font:inherit;background:none;border:none;color:inherit;cursor:pointer;}
   .project:hover{transform:none;}
 }
 
-/* LIST view — compact text rows [ title | tags ]; the project image is not in
-   the row anymore, it follows the cursor on hover instead (.cursor-img) */
-.works__grid.is-list .project__img{display:none;}
+/* LIST view — compact text rows [ title | tags ]; the project still is not in
+   the row anymore, it follows the cursor on hover instead (.cursor-img).
+   The chips live inside .project__img, so the wrapper is flattened rather than
+   hidden — otherwise the row would lose its tags along with the picture. */
+.works__grid.is-list .project__img{
+  aspect-ratio:auto;background:none;overflow:visible;position:static;
+}
+.works__grid.is-list .project__img img,
+.works__grid.is-list .project__img::after{display:none;}
+.works__grid.is-list .project__tags{position:static;}
 /* no scroll-reveal in list view: rows are always fully visible (no fade either),
    otherwise switching views mid-page leaves never-revealed rows invisible */
 .works__grid.is-list .project{
@@ -742,44 +758,100 @@ button{font:inherit;background:none;border:none;color:inherit;cursor:pointer;}
   /* flatten the link and header wrappers so title / tags become grid cells */
   .works__grid.is-list .project__link,
   .works__grid.is-list .project__head{display:contents;background:transparent;padding:0;}
-  .works__grid.is-list .project__head span{font-size:16px;}
-  .works__grid.is-list .project__head span:first-child{grid-column:1;grid-row:1;}
-  .works__grid.is-list .project__head span:last-child{grid-column:2;grid-row:1;white-space:normal;justify-self:end;text-align:right;}
-}
-
-/* ---------- CTA / FOOTER ---------- */
-.cta{padding:120px 24px 0;}
-.cta__row{
-  display:flex;flex-direction:column;gap:24px;
-  justify-content:space-between;padding-bottom:60px;
-}
-@media(min-width:768px){.cta__row{flex-direction:row;align-items:center;}}
-.cta__row h2{font-family:var(--font-display);font-size:clamp(32px,5vw,56px);letter-spacing:-.5px;}
-.cta__link{
-  font-family:var(--font-display);font-size:clamp(24px,4vw,40px);
-  display:inline-flex;align-items:center;gap:12px;text-decoration:underline;
-  text-underline-offset:8px;
-}
-.cta__wordmark{
-  background:var(--bg-darker);padding:40px 32px;display:flex;flex-direction:column;gap:24px;
-}
-.cta__wordmark img{width:100%;max-width:1900px;}
-.cta__tagline{font-family:var(--font-mono);font-size:14px;color:var(--muted-4);line-height:1.6;}
-.cta__photo img{width:100%;max-height:640px;object-fit:cover;}
-/* horizontal inset comes from the parent .cta padding (24px / 40px desktop),
-   so the footer text lines up with the hero and works sections */
-.footer{
-  display:flex;flex-wrap:wrap;gap:16px;justify-content:space-between;
-  padding:32px 0;font-family:var(--font-mono);font-size:14px;color:var(--footer-muted);
+  .works__grid.is-list .project__head span{font-size:16px;grid-column:1;grid-row:1;}
+  /* the chips take the right-hand cell the tag text used to hold */
+  .works__grid.is-list .project__tags{
+    grid-column:2;grid-row:1;justify-self:end;font-size:14px;
+  }
 }
 
 /* consistent horizontal rhythm: 24px on mobile, 40px on desktop (matches the nav) */
 @media(min-width:1024px){
-  .hero__head,.about,.works,.cta{padding-left:40px;padding-right:40px;}
+  .hero__head,.about,.works{padding-left:40px;padding-right:40px;}
 }
-.footer__meta{display:flex;gap:24px;flex-wrap:wrap;}
-.footer__social a{margin-left:8px;}
-.footer__social a:hover{color:var(--white);}
+
+/* ---------- SITE FOOTER ---------- */
+/* Full-bleed photo with the copy sitting on top: services and socials at the
+   shoulders, the wordmark filling the floor. */
+.sfooter{
+  position:relative;overflow:hidden;
+  background:var(--bg-dark);color:var(--white);
+  padding:40px 24px;
+  display:flex;flex-direction:column;justify-content:space-between;gap:64px;
+}
+@media(min-width:1024px){.sfooter{padding:40px;min-height:906px;}}
+
+.sfooter__bg{position:absolute;inset:0;}
+.sfooter__bg img{width:100%;height:100%;object-fit:cover;object-position:center;}
+/* the photo dissolves into the page above rather than starting on a hard edge */
+.sfooter__bg::after{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(to bottom,#0e0e0e 0%,#0b0604 16.276%,rgba(10,5,2,0) 31.566%);
+}
+.sfooter__top,.sfooter__bottom{position:relative;z-index:1;}
+
+.sfooter__label{
+  font-family:var(--font-mono);font-weight:500;font-size:16px;
+  color:rgba(255,255,255,.5);text-transform:uppercase;
+}
+
+.sfooter__top{display:flex;flex-direction:column;gap:40px;}
+@media(min-width:900px){
+  .sfooter__top{flex-direction:row;align-items:flex-start;justify-content:space-between;gap:48px;}
+}
+
+.sfooter__services{
+  list-style:none;display:flex;flex-direction:column;gap:12px;margin-top:24px;
+  font-family:var(--font-mono);font-size:clamp(16px,1.4vw,20px);
+  text-transform:uppercase;white-space:nowrap;
+}
+.sfooter__services li{display:flex;gap:12px;}
+/* the index reads as an aside to the service it numbers */
+.sfooter__services span{opacity:.5;}
+
+.sfooter__col--socials{width:100%;max-width:753px;}
+@media(min-width:900px){.sfooter__col--socials .sfooter__label{text-align:right;}}
+.sfooter__socials{display:flex;flex-wrap:wrap;gap:8px;margin-top:24px;}
+.sfooter__social{
+  flex:1 1 168px;min-width:0;
+  display:flex;align-items:center;justify-content:space-between;gap:16px;
+  background:rgba(255,255,255,.2);padding:12px 16px;
+  font-family:var(--font-mono);font-size:16px;line-height:20px;
+  text-transform:uppercase;
+  transition:background .25s ease;
+}
+.sfooter__social:hover{background:rgba(255,255,255,.34);}
+.sfooter__social img{width:24px;height:24px;flex-shrink:0;}
+
+.sfooter__bottom{display:flex;flex-direction:column;gap:32px;}
+@media(min-width:900px){
+  .sfooter__bottom{flex-direction:row;align-items:flex-end;justify-content:space-between;gap:40px;}
+}
+.sfooter__main{display:flex;flex-direction:column;gap:17px;flex:1;min-width:0;max-width:1055px;}
+
+.sfooter__tagline{
+  font-family:var(--font-body);font-weight:500;
+  font-size:clamp(15px,1.5vw,24px);text-transform:uppercase;
+}
+
+/* the two marks push to the column's edges — together they set its width */
+.sfooter__name{display:flex;align-items:center;justify-content:space-between;gap:20px;padding:18px 0;}
+.sfooter__name img{width:48%;height:auto;}
+
+.sfooter__legal{
+  display:flex;flex-direction:column;gap:6px;
+  font-family:var(--font-mono);font-size:clamp(13px,1.1vw,16px);line-height:20px;
+  color:rgba(255,255,255,.7);text-transform:uppercase;
+}
+.sfooter__legal a:hover{color:var(--white);}
+.sfooter__legal p{display:flex;flex-wrap:wrap;gap:10px;}
+
+.sfooter__motto{
+  display:flex;flex-direction:column;gap:8px;flex-shrink:0;
+  font-family:var(--font-body);font-size:clamp(22px,2.2vw,32px);
+  line-height:24px;letter-spacing:-.32px;text-transform:uppercase;
+}
+@media(min-width:900px){.sfooter__motto{text-align:right;}}
 
 /* ---------- WORKS: project showcase hero ---------- */
 .wp-hero{
@@ -1006,4 +1078,130 @@ button{font:inherit;background:none;border:none;color:inherit;cursor:pointer;}
 
 @media(prefers-reduced-motion:reduce){
   .load{display:none;}
+}
+
+/* ---------- CONTACT PANEL ---------- */
+/* Slides in from the right like the menu overlay, but light — a sheet of paper
+   pulled over the dark site. Shares the menu's easing so both read as one gesture. */
+.cpanel{
+  position:fixed;inset:0;z-index:300;
+  display:flex;justify-content:flex-end;
+  pointer-events:none;
+}
+.cpanel.is-open{pointer-events:auto;}
+.cpanel__scrim{
+  position:absolute;inset:0;background:rgba(0,0,0,.55);
+  opacity:0;transition:opacity .6s ease;
+}
+.cpanel.is-open .cpanel__scrim{opacity:1;}
+.cpanel__sheet{
+  position:relative;
+  width:100%;max-width:760px;height:100%;
+  background:#efefef;color:#101010;
+  display:flex;flex-direction:column;overflow:hidden;
+  transform:translateX(100%);
+  transition:transform .6s cubic-bezier(.77,0,.18,1);
+}
+.cpanel.is-open .cpanel__sheet{transform:translateX(0);}
+
+/* the sheet is a column: fields scroll, submit bar holds the floor */
+.cpanel__form{flex:1;min-height:0;display:flex;flex-direction:column;}
+.cpanel__body{
+  flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;
+  display:flex;flex-direction:column;gap:20px;padding:32px 24px;
+}
+@media(min-width:768px){.cpanel__body{padding:48px 48px 40px;gap:24px;}}
+
+.cpanel__head{display:flex;align-items:flex-start;justify-content:space-between;gap:24px;}
+.cpanel__title{font-family:var(--font-body);font-weight:400;font-size:clamp(34px,5vw,46px);letter-spacing:-.02em;line-height:1;}
+.cpanel__close{
+  flex-shrink:0;width:32px;height:32px;color:#101010;
+  transition:transform .25s ease,color .25s ease;
+}
+.cpanel__close:hover{color:var(--red);transform:rotate(90deg);}
+.cpanel__close svg{width:100%;height:100%;fill:none;stroke:currentColor;stroke-width:1.5;}
+
+.cpanel__lede{font-size:16px;line-height:1.4;color:#101010;}
+@media(min-width:768px){.cpanel__lede{font-size:17px;}}
+.cpanel__rule{border:0;border-top:1px solid #101010;margin:4px 0 8px;}
+
+.cpanel__grid{display:grid;gap:12px;}
+@media(min-width:600px){.cpanel__grid{grid-template-columns:1fr 1fr;}}
+
+.cpanel__input{
+  width:100%;background:#e3e3e3;border:1px solid transparent;color:#101010;
+  font-family:var(--font-mono);font-size:15px;letter-spacing:.02em;
+  padding:22px 20px;border-radius:0;
+  transition:border-color .25s ease,background .25s ease;
+}
+.cpanel__input::placeholder{color:#9b9b9b;text-transform:uppercase;}
+/* a field that holds something goes white — the grey is the "still empty" state.
+   :placeholder-shown is the CSS-only way to ask whether the field is filled. */
+.cpanel__input:not(select):not(:placeholder-shown){background:var(--white);}
+.cpanel__input:focus{outline:none;border-color:#101010;background:var(--white);}
+.cpanel__input:focus-visible{outline:none;}
+/* Chrome paints autofilled fields its own pale blue and ignores background-color;
+   a full-bleed inset shadow is the only way to hold the white, and the absurd
+   transition delay keeps the blue from flashing through first. */
+.cpanel__input:-webkit-autofill,
+.cpanel__input:-webkit-autofill:hover,
+.cpanel__input:-webkit-autofill:focus{
+  -webkit-text-fill-color:#101010;
+  -webkit-box-shadow:0 0 0 1000px var(--white) inset;
+  box-shadow:0 0 0 1000px var(--white) inset;
+  transition:background-color 9999s ease-out 0s;
+}
+.cpanel__textarea{resize:vertical;min-height:150px;line-height:1.5;}
+
+.cpanel__select-wrap{position:relative;}
+.cpanel__select{appearance:none;cursor:pointer;text-transform:uppercase;color:#9b9b9b;padding-right:52px;}
+/* budget is optional, so :valid matches even while the placeholder is showing —
+   ask what's actually selected instead, so it greys/whitens like the text inputs */
+.cpanel__select:not(:has(option[value=""]:checked)){color:#101010;background:var(--white);}
+.cpanel__caret{position:absolute;right:20px;top:50%;transform:translateY(-50%);pointer-events:none;font-size:14px;color:#101010;}
+
+.cpanel__set{border:0;display:flex;flex-direction:column;}
+.cpanel__label{
+  font-family:var(--font-mono);font-size:15px;letter-spacing:.06em;
+  text-transform:uppercase;color:#101010;padding:0;
+  /* a <legend> sits outside the fieldset's flex flow, so its own margin — not
+     the parent's gap — is what opens up space before the chips */
+  margin-bottom:22px;
+}
+.cpanel__chips{display:flex;flex-wrap:wrap;gap:10px;}
+.cpanel__chip{position:relative;}
+/* the real radio stays in the layout (unstyled but zero-size) so the browser can
+   anchor its "select one of these options" bubble to the first chip */
+.cpanel__chip input{position:absolute;left:12px;bottom:0;width:0;height:0;opacity:0;margin:0;}
+.cpanel__chip span{
+  display:block;background:#e3e3e3;border:1px solid transparent;cursor:pointer;
+  font-family:var(--font-mono);font-size:15px;letter-spacing:.02em;
+  padding:16px 20px;transition:background .2s ease,color .2s ease,border-color .2s ease;
+}
+.cpanel__chip span:hover{border-color:#101010;}
+.cpanel__chip input:focus-visible + span{border-color:#101010;}
+.cpanel__chip input:checked + span{background:var(--red);color:var(--white);border-color:var(--red);}
+
+.cpanel__submit{
+  flex-shrink:0;width:100%;
+  display:flex;align-items:center;justify-content:space-between;gap:24px;
+  background:#101010;color:var(--white);
+  font-family:var(--font-mono);font-size:16px;letter-spacing:.08em;
+  padding:26px 24px;transition:background .3s ease;
+}
+@media(min-width:768px){.cpanel__submit{padding:28px 48px;font-size:18px;}}
+.cpanel__submit:hover{background:var(--red);}
+.cpanel__botcheck{position:absolute;left:-9999px;width:0;height:0;opacity:0;}
+.cpanel__submit.is-sending{opacity:.65;cursor:wait;}
+.cpanel__submit.is-sent{background:var(--red);}
+.cpanel__submit.is-error{color:var(--red);}
+.cpanel__submit-arrow{
+  display:grid;place-items:center;width:34px;height:34px;
+  border:1px solid currentColor;border-radius:50%;font-size:16px;
+  transition:transform .3s ease;
+}
+.cpanel__submit:hover .cpanel__submit-arrow{transform:translateX(4px);}
+
+@media(prefers-reduced-motion:reduce){
+  .cpanel__sheet,.cpanel__scrim{transition:none;}
 }

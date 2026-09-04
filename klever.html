@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=Roboto+Mono:wght@400;500&family=Inter:wght@400;500;600;700&family=Chakra+Petch:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=19">
+<link rel="stylesheet" href="styles.css?v=54">
 <link rel="stylesheet" href="klever.css?v=12">
 </head>
 <body class="klever-page">
@@ -41,7 +41,7 @@
     <nav class="menu-overlay__links">
       <a href="index.html#about" class="menu-link">ABOUT</a>
       <a href="works.html" class="menu-link">WORK</a>
-      <a href="index.html#contact" class="menu-link">CONTACT</a>
+      <a href="index.html#contact" class="menu-link" data-contact-open>CONTACT</a>
     </nav>
     <div class="menu-overlay__ticker" aria-hidden="true">
       <div class="menu-overlay__ticker-track">
@@ -256,30 +256,63 @@
     <img src="assets/klever/device-final.png" alt="Klever app icon on a home screen next to exterior signage">
   </section>
 
-  <!-- CTA / FOOTER (shared) -->
-  <section class="cta" id="contact" data-theme="dark">
-    <div class="cta__row">
-      <h2>LET'S BUILD YOUR VISION</h2>
-      <a href="mailto:ninefiveseven@vn.com" class="cta__link">WORK WITH US <span>→</span></a>
+  <!-- FOOTER -->
+  <footer class="sfooter" id="contact" data-theme="dark">
+    <div class="sfooter__bg" aria-hidden="true">
+      <picture>
+        <!-- past 2500px the wide composition takes over so the figures keep their
+             place instead of being cropped out of frame -->
+        <source media="(min-width:2500px)" srcset="assets/footer/footer-bg-2500.jpg">
+        <img src="assets/footer/footer-bg.jpg" alt="">
+      </picture>
     </div>
 
-    <div class="cta__wordmark">
-      <img src="assets/logo-footer-red.svg" alt="NINEFIVESEVEN">
+    <div class="sfooter__top">
+      <div class="sfooter__col">
+        <p class="sfooter__label">Services</p>
+        <ul class="sfooter__services">
+          <li><span>[01]</span>Product design</li>
+          <li><span>[02]</span>Brand design</li>
+          <li><span>[03]</span>Websites</li>
+          <li><span>[04]</span>Game design</li>
+          <li><span>[05]</span>Motion video</li>
+        </ul>
+      </div>
+
+      <div class="sfooter__col sfooter__col--socials">
+        <p class="sfooter__label">Socials</p>
+        <div class="sfooter__socials">
+          <a class="sfooter__social" href="#">Instagram<img src="assets/footer/arrow-up-right.svg" alt="" width="24" height="24"></a>
+          <a class="sfooter__social" href="#">X / Twitter<img src="assets/footer/arrow-up-right.svg" alt="" width="24" height="24"></a>
+          <a class="sfooter__social" href="#">Behance<img src="assets/footer/arrow-up-right.svg" alt="" width="24" height="24"></a>
+          <a class="sfooter__social" href="#">LinkedIn<img src="assets/footer/arrow-up-right.svg" alt="" width="24" height="24"></a>
+        </div>
+      </div>
     </div>
 
-    <div class="cta__photo">
-      <img src="assets/footer-photo.jpg" alt="">
-    </div>
+    <div class="sfooter__bottom">
+      <div class="sfooter__main">
+        <p class="sfooter__tagline">Designing a vision of big thinking founders</p>
 
-    <footer class="footer">
-      <span>957STUDIO @ 2026</span>
-      <span class="footer__meta"><span>//location:HCM, Vietnam</span><span>//time zone:GMT +7</span></span>
-      <span class="footer__social"><a href="#">behance</a> <a href="#">twitter</a> <a href="#">linkedin</a></span>
-    </footer>
-  </section>
+        <div class="sfooter__name">
+          <img src="assets/hero/wordmark-ninefive.svg" alt="NINEFIVESEVEN">
+          <img src="assets/hero/wordmark-seven.svg" alt="">
+        </div>
+
+        <div class="sfooter__legal">
+          <a href="#">Privacy policy</a>
+          <a href="#">Cookie policy</a>
+          <p><span>957Studio @2026.</span><span>All rights reserved.</span></p>
+        </div>
+      </div>
+
+      <p class="sfooter__motto"><span>Align</span><span>Drive</span><span>Vision</span></p>
+    </div>
+  </footer>
 
 </main>
 
-<script src="script.js?v=12"></script>
+<script src="script.js?v=27"></script>
+<script src="contact.js?v=6"></script>
 </body>
 </html>

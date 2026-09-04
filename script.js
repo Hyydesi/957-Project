@@ -202,15 +202,21 @@ if (aboutStage && aboutPara) {
     // outgoing one stays fully drawn just underneath, so the wipe reads as one
     // image sliding over another — and it plays the same way scrolling back up.
     const cur = Math.max(0, i);
+    // The wipe is a transition BETWEEN services, so the first still is simply
+    // already there when the list arrives — sliding it in would animate against
+    // nothing. Motion starts on the move from the first service to the second.
+    const wipe = prev >= 0 && cur !== Math.max(0, prev);
     shots.forEach((img, n) => {
       img.classList.toggle('is-on', n === cur);
       if (n === cur) {
         img.style.transition = 'none';
         img.style.zIndex = '2';
-        img.style.clipPath = 'inset(100% 0 0 0)';
-        void img.offsetWidth; // flush, so the wipe always starts from closed
-        img.style.transition = '';
-        img.style.clipPath = 'inset(0 0 0 0)';
+        img.style.clipPath = wipe ? 'inset(100% 0 0 0)' : 'inset(0 0 0 0)';
+        if (wipe) {
+          void img.offsetWidth; // flush, so the wipe always starts from closed
+          img.style.transition = '';
+          img.style.clipPath = 'inset(0 0 0 0)';
+        }
       } else if (n === prev) {
         img.style.transition = 'none';
         img.style.zIndex = '1';
@@ -329,6 +335,8 @@ if (cfField) {
   const WAVE_SPD = 1;    // nudot: WAVE_SPD = 1 → one wave cycle per pinned pass
   const SMOOTH = 0.1;    // nudot lerps scroll progress by 0.1 per frame
   const EASE = 0.12;     // per-word settle (their gsap quickTo 0.6s power4.out)
+  const CENTER_BASE = 56;    // px the centre image sits below the centreline
+  const CENTER_DRIFT = 0.32; // share of the field's travel it keeps, so it moves
 
   const corefieldEl = cfField.closest('.corefield');
   // nudot keeps the centre media fixed at viewport centre while only the word
@@ -427,8 +435,12 @@ if (cfField) {
     if (stageActive()) {
       const fy = fieldH * (0.5 - p);
       cfField.style.transform = `translateY(${fy.toFixed(2)}px)`;
-      // counter-translate the centre so it stays pinned at centre like nudot
-      if (cfCenter) cfCenter.style.transform = `translateY(${(-fy).toFixed(2)}px)`;
+      // The centre used to be countered exactly, which pinned it dead still —
+      // nothing to watch while the words streamed past. Keeping a share of the
+      // field's travel lets it enter low and drift up through the section, and
+      // the base offset holds it below the centreline for most of the pass.
+      const drift = CENTER_BASE + fy * CENTER_DRIFT;
+      if (cfCenter) cfCenter.style.transform = `translateY(${(drift - fy).toFixed(2)}px)`;
     } else {
       cfField.style.transform = 'none';
       if (cfCenter) cfCenter.style.transform = 'none';
@@ -466,10 +478,16 @@ if (categoryFilter && yearFilter && worksGrid) {
   // Render cards from the shared PROJECTS array (projects.js) if not server-rendered.
   if (typeof PROJECTS !== 'undefined' && !worksGrid.children.length) {
     worksGrid.innerHTML = PROJECTS.map((p) => {
-      const head = `<header class="project__head"><span>${p.code}</span><span>${p.tags.join(', ')}</span></header>` +
-        `<div class="project__img"><img src="${p.image}" alt="${p.code} project"></div>`;
+      // tags render as colour-cycled chips over the still, matching the markup
+      const chips = p.tags
+        .map((t, i) => `<span class="project__tag project__tag--${['a', 'b', 'c'][i % 3]}">${t}</span>`)
+        .join('');
+      const head = `<header class="project__head"><span>${p.code}</span></header>` +
+        `<div class="project__img"><img src="${p.image}" alt="${p.code} project">` +
+        `<div class="project__tags">${chips}</div></div>`;
       const inner = p.href ? `<a href="${p.href}" class="project__link">${head}</a>` : head;
-      return `<article class="project" data-category="${p.category}" data-year="${p.year}">${inner}</article>`;
+      // data-code keys the per-project accent colour in the stylesheet
+      return `<article class="project" data-code="${p.code}" data-category="${p.category}" data-year="${p.year}">${inner}</article>`;
     }).join('');
   }
 
