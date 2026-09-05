@@ -73,12 +73,12 @@
   <div class="menu-overlay__panel">
     <div class="menu-overlay__top">
       <button class="menu-overlay__close" id="menuClose">[x] CLOSE</button>
-      <p class="menu-overlay__intro">We partner with <span>global startups and established companies,</span> to deliver memorable brand identities and digital experiences.</p>
+      <p class="menu-overlay__intro" data-cms="menu.intro" data-cms-label="Đoạn giới thiệu (giữ nguyên thẻ &lt;span&gt; để tô đỏ)" data-cms-group="Menu">We partner with <span>global startups and established companies,</span> to deliver memorable brand identities and digital experiences.</p>
     </div>
     <nav class="menu-overlay__links">
-      <a href="#about" class="menu-link">ABOUT</a>
-      <a href="works.html" class="menu-link">WORK</a>
-      <a href="#contact" class="menu-link" data-contact-open>CONTACT</a>
+      <a href="#about" class="menu-link" data-cms="menu.link.about" data-cms-label="Mục 1" data-cms-group="Menu">ABOUT</a>
+      <a href="works.html" class="menu-link" data-cms="menu.link.work" data-cms-label="Mục 2" data-cms-group="Menu">WORK</a>
+      <a href="#contact" class="menu-link" data-contact-open data-cms="menu.link.contact" data-cms-label="Mục 3" data-cms-group="Menu">CONTACT</a>
     </nav>
     <div class="menu-overlay__ticker" aria-hidden="true">
       <div class="menu-overlay__ticker-track">
@@ -107,8 +107,8 @@
       </div>
 
       <div class="hero__available">
-        <p>BASED IN VIETNAM</p>
-        <p>AVAILABLE WORLDWIDE</p>
+        <p data-cms="hero.available.line1" data-cms-label="Dòng 1" data-cms-group="Hero">BASED IN VIETNAM</p>
+        <p data-cms="hero.available.line2" data-cms-label="Dòng 2" data-cms-group="Hero">AVAILABLE WORLDWIDE</p>
       </div>
     </div>
 
@@ -141,7 +141,7 @@
     <div class="about__sticky">
       <div class="about__inner">
         <div class="about__copy">
-          <p class="about__paragraph" data-scroll-reveal>
+          <p class="about__paragraph" data-scroll-reveal data-cms="about.paragraph" data-cms-type="text" data-cms-label="Đoạn giới thiệu studio" data-cms-group="Giới thiệu">
             <span class="about__mark" aria-hidden="true"></span>
             957 is a concept-driven design studio founded in 2025 and based in Vietnam. Rooted in modernist design principles and graphic design tradition, our work combines typography, grid systems and motion to create digital experiences that balance clarity, usability and bold visual expression. Our team remains intentionally small, under 10 people, which allows creative direction to stay personal and decisions to stay sharp. Every project is led closely by the founders. No layers. No dilution.
           </p>
@@ -149,24 +149,24 @@
 
         <div class="about__row">
           <div class="about__services-col">
-            <span class="about__label">SERVICES</span>
+            <span class="about__label" data-cms="about.label" data-cms-label="Nhãn cột dịch vụ" data-cms-group="Giới thiệu">SERVICES</span>
             <img class="about__logo-mark" src="assets/logo-about-stacked.svg" alt="NINEFIVESEVEN">
           </div>
 
           <ul class="about__list">
-            <li>PRODUCT DESIGN</li>
-            <li>BRAND DESIGN</li>
-            <li>WEBSITES</li>
-            <li>GAME DESIGN</li>
-            <li>MOTION VIDEO</li>
+            <li data-cms="about.service1" data-cms-label="Dịch vụ 1" data-cms-group="Giới thiệu">PRODUCT DESIGN</li>
+            <li data-cms="about.service2" data-cms-label="Dịch vụ 2" data-cms-group="Giới thiệu">BRAND DESIGN</li>
+            <li data-cms="about.service3" data-cms-label="Dịch vụ 3" data-cms-group="Giới thiệu">WEBSITES</li>
+            <li data-cms="about.service4" data-cms-label="Dịch vụ 4" data-cms-group="Giới thiệu">GAME DESIGN</li>
+            <li data-cms="about.service5" data-cms-label="Dịch vụ 5" data-cms-group="Giới thiệu">MOTION VIDEO</li>
           </ul>
 
           <!-- one still per service, in list order; motion video is a muted loop -->
           <div class="about__preview" aria-hidden="true">
-            <img class="about__shot is-on" src="assets/services/web3-product.png" alt="">
-            <img class="about__shot" src="assets/services/visual-identity.png" alt="">
-            <img class="about__shot" src="assets/services/web-design.png" alt="">
-            <img class="about__shot" src="assets/services/game-design.png" alt="">
+            <img data-cms-src="about.shot1" data-cms-label="Ảnh dịch vụ 1" data-cms-group="Giới thiệu" class="about__shot is-on" src="assets/services/web3-product.png" alt="">
+            <img data-cms-src="about.shot2" data-cms-label="Ảnh dịch vụ 2" data-cms-group="Giới thiệu" class="about__shot" src="assets/services/visual-identity.png" alt="">
+            <img data-cms-src="about.shot3" data-cms-label="Ảnh dịch vụ 3" data-cms-group="Giới thiệu" class="about__shot" src="assets/services/web-design.png" alt="">
+            <img data-cms-src="about.shot4" data-cms-label="Ảnh dịch vụ 4" data-cms-group="Giới thiệu" class="about__shot" src="assets/services/game-design.png" alt="">
             <div class="about__shot about__shot--video">
               <iframe src="https://player.vimeo.com/video/1222122809?background=1&amp;autoplay=1&amp;loop=1&amp;muted=1"
                       title="Motion video reel" tabindex="-1" allow="autoplay" frameborder="0"></iframe>
@@ -186,42 +186,42 @@
     <div class="cf__inner" id="cfField">
       <div class="cf__col cf__col--left">
         <ul>
-          <li><span class="cf__word" data-image="assets/img/core/core-1.jpg">PRODUCT DESIGN</span></li>
-          <li><span class="cf__word" data-image="assets/img/core/core-2.jpg">BRAND DESIGN</span></li>
-          <li><span class="cf__word" data-image="assets/img/core/core-3.jpg">WEBSITES</span></li>
-          <li><span class="cf__word" data-image="assets/img/core/core-4.jpg">GAME DESIGN</span></li>
-          <li><span class="cf__word" data-image="assets/img/core/core-1.jpg">MOTION VIDEO</span></li>
-          <li><span class="cf__word" data-image="assets/img/core/core-2.jpg">ART DIRECTION</span></li>
-          <li><span class="cf__word" data-image="assets/img/core/core-3.jpg">GRID SYSTEMS</span></li>
-          <li><span class="cf__word" data-image="assets/img/core/core-4.jpg">TYPE DRIVEN</span></li>
-          <li><span class="cf__word" data-image="assets/img/core/core-1.jpg">PIXEL PERFECT</span></li>
-          <li><span class="cf__word" data-image="assets/img/core/core-2.jpg">CONCEPT FIRST</span></li>
-          <li><span class="cf__word" data-image="assets/img/core/core-3.jpg">MODERNIST ROOTS</span></li>
-          <li><span class="cf__word" data-image="assets/img/core/core-4.jpg">FOUNDER LED</span></li>
+          <li><span class="cf__word" data-image="assets/img/core/core-1.jpg" data-cms="core.left1" data-cms-label="Từ khoá trái 1" data-cms-group="The Core">PRODUCT DESIGN</span></li>
+          <li><span class="cf__word" data-image="assets/img/core/core-2.jpg" data-cms="core.left2" data-cms-label="Từ khoá trái 2" data-cms-group="The Core">BRAND DESIGN</span></li>
+          <li><span class="cf__word" data-image="assets/img/core/core-3.jpg" data-cms="core.left3" data-cms-label="Từ khoá trái 3" data-cms-group="The Core">WEBSITES</span></li>
+          <li><span class="cf__word" data-image="assets/img/core/core-4.jpg" data-cms="core.left4" data-cms-label="Từ khoá trái 4" data-cms-group="The Core">GAME DESIGN</span></li>
+          <li><span class="cf__word" data-image="assets/img/core/core-1.jpg" data-cms="core.left5" data-cms-label="Từ khoá trái 5" data-cms-group="The Core">MOTION VIDEO</span></li>
+          <li><span class="cf__word" data-image="assets/img/core/core-2.jpg" data-cms="core.left6" data-cms-label="Từ khoá trái 6" data-cms-group="The Core">ART DIRECTION</span></li>
+          <li><span class="cf__word" data-image="assets/img/core/core-3.jpg" data-cms="core.left7" data-cms-label="Từ khoá trái 7" data-cms-group="The Core">GRID SYSTEMS</span></li>
+          <li><span class="cf__word" data-image="assets/img/core/core-4.jpg" data-cms="core.left8" data-cms-label="Từ khoá trái 8" data-cms-group="The Core">TYPE DRIVEN</span></li>
+          <li><span class="cf__word" data-image="assets/img/core/core-1.jpg" data-cms="core.left9" data-cms-label="Từ khoá trái 9" data-cms-group="The Core">PIXEL PERFECT</span></li>
+          <li><span class="cf__word" data-image="assets/img/core/core-2.jpg" data-cms="core.left10" data-cms-label="Từ khoá trái 10" data-cms-group="The Core">CONCEPT FIRST</span></li>
+          <li><span class="cf__word" data-image="assets/img/core/core-3.jpg" data-cms="core.left11" data-cms-label="Từ khoá trái 11" data-cms-group="The Core">MODERNIST ROOTS</span></li>
+          <li><span class="cf__word" data-image="assets/img/core/core-4.jpg" data-cms="core.left12" data-cms-label="Từ khoá trái 12" data-cms-group="The Core">FOUNDER LED</span></li>
         </ul>
       </div>
 
       <div class="cf__center">
         <div class="cf__panel">
-          <img class="cf__panel-img" id="cfPanelImg" src="assets/img/core/core-1.jpg" alt="" aria-hidden="true">
+          <img class="cf__panel-img" id="cfPanelImg" data-cms-src="core.panelImage" data-cms-label="Ảnh khung giữa" data-cms-group="The Core" src="assets/img/core/core-1.jpg" alt="" aria-hidden="true">
           <div class="cf__panel-lines" aria-hidden="true"></div>
         </div>
       </div>
 
       <div class="cf__col cf__col--right">
         <ul>
-          <li><span class="cf__word">STRATEGY</span></li>
-          <li><span class="cf__word">DESIGN</span></li>
-          <li><span class="cf__word">BRANDING</span></li>
-          <li><span class="cf__word">TYPOGRAPHY</span></li>
-          <li><span class="cf__word">MOTION</span></li>
-          <li><span class="cf__word">CLARITY</span></li>
-          <li><span class="cf__word">USABILITY</span></li>
-          <li><span class="cf__word">SYSTEM</span></li>
-          <li><span class="cf__word">CRAFT</span></li>
-          <li><span class="cf__word">BOLD</span></li>
-          <li><span class="cf__word">VISION</span></li>
-          <li><span class="cf__word">FUTURE</span></li>
+          <li><span class="cf__word"None data-cms="core.right1" data-cms-label="Từ khoá phải 1" data-cms-group="The Core">STRATEGY</span></li>
+          <li><span class="cf__word"None data-cms="core.right2" data-cms-label="Từ khoá phải 2" data-cms-group="The Core">DESIGN</span></li>
+          <li><span class="cf__word"None data-cms="core.right3" data-cms-label="Từ khoá phải 3" data-cms-group="The Core">BRANDING</span></li>
+          <li><span class="cf__word"None data-cms="core.right4" data-cms-label="Từ khoá phải 4" data-cms-group="The Core">TYPOGRAPHY</span></li>
+          <li><span class="cf__word"None data-cms="core.right5" data-cms-label="Từ khoá phải 5" data-cms-group="The Core">MOTION</span></li>
+          <li><span class="cf__word"None data-cms="core.right6" data-cms-label="Từ khoá phải 6" data-cms-group="The Core">CLARITY</span></li>
+          <li><span class="cf__word"None data-cms="core.right7" data-cms-label="Từ khoá phải 7" data-cms-group="The Core">USABILITY</span></li>
+          <li><span class="cf__word"None data-cms="core.right8" data-cms-label="Từ khoá phải 8" data-cms-group="The Core">SYSTEM</span></li>
+          <li><span class="cf__word"None data-cms="core.right9" data-cms-label="Từ khoá phải 9" data-cms-group="The Core">CRAFT</span></li>
+          <li><span class="cf__word"None data-cms="core.right10" data-cms-label="Từ khoá phải 10" data-cms-group="The Core">BOLD</span></li>
+          <li><span class="cf__word"None data-cms="core.right11" data-cms-label="Từ khoá phải 11" data-cms-group="The Core">VISION</span></li>
+          <li><span class="cf__word"None data-cms="core.right12" data-cms-label="Từ khoá phải 12" data-cms-group="The Core">FUTURE</span></li>
         </ul>
       </div>
     </div>
@@ -498,30 +498,30 @@
 
     <div class="sfooter__top">
       <div class="sfooter__col">
-        <p class="sfooter__label">Services</p>
+        <p class="sfooter__label" data-cms="footer.servicesLabel" data-cms-label="Tiêu đề cột dịch vụ" data-cms-group="Footer">Services</p>
         <ul class="sfooter__services">
-          <li><span>[01]</span>Product design</li>
-          <li><span>[02]</span>Brand design</li>
-          <li><span>[03]</span>Websites</li>
-          <li><span>[04]</span>Game design</li>
-          <li><span>[05]</span>Motion video</li>
+          <li data-cms="footer.service1" data-cms-type="text" data-cms-label="Dịch vụ 1" data-cms-group="Footer"><span>[01]</span>Product design</li>
+          <li data-cms="footer.service2" data-cms-type="text" data-cms-label="Dịch vụ 2" data-cms-group="Footer"><span>[02]</span>Brand design</li>
+          <li data-cms="footer.service3" data-cms-type="text" data-cms-label="Dịch vụ 3" data-cms-group="Footer"><span>[03]</span>Websites</li>
+          <li data-cms="footer.service4" data-cms-type="text" data-cms-label="Dịch vụ 4" data-cms-group="Footer"><span>[04]</span>Game design</li>
+          <li data-cms="footer.service5" data-cms-type="text" data-cms-label="Dịch vụ 5" data-cms-group="Footer"><span>[05]</span>Motion video</li>
         </ul>
       </div>
 
       <div class="sfooter__col sfooter__col--socials">
-        <p class="sfooter__label">Socials</p>
+        <p class="sfooter__label" data-cms="footer.socialsLabel" data-cms-label="Tiêu đề cột mạng xã hội" data-cms-group="Footer">Socials</p>
         <div class="sfooter__socials">
-          <a class="sfooter__social" href="#">Instagram<img src="assets/footer/arrow-up-right.svg" alt="" width="24" height="24"></a>
-          <a class="sfooter__social" href="#">X / Twitter<img src="assets/footer/arrow-up-right.svg" alt="" width="24" height="24"></a>
-          <a class="sfooter__social" href="#">Behance<img src="assets/footer/arrow-up-right.svg" alt="" width="24" height="24"></a>
-          <a class="sfooter__social" href="#">LinkedIn<img src="assets/footer/arrow-up-right.svg" alt="" width="24" height="24"></a>
+          <a class="sfooter__social" href="#" data-cms-href="footer.social1.url" data-cms-label="Link mạng xã hội 1" data-cms-group="Footer"><span data-cms="footer.social1.name" data-cms-label="Tên mạng xã hội 1" data-cms-group="Footer">Instagram</span><img src="assets/footer/arrow-up-right.svg" alt="" width="24" height="24"></a>
+          <a class="sfooter__social" href="#" data-cms-href="footer.social2.url" data-cms-label="Link mạng xã hội 2" data-cms-group="Footer"><span data-cms="footer.social2.name" data-cms-label="Tên mạng xã hội 2" data-cms-group="Footer">X / Twitter</span><img src="assets/footer/arrow-up-right.svg" alt="" width="24" height="24"></a>
+          <a class="sfooter__social" href="#" data-cms-href="footer.social3.url" data-cms-label="Link mạng xã hội 3" data-cms-group="Footer"><span data-cms="footer.social3.name" data-cms-label="Tên mạng xã hội 3" data-cms-group="Footer">Behance</span><img src="assets/footer/arrow-up-right.svg" alt="" width="24" height="24"></a>
+          <a class="sfooter__social" href="#" data-cms-href="footer.social4.url" data-cms-label="Link mạng xã hội 4" data-cms-group="Footer"><span data-cms="footer.social4.name" data-cms-label="Tên mạng xã hội 4" data-cms-group="Footer">LinkedIn</span><img src="assets/footer/arrow-up-right.svg" alt="" width="24" height="24"></a>
         </div>
       </div>
     </div>
 
     <div class="sfooter__bottom">
       <div class="sfooter__main">
-        <p class="sfooter__tagline">Designing a vision of big thinking founders</p>
+        <p class="sfooter__tagline" data-cms="footer.tagline" data-cms-label="Câu tagline lớn" data-cms-group="Footer">Designing a vision of big thinking founders</p>
 
         <div class="sfooter__name">
           <img src="assets/hero/wordmark-ninefive.svg" alt="NINEFIVESEVEN">
@@ -529,13 +529,13 @@
         </div>
 
         <div class="sfooter__legal">
-          <a href="#">Privacy policy</a>
-          <a href="#">Cookie policy</a>
-          <p><span>957Studio @2026.</span><span>All rights reserved.</span></p>
+          <a href="#" data-cms="footer.legal1" data-cms-href="footer.legal1.url" data-cms-label="Link pháp lý 1" data-cms-group="Footer">Privacy policy</a>
+          <a href="#" data-cms="footer.legal2" data-cms-href="footer.legal2.url" data-cms-label="Link pháp lý 2" data-cms-group="Footer">Cookie policy</a>
+          <p><span data-cms="footer.copyright" data-cms-label="Dòng bản quyền" data-cms-group="Footer">957Studio @2026.</span><span data-cms="footer.rights" data-cms-label="Dòng quyền" data-cms-group="Footer">All rights reserved.</span></p>
         </div>
       </div>
 
-      <p class="sfooter__motto"><span>Align</span><span>Drive</span><span>Vision</span></p>
+      <p class="sfooter__motto"><span data-cms="footer.motto1" data-cms-label="Từ 1" data-cms-group="Footer">Align</span><span data-cms="footer.motto2" data-cms-label="Từ 2" data-cms-group="Footer">Drive</span><span data-cms="footer.motto3" data-cms-label="Từ 3" data-cms-group="Footer">Vision</span></p>
     </div>
   </footer>
 

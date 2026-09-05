@@ -1,0 +1,11 @@
+{
+  "name": "957-studio-site",
+  "private": true,
+  "version": "1.0.0",
+  "description": "957 studio website + local admin panel",
+  "scripts": {
+    "start": "node admin/server.js",
+    "admin": "node admin/server.js"
+  },
+  "engines": { "node": ">=18" }
+}

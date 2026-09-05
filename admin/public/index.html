@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>957 — Admin</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="admin.css?v=4">
+</head>
+<body>
+
+<!-- gate: setup on first run, then login -->
+<div class="gate" id="gate" hidden>
+  <form class="gate__card" id="gateForm">
+    <p class="gate__brand">
+      <img src="/assets/logo-nav-white.svg" alt="NINEFIVESEVEN" width="215" height="40">
+      <span>/ ADMIN</span>
+    </p>
+    <h1 class="gate__title" id="gateTitle">Đăng nhập</h1>
+    <p class="gate__hint" id="gateHint">Nhập mật khẩu quản trị để tiếp tục.</p>
+    <label class="field">
+      <span id="gateLabel">Mật khẩu</span>
+      <input type="password" id="gatePass" autocomplete="current-password" required>
+    </label>
+    <label class="field" id="gateConfirmWrap" hidden>
+      <span>Nhập lại mật khẩu</span>
+      <input type="password" id="gatePass2" autocomplete="new-password">
+    </label>
+    <p class="gate__error" id="gateError" hidden></p>
+    <button class="btn btn--primary" type="submit" id="gateSubmit">Vào trang quản trị</button>
+  </form>
+</div>
+
+<!-- panel -->
+<div class="app" id="app" hidden>
+  <header class="topbar">
+    <p class="topbar__brand">
+      <img src="/assets/logo-nav-white.svg" alt="NINEFIVESEVEN" width="215" height="40">
+      <span>/ ADMIN</span>
+    </p>
+    <nav class="tabs" id="tabs">
+      <button data-tab="content" class="is-active">Nội dung</button>
+      <button data-tab="projects">Projects</button>
+      <button data-tab="assets">Ảnh</button>
+      <button data-tab="publish">Xuất bản</button>
+    </nav>
+    <div class="topbar__right">
+      <span class="badge" id="modeBadge" hidden>SERVER</span>
+      <a class="btn btn--ghost" href="/" target="_blank" rel="noopener">Xem thử ↗</a>
+      <button class="btn btn--ghost" id="changePass">Đổi mật khẩu</button>
+      <button class="btn btn--ghost" id="logout">Thoát</button>
+    </div>
+  </header>
+
+  <main class="main">
+    <section class="view" id="view-content"></section>
+    <section class="view" id="view-projects" hidden></section>
+    <section class="view" id="view-assets" hidden></section>
+    <section class="view" id="view-publish" hidden></section>
+  </main>
+</div>
+
+<!-- image picker -->
+<div class="modal" id="picker" hidden>
+  <div class="modal__panel">
+    <header class="modal__head">
+      <h2>Chọn ảnh</h2>
+      <input type="search" id="pickerSearch" placeholder="Tìm theo tên…">
+      <button class="btn btn--ghost" id="pickerClose">Đóng</button>
+    </header>
+    <div class="picker__grid" id="pickerGrid"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast" hidden></div>
+
+<script src="admin.js?v=5"></script>
+</body>
+</html>

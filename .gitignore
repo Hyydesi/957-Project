@@ -1,2 +1,7 @@
 .claude/
 .DS_Store
+
+# admin panel — mật khẩu và bản sao lưu, không đưa lên git
+admin/config.json
+admin/.backups/
+node_modules/

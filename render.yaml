@@ -1,0 +1,42 @@
+# Render blueprint cho trang quản trị 957.
+#
+# Cách dùng: Render → New → Blueprint → chọn repo này. Render đọc file này,
+# tạo web service, rồi hỏi bạn điền hai giá trị bí mật (ADMIN_PASSWORD và
+# GITHUB_TOKEN). Không viết giá trị thật vào file này — nó nằm trên GitHub.
+services:
+  - type: web
+    name: 957-admin
+    runtime: node
+    plan: free
+    branch: main
+    buildCommand: npm install
+    startCommand: node admin/server.js
+    envVars:
+      - key: NODE_VERSION
+        value: "20"
+
+      # chạy ở chế độ hosted: phục vụ bản clone của chính server
+      - key: ADMIN_MODE
+        value: hosted
+      - key: SITE_DIR
+        value: /tmp/957-site
+
+      # repo và nhánh mà admin sẽ đọc/ghi
+      - key: GIT_REMOTE
+        value: https://github.com/Hyydesi/957-Project.git
+      - key: GIT_BRANCH
+        value: main
+      - key: GIT_USER_NAME
+        value: 957 Admin
+      - key: GIT_USER_EMAIL
+        value: admin@957.studio
+
+      # Render tự sinh, giữ nguyên qua các lần deploy — giữ phiên đăng nhập
+      - key: SESSION_SECRET
+        generateValue: true
+
+      # bạn tự điền trong dashboard, không lưu vào repo
+      - key: ADMIN_PASSWORD
+        sync: false
+      - key: GITHUB_TOKEN
+        sync: false
