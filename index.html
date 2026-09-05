@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=Roboto+Mono:wght@400;500&family=Inter:wght@400;500;600&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=54">
+<link rel="stylesheet" href="styles.css?v=57">
 <script>try{if(!matchMedia('(prefers-reduced-motion: reduce)').matches)document.documentElement.classList.add('is-loading');}catch(e){}</script>
 </head>
 <body class="home">
@@ -113,7 +113,7 @@
     </div>
 
     <!-- the set is listed twice so the right-to-left loop wraps seamlessly -->
-    <div class="hero__reel" aria-hidden="true">
+    <div class="hero__reel" aria-hidden="true" data-lenis-prevent>
       <div class="hero__reel-track">
         <div class="hero__reel-card"><img src="assets/hero/reel-1.png" alt=""></div>
         <div class="hero__reel-card"><img src="assets/hero/reel-2.png" alt=""></div>
@@ -486,6 +486,9 @@
   </section>
 
   <!-- FOOTER -->
+  <!-- scroll room for the curtain-reveal: .works slides up off the fixed footer -->
+  <div class="sfooter__reveal" aria-hidden="true"></div>
+
   <footer class="sfooter" id="contact" data-theme="dark">
     <div class="sfooter__bg" aria-hidden="true">
       <picture>
@@ -543,7 +546,7 @@
 
 <script src="https://cdn.jsdelivr.net/npm/lenis@1.1.13/dist/lenis.min.js"></script>
 <script src="projects.js?v=18"></script>
-<script src="script.js?v=27"></script>
+<script src="script.js?v=30"></script>
 <script src="contact.js?v=6"></script>
 </body>
 </html>
