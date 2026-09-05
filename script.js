@@ -607,28 +607,60 @@ if (categoryFilter && yearFilter && worksGrid) {
       project.querySelectorAll('.project__head span')
     ).map((span) => new ScrambleText(span));
     project.addEventListener('mouseenter', () => {
+      // a LIST row's name sits in a chip that simply opens — no letter jitter
+      if (worksGrid.classList.contains('is-list')) return;
       scramblers.forEach((sc) => sc.run());
     });
   });
 
-  // ---------- Works: "VIEW" label that follows the cursor ----------
+  // ---------- Works: LIST view hover panel ----------
+  // The row markup is only [ name | tags ]; everything the open row shows —
+  // logomark, "view more", detail-page stills — is built here from PROJECTS so
+  // the panel stays in step with the data both pages already render from.
+  const byCode = new Map(
+    typeof PROJECTS !== 'undefined' ? PROJECTS.map((p) => [p.code, p]) : []
+  );
+  projects.forEach((project) => {
+    const p = byCode.get(project.dataset.code);
+    if (!p) return;
+    // projects whose detail page isn't built yet fall back to what they have
+    const shots = (p.shots && p.shots.length ? p.shots : [p.cover, p.image]).filter(Boolean);
+    const cta = p.href
+      ? `<a class="project__view" href="${p.href}">` +
+        '<img src="assets/icons/corner-right-up.svg" alt="" width="16" height="16">' +
+        '<span>View more</span></a>'
+      : '<p class="project__soon">Coming soon</p>';
+    const more = document.createElement('div');
+    more.className = 'project__more';
+    more.innerHTML =
+      '<div class="project__more-inner"><div class="project__more-row">' +
+        `<div class="project__mark"><img src="${p.mark || p.logo}" alt=""></div>` +
+        cta +
+        `<div class="project__shots">${shots
+          .map((s) => `<img src="${s}" alt="" loading="lazy">`)
+          .join('')}</div>` +
+      '</div></div>';
+    project.appendChild(more);
+  });
+
+  // The tiles sit in a clipped, zero-height container, so lazy loading never
+  // fires until a row is already open — warm them at idle instead, or the very
+  // first hover opens onto blank squares while the stills download.
+  const warmPanels = () => {
+    projects.forEach((project) => {
+      project
+        .querySelectorAll('.project__more img')
+        .forEach((img) => { new Image().src = img.getAttribute('src'); });
+    });
+  };
+  if ('requestIdleCallback' in window) requestIdleCallback(warmPanels, { timeout: 4000 });
+  else setTimeout(warmPanels, 2000);
+
+  // ---------- Works: "VIEW" label that follows the cursor (GRID view) ----------
   const cursorView = document.createElement('div');
   cursorView.className = 'cursor-view';
   cursorView.textContent = 'VIEW';
   document.body.appendChild(cursorView);
-
-  // list view: the hovered project's image follows the cursor instead of the pill
-  const cursorImg = document.createElement('img');
-  cursorImg.className = 'cursor-img';
-  cursorImg.alt = '';
-  document.body.appendChild(cursorImg);
-
-  // full-width red line behind the hovered card, centred on its height.
-  // appended INSIDE .works: the section is a stacking context (z-index:6 with
-  // its own opaque backdrop), so overlays parked on <body> would paint under it
-  const hoverLine = document.createElement('div');
-  hoverLine.className = 'hover-line';
-  worksGrid.closest('.works').appendChild(hoverLine);
 
   // document-space layout position: transform-free like offsetTop, but summed
   // through the offsetParent chain so positioned ancestors (.works is
@@ -637,25 +669,6 @@ if (categoryFilter && yearFilter && worksGrid) {
     let t = 0;
     for (let n = el; n; n = n.offsetParent) t += n.offsetTop;
     return t;
-  };
-  const layoutLeft = (el) => {
-    let l = 0;
-    for (let n = el; n; n = n.offsetParent) l += n.offsetLeft;
-    return l;
-  };
-
-  const positionHoverLine = (project) => {
-    // layout values are transform-free, so mid-transition measurements don't
-    // wobble the line. Segments run right up to the shrunken card's edges
-    // (the card scales to .94 on hover), so the line always touches the card
-    const HOVER_SCALE = 0.94;
-    const w = project.offsetWidth;
-    const centerX = layoutLeft(project) + w / 2;
-    const centerY = layoutTop(project) - window.scrollY + project.offsetHeight / 2;
-    const half = (w / 2) * HOVER_SCALE;
-    hoverLine.style.top = `${centerY}px`;
-    hoverLine.style.setProperty('--cutL', `${Math.max(0, centerX - half)}px`);
-    hoverLine.style.setProperty('--cutR', `${Math.max(0, window.innerWidth - centerX - half)}px`);
   };
 
   let cvX = 0, cvY = 0, cvTargetX = 0, cvTargetY = 0, cvRaf = null, cvActive = false;
@@ -666,8 +679,6 @@ if (categoryFilter && yearFilter && worksGrid) {
     cvY += (cvTargetY - cvY) * 0.2;
     cursorView.style.left = `${cvX}px`;
     cursorView.style.top = `${cvY}px`;
-    cursorImg.style.left = `${cvX}px`;
-    cursorImg.style.top = `${cvY}px`;
     if (cvActive || Math.abs(cvTargetX - cvX) > 0.5 || Math.abs(cvTargetY - cvY) > 0.5) {
       cvRaf = requestAnimationFrame(cvLoop);
     } else {
@@ -683,47 +694,20 @@ if (categoryFilter && yearFilter && worksGrid) {
       // snap to the cursor on entry so it doesn't fly in from the corner
       cvX = cvTargetX = e.clientX;
       cvY = cvTargetY = e.clientY;
-      if (worksGrid.classList.contains('is-list')) {
-        // list view: the project image follows the cursor instead of the pill
-        const src = project.querySelector('.project__img img')?.getAttribute('src');
-        if (src && cursorImg.getAttribute('src') !== src) cursorImg.setAttribute('src', src);
-        cursorImg.classList.add('is-visible');
-      } else {
-        cursorView.classList.add('is-visible');
-      }
+      // a list row opens its own panel on hover, so the pill stays in GRID view
+      if (!worksGrid.classList.contains('is-list')) cursorView.classList.add('is-visible');
       if (!cvRaf) cvRaf = requestAnimationFrame(cvLoop);
-      if (worksGrid.classList.contains('is-list')) {
-        if (hoverLine.classList.contains('is-visible')) {
-          // jumped straight from another card: reset instantly (no transition)
-          // and replay the grow animation at the new position
-          hoverLine.style.transition = 'none';
-          hoverLine.classList.remove('is-visible');
-          positionHoverLine(project);
-          void hoverLine.offsetWidth; // flush so the reset applies before re-showing
-          hoverLine.style.transition = '';
-        } else {
-          positionHoverLine(project);
-        }
-        hoverLine.classList.add('is-visible');
-      }
     });
     project.addEventListener('mousemove', (e) => {
       cvTargetX = e.clientX;
       cvTargetY = e.clientY;
       if (!cvRaf) cvRaf = requestAnimationFrame(cvLoop);
-      if (worksGrid.classList.contains('is-list')) {
-        positionHoverLine(project); // row can shift under smooth scroll
-      } else {
-        hoverLine.classList.remove('is-visible');
-      }
     });
     project.addEventListener('mouseleave', () => {
       cvActive = false;
       hoveredProject = null;
       updateWeb();
       cursorView.classList.remove('is-visible');
-      cursorImg.classList.remove('is-visible');
-      hoverLine.classList.remove('is-visible');
     });
   });
 
@@ -905,6 +889,8 @@ if (categoryFilter && yearFilter && worksGrid) {
 
   const bump = (project, e, outward) => {
     if (!finePointer.matches || parReduced.matches) return;
+    // LIST rows answer a hover by opening, so they must not be knocked around
+    if (worksGrid.classList.contains('is-list')) return;
     const b = bodies.get(project);
     const now = performance.now();
     if (!b || now - b.hit < COOLDOWN) return;

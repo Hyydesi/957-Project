@@ -452,7 +452,7 @@ button{font:inherit;background:none;border:none;color:inherit;cursor:pointer;}
   .works__grid:not(.is-list) .project.pos-3{margin-left:15%;}
   /* % margin resolves against container width, so spacing scales with the cards */
   .works__grid:not(.is-list) .project:not(.is-first){margin-top:5%;}
-  .works__grid.is-list{gap:24px;}
+  .works__grid.is-list{gap:1px;}
 }
 /* transform is composed from vars so reveal (--ry), scroll parallax (--par),
    hover shrink (--sc) and the cursor bump (--fx/--fy/--fr) can run together
@@ -470,7 +470,7 @@ button{font:inherit;background:none;border:none;color:inherit;cursor:pointer;}
 
 .project{
   position:relative;
-  z-index:1; /* above the fixed line overlays (.works-web / .hover-line, z:0) */
+  z-index:1; /* above the fixed line overlay (.works-web, z:0) */
   border:1px solid #525252;
   background:var(--bg-dark);
   --ry:1.8vw;--sc:1;--par:0px;--rev:0px;
@@ -516,12 +516,10 @@ button{font:inherit;background:none;border:none;color:inherit;cursor:pointer;}
     linear-gradient(var(--c),var(--c)) 100% 100%/var(--l) var(--t) no-repeat,
     linear-gradient(var(--c),var(--c)) 100% 100%/var(--t) var(--l) no-repeat;
 }
-/* hovered card: shrink slightly; the red frame + corners only show in LIST view */
+/* hovered card: shrink slightly — GRID only. A LIST row opens a panel instead,
+   so it has to keep its full size and drop the red frame + corner marks. */
 .project:hover{--sc:.94;}
-.works__grid.is-list .project::before,
-.works__grid.is-list .project::after{inset:-16px;transition:opacity .35s ease;}
-.works__grid.is-list .project:hover::before,
-.works__grid.is-list .project:hover::after{opacity:1;inset:-16px;}
+.works__grid.is-list .project:hover{--sc:1;}
 @media(prefers-reduced-motion:reduce){
   .project{opacity:1;transform:none;transition:none;--ry:0px;}
 }
@@ -572,9 +570,6 @@ button{font:inherit;background:none;border:none;color:inherit;cursor:pointer;}
 .works__grid:not(.is-list) .project__head{transition:filter .4s ease;}
 .works__grid:not(.is-list):has(.project:hover) .project:not(:hover) .project__head{filter:brightness(.5);}
 
-/* dim other rows in LIST view cleanly with opacity */
-.works__grid.is-list:has(.project:hover) .project:not(:hover){opacity:.45;}
-
 /* GRID view: red threads connecting the viewport centre to each card's centre.
    Fixed overlay behind the cards (cards have an opaque background), driven
    from JS on scroll; each line fades in with its card's reveal progress */
@@ -586,29 +581,10 @@ button{font:inherit;background:none;border:none;color:inherit;cursor:pointer;}
 }
 .works-web line{stroke:var(--red);stroke-width:1;transition:opacity .25s ease;}
 
-/* faint grey line behind the hovered card, centred on its height;
-   two segments (left/right) that stop at the red hover frame, so the line
-   never peeks through the gap between the shrunken card and its frame.
-   grows out from the middle with the same timing/easing as the card hover */
-.hover-line{
-  position:fixed;left:0;right:0;top:0;height:2px;z-index:0;
-  --cutL:0px;--cutR:0px;
-  transform:translateY(-50%) scaleX(0);
-  opacity:0;
-  transition:opacity .35s ease,transform .45s cubic-bezier(.16,1,.3,1);
-  pointer-events:none;
-}
-.hover-line::before,.hover-line::after{
-  content:"";position:absolute;top:0;height:100%;
-  background:rgba(255,255,255,.14);
-}
-.hover-line::before{left:0;width:var(--cutL);}
-.hover-line::after{right:0;width:var(--cutR);}
-.hover-line.is-visible{opacity:1;transform:translateY(-50%) scaleX(1);}
-
 /* "VIEW" pill that follows the cursor while hovering a card.
    GRID view: white + difference blending (reference-style invert cursor —
-   white flips against whatever sits underneath). LIST view: solid red, no blend. */
+   white flips against whatever sits underneath). LIST rows open their own
+   panel on hover, so the pill is GRID-only. */
 .cursor-view{
   position:fixed;top:0;left:0;z-index:300;pointer-events:none;
   width:100px;height:42px;
@@ -716,28 +692,24 @@ button{font:inherit;background:none;border:none;color:inherit;cursor:pointer;}
   .works__grid:not(.is-list) .project:hover .fx-card__label{opacity:1;}
 }
 
-/* LIST view: the hovered project's image follows the cursor instead of the pill */
-.cursor-img{
-  position:fixed;top:0;left:0;z-index:300;pointer-events:none;
-  width:280px;aspect-ratio:655/483;object-fit:cover;
-  box-shadow:0 18px 50px rgba(0,0,0,.55);
-  opacity:0;transform:translate(-50%,-50%) scale(.85);
-  transition:opacity .3s ease,transform .3s cubic-bezier(.16,1,.3,1);
-}
-.cursor-img.is-visible{opacity:1;transform:translate(-50%,-50%) scale(1);}
-
 @media(prefers-reduced-motion:reduce){
   .project,.project::before,.project::after,.project__img img,.project__img::after{transition:none;}
   .project:hover{transform:none;}
+  .works__grid.is-list .project__more,
+  .works__grid.is-list .project__more-row{transition:none;}
+  .works__grid.is-list .project__more-row{opacity:1;transform:none;}
 }
 
-/* LIST view — compact text rows [ title | tags ]; the project still is not in
-   the row anymore, it follows the cursor on hover instead (.cursor-img).
-   The chips live inside .project__img, so the wrapper is flattened rather than
-   hidden — otherwise the row would lose its tags along with the picture. */
+/* LIST view — a hairline row [ name | tags ] that opens into a full project
+   panel on hover (Figma: 1289:4414 default, 1291:4496 hover). The name, the
+   chips and the still all sit inside wrappers, so link / header / image are
+   flattened with display:contents and each piece becomes a cell of the row. */
 .works__grid.is-list .project__img{
   aspect-ratio:auto;background:none;overflow:visible;position:static;
 }
+.works__grid.is-list .project__link,
+.works__grid.is-list .project__head,
+.works__grid.is-list .project__img{display:contents;}
 .works__grid.is-list .project__img img,
 .works__grid.is-list .project__img::after{display:none;}
 .works__grid.is-list .project__tags{position:static;}
@@ -745,24 +717,94 @@ button{font:inherit;background:none;border:none;color:inherit;cursor:pointer;}
    otherwise switching views mid-page leaves never-revealed rows invisible */
 .works__grid.is-list .project{
   opacity:1;--ry:0px;
-  transition:--sc .45s cubic-bezier(.16,1,.3,1),background-color .3s ease,opacity .3s ease;
+  background:transparent;
+  border:0;border-top:1px solid #656565;
+  /* the row's only motion is the panel opening: no parallax, no reveal offset
+     and none of the grid view's cursor spring */
+  transform:none;
+  transition:background-color .4s ease;
 }
+/* the panel is a list-view device only */
+.works__grid:not(.is-list) .project__more{display:none;}
+
 @media(min-width:800px){
   .works__grid.is-list .project{
     /* full container width so rows align with the section padding above */
     width:100%;margin:0;
-    display:grid;grid-template-columns:auto 1fr;align-items:center;gap:40px;
-    padding:26px 24px;
+    display:grid;grid-template-columns:auto 1fr;align-items:center;
+    column-gap:40px;
+    padding:16px;
   }
-  .works__grid.is-list .project:hover{background:#515151;}
-  /* flatten the link and header wrappers so title / tags become grid cells */
-  .works__grid.is-list .project__link,
-  .works__grid.is-list .project__head{display:contents;background:transparent;padding:0;}
-  .works__grid.is-list .project__head span{font-size:16px;grid-column:1;grid-row:1;}
-  /* the chips take the right-hand cell the tag text used to hold */
+  .works__grid.is-list .project:hover{background:var(--red);}
+  /* the name flips to a white chip while the row is open. The 4px inset is
+     carried in both states so the text can't jump sideways on hover. */
+  .works__grid.is-list .project__head span{
+    grid-column:1;grid-row:1;
+    padding:0 4px;font-size:16px;
+    background:transparent;color:var(--white);
+    transition:background-color .3s ease,color .3s ease;
+  }
+  .works__grid.is-list .project:hover .project__head span{
+    background:var(--white);color:#000;
+  }
+  /* the chips take the right-hand cell the tag text used to hold, keeping the
+     grid view's colour cycle — only the padding follows the list spec */
   .works__grid.is-list .project__tags{
     grid-column:2;grid-row:1;justify-self:end;font-size:14px;
   }
+  .works__grid.is-list .project__tag{padding:2px 10px;}
+
+  /* The panel opens by growing a 0fr → 1fr track, so the row settles at the
+     panel's natural height instead of a hard-coded one. overflow:hidden on the
+     inner element is what lets it be clipped to zero. */
+  .works__grid.is-list .project__more{
+    grid-column:1 / -1;grid-row:2;
+    display:grid;grid-template-rows:0fr;
+    transition:grid-template-rows .5s cubic-bezier(.16,1,.3,1);
+  }
+  .works__grid.is-list .project:hover .project__more{grid-template-rows:1fr;}
+  /* the clipper carries no padding of its own: padding survives a zero height,
+     so a padded clipper would leave a band of red under every closed row */
+  .works__grid.is-list .project__more-inner{overflow:hidden;}
+  .works__grid.is-list .project__more-row{
+    display:flex;align-items:flex-end;gap:16px;
+    /* 16px below the name row + the block's own 24px, per the design */
+    padding:40px 0 24px;
+    /* the contents rise into the space the row is making, so the whole thing
+       reads as one opening movement instead of a block snapping into view */
+    opacity:0;transform:translateY(12px);
+    transition:opacity .3s ease,transform .5s cubic-bezier(.16,1,.3,1);
+  }
+  .works__grid.is-list .project:hover .project__more-row{
+    opacity:1;transform:translateY(0);transition-delay:.06s;
+  }
+  .works__grid.is-list .project__mark{
+    flex:1;min-width:0;height:120px;display:flex;align-items:center;
+  }
+  .works__grid.is-list .project__mark img{
+    height:100%;width:auto;object-fit:contain;
+  }
+  /* a vector mark is a single-colour glyph in the product's own brand colour,
+     so it gets flattened to white for the red row. The PNG placeholders are
+     full brand tiles — flattening those would just paint a white square. */
+  .works__grid.is-list .project__mark img[src$=".svg"]{filter:brightness(0) invert(1);}
+  .works__grid.is-list .project__view,
+  .works__grid.is-list .project__soon{
+    display:flex;align-items:center;gap:4px;padding:0 10px;
+    font-family:var(--font-mono);font-size:14px;text-transform:uppercase;
+    white-space:nowrap;
+  }
+  .works__grid.is-list .project__view img{width:16px;height:16px;transform:rotate(90deg);}
+  .works__grid.is-list .project__view:hover span{text-decoration:underline;}
+  .works__grid.is-list .project__soon{color:rgba(255,255,255,.6);}
+  .works__grid.is-list .project__shots{display:flex;gap:12px;}
+  .works__grid.is-list .project__shots img{
+    width:120px;height:120px;object-fit:cover;background:#d9d9d9;
+  }
+}
+/* the panel is a pointer affordance — narrow screens keep the plain row */
+@media(max-width:799px){
+  .works__grid.is-list .project__more{display:none;}
 }
 
 /* consistent horizontal rhythm: 24px on mobile, 40px on desktop (matches the nav) */
