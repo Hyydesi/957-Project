@@ -144,6 +144,22 @@ if (heroPinned && heroSpacer) {
   updateHeroCover();
 }
 
+// ---------- Home: curtain-reveal the fixed footer once its spacer enters the
+// viewport (mirror of the pinned hero above). Keeping the footer hidden until
+// then is what stops the bottom-fixed footer from covering the hero up top. An
+// IntersectionObserver drives it so it fires reliably under Lenis, native scroll
+// or none. ----------
+const revealFooterEl = document.querySelector('body.home .sfooter');
+const revealFooterSpacer = document.querySelector('body.home .sfooter__reveal');
+if (revealFooterEl && revealFooterSpacer && 'IntersectionObserver' in window) {
+  const footerObserver = new IntersectionObserver((entries) => {
+    entries.forEach((entry) => {
+      revealFooterEl.classList.toggle('is-revealing', entry.isIntersecting);
+    });
+  }, { rootMargin: '0px 0px 100px 0px' }); // arm just before .works uncovers it
+  footerObserver.observe(revealFooterSpacer);
+}
+
 // ---------- Menu overlay ----------
 const menuToggle = document.getElementById('menuToggle');
 const menuOverlay = document.getElementById('menuOverlay');
@@ -963,6 +979,57 @@ if (categoryFilter && yearFilter && worksGrid) {
 // custom wheel-lerp block was removed during the Development merge so the two
 // smooth-scroll engines don't fight over the wheel event. The Works year-rail
 // scroll-spy still works because it polls window.scrollY every frame.
+
+// ---------- Hero reel: wheel-over-reel drives it horizontally (Jesper-Landberg
+// style), with an eased glide. The wheel is only intercepted while the pointer is
+// over the reel — capture + stopPropagation keep Lenis's window-level wheel from
+// also scrolling the page — so moving the cursor off the reel restores normal
+// vertical scrolling. JS takes over the transform from the CSS marquee, which
+// stays as the no-JS / reduced-motion fallback. ----------
+(function heroReelWheel() {
+  const reel = document.querySelector('.hero__reel');
+  const track = document.querySelector('.hero__reel-track');
+  if (!reel || !track) return;
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+  track.style.animation = 'none';       // JS now owns the transform
+  track.style.willChange = 'transform';
+
+  // one un-duplicated set = half the track (the markup duplicates the 8 cards),
+  // so wrapping every `cycle` px is seamless.
+  let cycle = track.scrollWidth / 2 || 1;
+  const measure = () => { cycle = track.scrollWidth / 2 || cycle; };
+  window.addEventListener('resize', measure);
+  window.addEventListener('load', measure);
+  track.querySelectorAll('img').forEach((img) => {
+    if (!img.complete) img.addEventListener('load', measure, { once: true });
+  });
+
+  const DRIFT = 0.45;   // px/frame idle drift (≈ the old ~40px/s marquee)
+  const LERP = 0.085;   // eased follow — the horizontal-scroll glide
+  let current = 0;      // rendered X
+  let target = 0;       // desired X
+
+  reel.addEventListener('wheel', (e) => {
+    const delta = Math.abs(e.deltaY) >= Math.abs(e.deltaX) ? e.deltaY : e.deltaX;
+    if (!delta) return;
+    e.preventDefault();
+    e.stopPropagation();  // keep Lenis from scrolling the page too
+    target -= delta;
+  }, { passive: false, capture: true });
+
+  let last = performance.now();
+  const frame = (now) => {
+    const dt = Math.min(50, now - last); last = now;
+    target -= DRIFT * (dt / 16.667);
+    current += (target - current) * LERP;
+    if (current <= -cycle) { current += cycle; target += cycle; }
+    else if (current > 0) { current -= cycle; target -= cycle; }
+    track.style.transform = `translate3d(${current}px,0,0)`;
+    requestAnimationFrame(frame);
+  };
+  requestAnimationFrame(frame);
+})();
 
 // ---------- Klever: lazy-load + loop videos only while scrolled into view ----------
 const lazyVideos = document.querySelectorAll('video[data-src]');
