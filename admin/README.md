@@ -103,11 +103,11 @@ Kiến trúc: **admin trên Render** ghi vào bản clone của chính nó → p
 quyết định; danh sách đó nằm trong một **repo private riêng** vì repo website
 là public, không thể để email của team ở đó.
 
-### Bước 1 — Tạo repo private chứa danh sách thành viên
+### Bước 1 — Repo private chứa danh sách thành viên ✅ đã xong
 
-Tạo repo mới trên GitHub, **để private**, tên gợi ý `957-admin-config`, tick
-"Add a README" để repo có sẵn một commit. Không cần thêm gì nữa — admin sẽ tự
-tạo `members.json` trong đó ở lần chạy đầu.
+Repo đang dùng: **`Hyydesi/957-Admin`** (private, đã có README nên đã có sẵn
+một commit trên nhánh `main`). Không cần thêm gì nữa — admin sẽ tự tạo
+`members.json` trong đó ở lần chạy đầu.
 
 ### Bước 2 — Tạo GitHub token
 
@@ -115,7 +115,7 @@ GitHub → Settings → Developer settings → Personal access tokens →
 **Fine-grained tokens** → Generate new token:
 
 - Repository access: **Only select repositories** → chọn **cả hai** repo:
-  `957-Project` và `957-admin-config`
+  `957-Project` và `957-Admin`
 - Permissions → Repository permissions → **Contents: Read and write**
 - Đặt hạn dùng và nhớ gia hạn trước khi hết.
 
@@ -130,7 +130,7 @@ Render → **New** → **Blueprint** → chọn repo `957-Project`. Render đọ
 |---|---|
 | `OWNER_EMAIL` | gmail của bạn — luôn là owner, không ai xoá được |
 | `GITHUB_TOKEN` | token ở bước 2 |
-| `CONFIG_REPO` | `https://github.com/<bạn>/957-admin-config.git` |
+| `CONFIG_REPO` | `https://github.com/Hyydesi/957-Admin.git` |
 | `GOOGLE_CLIENT_ID` | điền ở bước 4 |
 | `GOOGLE_CLIENT_SECRET` | điền ở bước 4 |
 
@@ -196,7 +196,7 @@ OWNER_EMAIL=ban@gmail.com SESSION_SECRET=$(openssl rand -hex 16) \
 GOOGLE_CLIENT_ID=<id> GOOGLE_CLIENT_SECRET=<secret> \
 PUBLIC_URL=http://127.0.0.1:4958 \
 GITHUB_TOKEN=<token> GIT_BRANCH=main SITE_DIR=/tmp/957-site \
-CONFIG_REPO=https://github.com/<ban>/957-admin-config.git \
+CONFIG_REPO=https://github.com/Hyydesi/957-Admin.git \
 CONFIG_DIR=/tmp/957-admin-config \
 node admin/server.js
 ```

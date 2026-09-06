@@ -137,7 +137,10 @@ async function startApp() {
     who.hidden = true;
   }
   $('#membersTab').hidden = !state.session.manageMembers;
-  await loadAssets();
+  // the image library is a nice-to-have: if it fails to load, say so and still
+  // render the panel rather than leaving a blank screen
+  try { await loadAssets(); }
+  catch (ex) { toast('Không đọc được thư viện ảnh: ' + ex.message, 'error'); }
   renderContent();
 }
 

@@ -9,6 +9,9 @@ const ALLOWED = new Set(['.jpg', '.jpeg', '.png', '.gif', '.svg', '.webp', '.avi
 const MAX_BYTES = 50 * 1024 * 1024;
 
 function walk(dir, out = []) {
+  // a fresh clone may not carry an assets/ folder yet — an empty library is
+  // the honest answer, not a crash that leaves the panel blank
+  if (!fs.existsSync(dir)) return out;
   for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
     if (entry.name.startsWith('.')) continue;
     const abs = path.join(dir, entry.name);

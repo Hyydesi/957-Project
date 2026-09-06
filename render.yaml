@@ -48,4 +48,4 @@ services:
       - key: GITHUB_TOKEN
         sync: false          # cần quyền Contents:RW trên CẢ HAI repo
       - key: CONFIG_REPO
-        sync: false          # https://github.com/<bạn>/957-admin-config.git
+        sync: false          # https://github.com/Hyydesi/957-Admin.git
