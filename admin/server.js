@@ -18,6 +18,8 @@ const assets = require('./lib/assets');
 const content = require('./lib/content');
 const projects = require('./lib/projects');
 const git = require('./lib/git');
+const google = require('./lib/google');
+const members = require('./lib/members');
 const { ROOT, resolveInside } = require('./lib/files');
 
 const PUBLIC = path.join(__dirname, 'public');
@@ -66,7 +68,9 @@ const cookies = (req) => Object.fromEntries(
   }).filter(([k]) => k),
 );
 
-const authed = (req) => auth.verifyToken(cookies(req)[COOKIE]);
+const sessionOf = (req) => auth.readSession(cookies(req)[COOKIE]);
+const authed = (req) => !!sessionOf(req);
+const STATE_COOKIE = 'admin_oauth_state';
 
 // Render terminates TLS in front of us, so the scheme arrives in a header.
 const isSecure = (req) => (req.headers['x-forwarded-proto'] || '').split(',')[0].trim() === 'https';
@@ -90,13 +94,50 @@ async function api(req, res, url) {
   }
 
   if (route === 'session' && !isPost) {
+    const user = sessionOf(req);
     return json(res, 200, {
       hasPassword: auth.hasPassword(),
-      authed: authed(req),
+      authed: !!user,
+      user: user ? { email: user.email, name: user.name, role: user.role } : null,
       canSetup: auth.canSetPassword() && !auth.hasPassword(),
       canChangePassword: auth.canSetPassword(),
+      googleReady: env.GOOGLE_READY,
+      manageMembers: !!(user && user.role === 'owner') && env.GOOGLE_READY,
       mode: env.MODE,
     });
+  }
+
+  // ---- sign in with Google ----
+
+  if (route === 'auth/google' && !isPost) {
+    if (!env.GOOGLE_READY) return json(res, 400, { error: 'Chưa cấu hình đăng nhập Google.' });
+    const state = google.makeState();
+    const cookie = [`${STATE_COOKIE}=${state}`, 'Path=/', 'HttpOnly', 'SameSite=Lax', 'Max-Age=600'];
+    if (isSecure(req)) cookie.push('Secure');
+    return send(res, 302, '', { Location: google.authUrl(state), 'Set-Cookie': cookie.join('; ') });
+  }
+
+  if (route === 'auth/callback' && !isPost) {
+    const fail = (msg) => send(res, 302, '', { Location: '/admin/?error=' + encodeURIComponent(msg) });
+    const code = url.searchParams.get('code');
+    const state = url.searchParams.get('state');
+    if (url.searchParams.get('error')) return fail('Bạn đã huỷ đăng nhập Google.');
+    if (!code || !state) return fail('Thiếu thông tin trả về từ Google.');
+    // the state must match the one we set AND be one we signed
+    if (state !== cookies(req)[STATE_COOKIE] || !google.checkState(state)) {
+      return fail('Phiên đăng nhập không hợp lệ, thử lại.');
+    }
+    let person;
+    try { person = await google.exchange(code); }
+    catch (e) { return fail(e.message); }
+
+    // pick up any change made to the member list elsewhere before deciding
+    await members.ensure().catch(() => {});
+    const role = members.roleFor(person.email);
+    if (!role) return fail(`${person.email} chưa được cấp quyền vào trang quản trị.`);
+
+    const token = auth.issue({ email: person.email, name: person.name, role });
+    return send(res, 302, '', { Location: '/admin/', 'Set-Cookie': sessionCookie(token, req) });
   }
 
   if (route === 'setup' && isPost) {
@@ -109,6 +150,9 @@ async function api(req, res, url) {
   }
 
   if (route === 'login' && isPost) {
+    if (env.HOSTED && env.GOOGLE_READY) {
+      return json(res, 403, { error: 'Bản trên server chỉ đăng nhập bằng Google.' });
+    }
     const { password } = await readBody(req);
     let token;
     try { token = auth.login(password); }
@@ -141,6 +185,16 @@ async function api(req, res, url) {
       throw e;
     }
     return json(res, 200, { ok: true }, { 'Set-Cookie': sessionCookie(null, req) });
+  }
+
+  if (route.startsWith('members')) {
+    const user = sessionOf(req);
+    if (user.role !== 'owner') return json(res, 403, { error: 'Chỉ owner mới quản lý được thành viên.' });
+    if (route === 'members' && !isPost) return json(res, 200, { members: members.list(), gitBacked: members.gitBacked() });
+    const body = await readBody(req);
+    if (route === 'members' && isPost) return json(res, 200, { members: await members.add(body, user.email) });
+    if (route === 'members/remove') return json(res, 200, { members: await members.remove(body.email, user.email) });
+    if (route === 'members/role') return json(res, 200, { members: await members.setRole(body.email, body.role, user.email) });
   }
 
   if (route === 'content' && !isPost) return json(res, 200, { pages: content.overview() });
@@ -181,8 +235,12 @@ async function api(req, res, url) {
 
   if (route === 'git' && isPost) {
     const { message, push } = await readBody(req);
+    const user = sessionOf(req);
     // hosted saves live on an ephemeral disk, so publishing always pushes
-    return json(res, 200, await git.publish(message, { push: env.HOSTED ? true : !!push }));
+    return json(res, 200, await git.publish(message, {
+      push: env.HOSTED ? true : !!push,
+      author: user && user.email && user.email !== 'local' ? { name: user.name, email: user.email } : null,
+    }));
   }
 
   if (route === 'git/pull' && isPost) {
@@ -246,6 +304,8 @@ const server = http.createServer(async (req, res) => {
       const result = await git.ensureClone();
       console.log(result.cloned ? '  Đã clone repo.' : `  Đã có sẵn bản clone${result.pulled ? ', đã đồng bộ với GitHub.' : '.'}`);
       if (result.error) console.warn('  Không đồng bộ được lúc khởi động: ' + result.error);
+      await members.ensure();
+      console.log(`  Danh sách thành viên: ${members.list().length} người (owner: ${env.OWNER_EMAIL})`);
     } catch (e) {
       console.error('  Không chuẩn bị được bản làm việc: ' + e.message);
       process.exit(1);

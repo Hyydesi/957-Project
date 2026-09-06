@@ -5,3 +5,4 @@
 admin/config.json
 admin/.backups/
 node_modules/
+admin/.config-repo/

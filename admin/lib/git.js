@@ -114,7 +114,7 @@ async function status() {
 }
 
 // Commit everything, catch up with the remote, push. Returns what happened.
-async function publish(message, { push = true } = {}) {
+async function publish(message, { push = true, author = null } = {}) {
   if (!isRepo()) throw new Error('Thư mục website không phải một git repo.');
   const dirty = (await run(['status', '--porcelain'])).trim();
   // a commit from a previous attempt that never got pushed still counts as
@@ -124,7 +124,11 @@ async function publish(message, { push = true } = {}) {
 
   if (dirty) {
     await run(['add', '-A']);
-    await run(['commit', '-m', String(message || 'Cập nhật nội dung từ admin')]);
+    // credit the person who signed in, so history says who changed what
+    const who = author && author.email
+      ? ['-c', `user.name=${author.name || author.email}`, '-c', `user.email=${author.email}`]
+      : [];
+    await run([...who, 'commit', '-m', String(message || 'Cập nhật nội dung từ admin')]);
   }
   if (!push) return { ok: true, committed: !!dirty, pushed: false };
 

@@ -39,6 +39,24 @@ const hosted = () => state.session.mode === 'hosted';
 function showGate(mode) {
   $('#app').hidden = true;
   $('#gate').hidden = false;
+
+  // hosted installs sign in with Google; the password form is for local use
+  if (mode === 'google') {
+    $('#gateTitle').textContent = 'Đăng nhập';
+    $('#gateHint').textContent = 'Dùng tài khoản Google đã được cấp quyền. Nếu email của bạn chưa có trong danh sách, nhờ owner thêm vào.';
+    $('#gatePasswordFields').hidden = true;
+    $('#gateSubmit').hidden = true;
+    $('#googleBtn').hidden = false;
+    const failed = new URLSearchParams(location.search).get('error');
+    if (failed) {
+      const err = $('#gateError');
+      err.textContent = failed;
+      err.hidden = false;
+      history.replaceState(null, '', location.pathname);
+    }
+    return;
+  }
+
   const setup = mode === 'setup';
   $('#gateTitle').textContent = setup ? 'Tạo mật khẩu quản trị' : 'Đăng nhập';
   $('#gateHint').textContent = setup
@@ -48,6 +66,7 @@ function showGate(mode) {
   $('#gateConfirmWrap').hidden = !setup;
   $('#gateSubmit').textContent = setup ? 'Tạo mật khẩu & vào admin' : 'Vào trang quản trị';
   $('#gatePass').autocomplete = setup ? 'new-password' : 'current-password';
+  $('#gatePass').required = true;
   $('#gateForm').dataset.mode = setup ? 'setup' : 'login';
   $('#gatePass').focus();
 }
@@ -81,7 +100,7 @@ $('#tabs').addEventListener('click', (e) => {
   [...$('#tabs').children].forEach((b) => b.classList.toggle('is-active', b === btn));
   for (const view of document.querySelectorAll('.view')) view.hidden = true;
   $('#view-' + btn.dataset.tab).hidden = false;
-  ({ content: renderContent, projects: renderProjects, assets: renderAssets, publish: renderPublish }[btn.dataset.tab])();
+  ({ content: renderContent, projects: renderProjects, assets: renderAssets, publish: renderPublish, members: renderMembers }[btn.dataset.tab])();
 });
 
 $('#logout').addEventListener('click', async () => {
@@ -108,6 +127,16 @@ async function startApp() {
   // hosted installs get their password from the server's environment
   $('#changePass').hidden = !state.session.canChangePassword;
   $('#modeBadge').hidden = !hosted();
+
+  const user = state.session.user;
+  const who = $('#whoami');
+  if (user && user.email !== 'local') {
+    who.innerHTML = `<b>${esc(user.name || user.email)}</b> · <em>${user.role === 'owner' ? 'OWNER' : 'EDITOR'}</em>`;
+    who.hidden = false;
+  } else {
+    who.hidden = true;
+  }
+  $('#membersTab').hidden = !state.session.manageMembers;
   await loadAssets();
   renderContent();
 }
@@ -565,6 +594,78 @@ async function renderPublish() {
   });
 }
 
+
+// ---------- tab: members (owner only) ----------
+
+async function renderMembers() {
+  const view = $('#view-members');
+  const { members, gitBacked } = await api('members');
+
+  view.innerHTML = `
+    <div class="view__head">
+      <div>
+        <h1>Thành viên</h1>
+        <p class="hint">Ai có email trong danh sách này mới đăng nhập được bằng Google. ${gitBacked
+          ? 'Danh sách lưu trong repo private riêng, mỗi lần thêm/xoá được ghi lại thành một commit ở đó.'
+          : 'Đang chạy local nên danh sách lưu trong file trên máy, không đồng bộ đi đâu.'}</p>
+      </div>
+    </div>
+    <form class="addmember" id="addMember">
+      <label class="field"><span>Email Google</span>
+        <input type="email" id="mEmail" placeholder="ten@gmail.com" required></label>
+      <label class="field"><span>Tên hiển thị</span>
+        <input type="text" id="mName" placeholder="Tuỳ chọn"></label>
+      <label class="field"><span>Vai trò</span>
+        <select id="mRole">
+          <option value="editor">Editor — sửa và xuất bản</option>
+          <option value="owner">Owner — thêm quyền quản lý thành viên</option>
+        </select></label>
+      <button class="btn btn--primary" type="submit">Thêm</button>
+    </form>
+    <table class="mtable">
+      <thead><tr><th>Email</th><th>Tên</th><th>Vai trò</th><th></th></tr></thead>
+      <tbody>${members.map((m) => `
+        <tr data-email="${esc(m.email)}">
+          <td class="email">${esc(m.email)}</td>
+          <td>${esc(m.name || '')}</td>
+          <td>${m.locked
+            ? '<span class="role is-owner">OWNER</span>'
+            : `<select data-act="role">
+                 <option value="editor"${m.role === 'editor' ? ' selected' : ''}>Editor</option>
+                 <option value="owner"${m.role === 'owner' ? ' selected' : ''}>Owner</option>
+               </select>`}</td>
+          <td class="actions">${m.locked
+            ? '<span class="hint">đặt bằng biến môi trường</span>'
+            : '<button class="btn btn--danger" data-act="remove" type="button">Xoá</button>'}</td>
+        </tr>`).join('')}
+      </tbody>
+    </table>`;
+
+  $('#addMember', view).addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn = $('button[type=submit]', e.currentTarget);
+    btn.disabled = true;
+    try {
+      await api('members', { email: $('#mEmail', view).value, name: $('#mName', view).value, role: $('#mRole', view).value });
+      toast('Đã thêm thành viên.');
+      renderMembers();
+    } catch (ex) { toast(ex.message, 'error'); btn.disabled = false; }
+  });
+
+  view.querySelectorAll('[data-act=remove]').forEach((btn) => btn.addEventListener('click', async () => {
+    const email = btn.closest('tr').dataset.email;
+    if (!confirm(`Xoá quyền của ${email}? Họ sẽ không đăng nhập được nữa ngay lập tức.`)) return;
+    try { await api('members/remove', { email }); toast('Đã xoá ' + email); renderMembers(); }
+    catch (ex) { toast(ex.message, 'error'); }
+  }));
+
+  view.querySelectorAll('[data-act=role]').forEach((sel) => sel.addEventListener('change', async () => {
+    const email = sel.closest('tr').dataset.email;
+    try { await api('members/role', { email, role: sel.value }); toast(`${email} → ${sel.value}`); renderMembers(); }
+    catch (ex) { toast(ex.message, 'error'); renderMembers(); }
+  }));
+}
+
 // ---------- boot ----------
 
 (async () => {
@@ -572,6 +673,7 @@ async function renderPublish() {
     const session = await api('session');
     state.session = session;
     if (session.authed) startApp();
+    else if (session.googleReady) showGate('google');
     else showGate(session.canSetup ? 'setup' : 'login');
   } catch (ex) {
     document.body.innerHTML = `<p class="empty">Không kết nối được admin server: ${esc(ex.message)}</p>`;

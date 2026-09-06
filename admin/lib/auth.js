@@ -18,8 +18,10 @@ const LOCK_MS = 5 * 60 * 1000;
 
 const attempts = { count: 0, lockedUntil: 0 };
 
-// Hosted credentials are derived once at boot from the environment.
-const hosted = env.HOSTED ? (() => {
+// Hosted credentials are derived once at boot from the environment. Without a
+// real ADMIN_PASSWORD there is no password login at all — hosted installs sign
+// in with Google — rather than a hash of the empty string that anyone could pass.
+const hosted = (env.HOSTED && env.PASSWORD.length >= 8) ? (() => {
   const salt = crypto.randomBytes(16).toString('hex');
   return { salt, hash: hash(env.PASSWORD, salt), secret: env.SESSION_SECRET };
 })() : null;
@@ -30,6 +32,7 @@ function hash(password, salt) {
 
 function readConfig() {
   if (hosted) return hosted;
+  if (env.HOSTED) return null;   // hosted without a password: Google sign-in only
   try { return JSON.parse(fs.readFileSync(CONFIG_PATH, 'utf8')); } catch { return null; }
 }
 
@@ -78,26 +81,48 @@ function login(password) {
     return null;
   }
   attempts.count = 0;
-  return issueToken(config.secret);
+  return issue({ email: env.OWNER_EMAIL || 'local', name: 'Quản trị', role: 'owner' });
 }
 
-function issueToken(secret) {
-  const expires = Date.now() + SESSION_MS;
-  const sig = crypto.createHmac('sha256', secret).update(String(expires)).digest('hex');
-  return `${expires}.${sig}`;
+// A session carries who you are, so the panel can show it and git can credit
+// the right person. It is a signed payload — no server-side session store, which
+// matters on a host that restarts freely.
+function issue(identity) {
+  const secret = sessionSecret();
+  if (!secret) throw new Error('Chưa có khoá phiên đăng nhập.');
+  const payload = Buffer.from(JSON.stringify({
+    email: identity.email,
+    name: identity.name,
+    role: identity.role,
+    exp: Date.now() + SESSION_MS,
+  })).toString('base64url');
+  const sig = crypto.createHmac('sha256', secret).update(payload).digest('hex');
+  return `${payload}.${sig}`;
 }
 
-function verifyToken(token) {
+function sessionSecret() {
   const config = readConfig();
-  if (!config || !token) return false;
-  const [expires, sig] = String(token).split('.');
-  if (!expires || !sig) return false;
-  if (Number(expires) < Date.now()) return false;
-  const expected = crypto.createHmac('sha256', config.secret).update(expires).digest('hex');
+  return config ? config.secret : (env.SESSION_SECRET || null);
+}
+
+// Returns the signed-in identity, or null.
+function readSession(token) {
+  const secret = sessionSecret();
+  if (!secret || !token) return null;
+  const [payload, sig] = String(token).split('.');
+  if (!payload || !sig) return null;
+  const expected = crypto.createHmac('sha256', secret).update(payload).digest('hex');
   const a = Buffer.from(sig, 'hex');
   const b = Buffer.from(expected, 'hex');
-  return a.length === b.length && crypto.timingSafeEqual(a, b);
+  if (a.length !== b.length || !crypto.timingSafeEqual(a, b)) return null;
+  try {
+    const identity = JSON.parse(Buffer.from(payload, 'base64url').toString('utf8'));
+    if (!identity.exp || identity.exp < Date.now()) return null;
+    return identity;
+  } catch { return null; }
 }
+
+const verifyToken = (token) => !!readSession(token);
 
 function changePassword(current, next) {
   if (env.HOSTED) throw new Error('HOSTED');
@@ -107,5 +132,5 @@ function changePassword(current, next) {
 
 module.exports = {
   CONFIG_PATH, SESSION_MS, hasPassword, canSetPassword, setPassword,
-  login, verifyToken, changePassword, lockRemainingMs,
+  login, issue, readSession, verifyToken, changePassword, lockRemainingMs,
 };

@@ -188,3 +188,28 @@ textarea{min-height:110px;resize:vertical;line-height:1.6;}
 .notice b{color:#ffd479;}
 .publish__row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;}
 .publish__last{font-family:var(--mono);font-size:11px;color:var(--dim);margin-top:10px;}
+
+/* ---------- sign-in with Google ---------- */
+.btn--google{
+  justify-content:center;gap:10px;padding:11px 16px;
+  background:var(--white);color:#1f1f1f;border-color:var(--white);
+  font-family:var(--body);font-size:14px;letter-spacing:0;text-transform:none;font-weight:500;
+}
+.btn--google:hover{background:#e8e8e8;border-color:#e8e8e8;}
+.whoami{align-self:center;font-family:var(--mono);font-size:11px;color:var(--muted);}
+.whoami b{color:var(--white);font-weight:500;}
+.whoami em{font-style:normal;color:var(--red);}
+
+/* ---------- members ---------- */
+.mtable{width:100%;border-collapse:collapse;border:1px solid var(--line);background:var(--panel);}
+.mtable th,.mtable td{padding:12px 14px;text-align:left;border-bottom:1px solid var(--line);vertical-align:middle;}
+.mtable th{font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);}
+.mtable tr:last-child td{border-bottom:none;}
+.mtable td.email{font-family:var(--mono);font-size:12px;word-break:break-all;}
+.mtable td.actions{text-align:right;white-space:nowrap;}
+.mtable select{width:auto;padding:6px 8px;font-size:12px;}
+.role{font-family:var(--mono);font-size:10px;letter-spacing:.08em;padding:4px 8px;border:1px solid var(--line);border-radius:2px;color:var(--muted);}
+.role.is-owner{color:#ffd479;border-color:#3a2a12;}
+.addmember{display:grid;gap:12px;grid-template-columns:2fr 1fr auto auto;align-items:end;
+  border:1px solid var(--line);border-radius:3px;background:var(--panel);padding:18px;margin-bottom:18px;}
+@media (max-width:720px){.addmember{grid-template-columns:1fr;}}
