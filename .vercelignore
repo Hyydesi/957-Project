@@ -1,0 +1,6 @@
+# Vercel chỉ deploy website tĩnh. Những thứ dưới đây thuộc về admin server
+# (chạy trên Render), không được phục vụ công khai trên tên miền chính.
+admin/
+render.yaml
+package.json
+.claude/

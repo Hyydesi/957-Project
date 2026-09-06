@@ -36,12 +36,12 @@
   <div class="menu-overlay__panel">
     <div class="menu-overlay__top">
       <button class="menu-overlay__close" id="menuClose">[x] CLOSE</button>
-      <p class="menu-overlay__intro">We partner with <span>global startups and established companies,</span> to deliver memorable brand identities and digital experiences.</p>
+      <p class="menu-overlay__intro" data-cms="menu.intro" data-cms-label="Đoạn giới thiệu (giữ nguyên thẻ &lt;span&gt; để tô đỏ)" data-cms-group="Menu">We partner with <span>global startups and established companies,</span> to deliver memorable brand identities and digital experiences.</p>
     </div>
     <nav class="menu-overlay__links">
-      <a href="index.html#about" class="menu-link">ABOUT</a>
-      <a href="works.html" class="menu-link">WORK</a>
-      <a href="index.html#contact" class="menu-link" data-contact-open>CONTACT</a>
+      <a href="index.html#about" class="menu-link" data-cms="menu.link.about" data-cms-label="Mục 1" data-cms-group="Menu">ABOUT</a>
+      <a href="works.html" class="menu-link" data-cms="menu.link.work" data-cms-label="Mục 2" data-cms-group="Menu">WORK</a>
+      <a href="index.html#contact" class="menu-link" data-contact-open data-cms="menu.link.contact" data-cms-label="Mục 3" data-cms-group="Menu">CONTACT</a>
     </nav>
     <div class="menu-overlay__ticker" aria-hidden="true">
       <div class="menu-overlay__ticker-track">
@@ -65,17 +65,17 @@
     <div class="kl-metabar__date">
       <span class="kl-metabar__dot"></span>
       <div>
-        <p class="kl-metabar__label">DATE ADDED</p>
-        <p class="kl-metabar__value">february 08, 2026</p>
+        <p class="kl-metabar__label" data-cms="klever.meta.label" data-cms-label="Nhãn ngày" data-cms-group="Klever — Thẻ thông tin">DATE ADDED</p>
+        <p class="kl-metabar__value" data-cms="klever.meta.date" data-cms-label="Ngày đăng" data-cms-group="Klever — Thẻ thông tin">february 08, 2026</p>
       </div>
     </div>
     <div class="kl-tags">
-      <span class="kl-tag kl-tag--pin">Malaysia</span>
-      <span class="kl-tag">Branding</span>
-      <span class="kl-tag">Website</span>
-      <span class="kl-tag">Blockchain</span>
-      <span class="kl-tag">Arbitrum Network</span>
-      <span class="kl-tag">Defi Protocol</span>
+      <span class="kl-tag kl-tag--pin" data-cms="klever.tag1" data-cms-label="Thẻ 1 (có ghim)" data-cms-group="Klever — Thẻ thông tin">Malaysia</span>
+      <span class="kl-tag" data-cms="klever.tag2" data-cms-label="Thẻ 2" data-cms-group="Klever — Thẻ thông tin">Branding</span>
+      <span class="kl-tag" data-cms="klever.tag3" data-cms-label="Thẻ 3" data-cms-group="Klever — Thẻ thông tin">Website</span>
+      <span class="kl-tag" data-cms="klever.tag4" data-cms-label="Thẻ 4" data-cms-group="Klever — Thẻ thông tin">Blockchain</span>
+      <span class="kl-tag" data-cms="klever.tag5" data-cms-label="Thẻ 5" data-cms-group="Klever — Thẻ thông tin">Arbitrum Network</span>
+      <span class="kl-tag" data-cms="klever.tag6" data-cms-label="Thẻ 6" data-cms-group="Klever — Thẻ thông tin">Defi Protocol</span>
     </div>
   </div>
 
@@ -83,18 +83,18 @@
   <section class="kl-hero" data-theme="light">
     <div class="kl-hero__info">
       <div class="kl-hero__heading">
-        <h1>Klever finance</h1>
-        <p class="kl-hero__desc">The One-Stop DeFi Hub to Earn sustainable yield and unlock LP Lending potential.</p>
+        <h1 data-cms="klever.hero.title" data-cms-label="Tiêu đề" data-cms-group="Klever — Hero">Klever finance</h1>
+        <p class="kl-hero__desc" data-cms="klever.hero.desc" data-cms-label="Mô tả" data-cms-group="Klever — Hero">The One-Stop DeFi Hub to Earn sustainable yield and unlock LP Lending potential.</p>
       </div>
       <dl class="kl-meta">
-        <div class="kl-meta__row"><dt>Client</dt><dd>Decentra Ventures Labs</dd></div>
-        <div class="kl-meta__row"><dt>Year</dt><dd>2025</dd></div>
-        <div class="kl-meta__row"><dt>Typeface</dt><dd>Chakra Petch, Proto Mono</dd></div>
+        <div class="kl-meta__row"><dt>Client</dt><dd data-cms="klever.hero.client" data-cms-label="Client" data-cms-group="Klever — Hero">Decentra Ventures Labs</dd></div>
+        <div class="kl-meta__row"><dt>Year</dt><dd data-cms="klever.hero.year" data-cms-label="Năm" data-cms-group="Klever — Hero">2025</dd></div>
+        <div class="kl-meta__row"><dt>Typeface</dt><dd data-cms="klever.hero.typeface" data-cms-label="Typeface" data-cms-group="Klever — Hero">Chakra Petch, Proto Mono</dd></div>
         <div class="kl-meta__row"><dt>Color</dt><dd class="kl-meta__swatches"><span style="background:#070E0C"></span><span style="background:#7DFF4E"></span></dd></div>
       </dl>
     </div>
     <div class="kl-hero__banner">
-      <img src="assets/klever/hero-banner.jpg" alt="Klever Finance brand banner">
+      <img data-cms-src="klever.hero.banner" data-cms-label="Ảnh banner" data-cms-group="Klever — Hero" src="assets/klever/hero-banner.jpg" alt="Klever Finance brand banner">
       <div class="kl-hero__banner-logo">
         <img src="assets/klever/k-icon.svg" alt="">
         <span>Klever</span>
@@ -104,11 +104,11 @@
 
   <!-- CHALLENGE -->
   <section class="kl-challenge" data-theme="light">
-    <h2 class="kl-label">Challenge</h2>
+    <h2 class="kl-label" data-cms="klever.challenge.label" data-cms-label="Nhãn mục" data-cms-group="Klever — Challenge">Challenge</h2>
     <div class="kl-challenge__body">
-      <p>The client needs a logo for the Klever project, with the core requirement of being highly recognizable, memorable, and suitable for use as a token logo within a Web3 ecosystem. The primary color direction is green, representing growth, positivity, and sustainability in the financial–technology space.</p>
-      <p>From a conceptual standpoint, two main visual directions were proposed: (1) A logo inspired by candlesticks or flames, directly referencing financial candlestick charts and symbolizing market movement, energy, and momentum; (2) A logo based on the oak tree, a symbol of long-term growth, strength, and upward development.</p>
-      <p>Regardless of the chosen direction, the logo must convey a strong technological and Web3-oriented identity, while remaining clean, modern, and easy to recognize across digital platforms, ensuring its effectiveness as a token identity.</p>
+      <p data-cms="klever.challenge.p1" data-cms-label="Đoạn 1" data-cms-group="Klever — Challenge">The client needs a logo for the Klever project, with the core requirement of being highly recognizable, memorable, and suitable for use as a token logo within a Web3 ecosystem. The primary color direction is green, representing growth, positivity, and sustainability in the financial–technology space.</p>
+      <p data-cms="klever.challenge.p2" data-cms-label="Đoạn 2" data-cms-group="Klever — Challenge">From a conceptual standpoint, two main visual directions were proposed: (1) A logo inspired by candlesticks or flames, directly referencing financial candlestick charts and symbolizing market movement, energy, and momentum; (2) A logo based on the oak tree, a symbol of long-term growth, strength, and upward development.</p>
+      <p data-cms="klever.challenge.p3" data-cms-label="Đoạn 3" data-cms-group="Klever — Challenge">Regardless of the chosen direction, the logo must convey a strong technological and Web3-oriented identity, while remaining clean, modern, and easy to recognize across digital platforms, ensuring its effectiveness as a token identity.</p>
       <div class="kl-challenge__icons">
         <div class="kl-icon-card">
           <svg viewBox="0 0 159 178" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -130,10 +130,10 @@
   <!-- PROJECT TIMELINE -->
   <section class="kl-timeline" data-theme="light">
     <div class="kl-timeline__head">
-      <h2>Project<br>Timeline</h2>
+      <h2 data-cms="klever.timeline.title" data-cms-label="Tiêu đề (giữ thẻ &lt;br&gt;)" data-cms-group="Klever — Timeline">Project<br>Timeline</h2>
       <div class="kl-timeline__range">
-        <span class="kl-timeline__dates">July 01 - August 21</span>
-        <span class="kl-timeline__duration">1.5 months</span>
+        <span class="kl-timeline__dates" data-cms="klever.timeline.dates" data-cms-label="Khoảng thời gian" data-cms-group="Klever — Timeline">July 01 - August 21</span>
+        <span class="kl-timeline__duration" data-cms="klever.timeline.duration" data-cms-label="Thời lượng" data-cms-group="Klever — Timeline">1.5 months</span>
       </div>
     </div>
 
@@ -143,12 +143,12 @@
       </div>
       <div class="kl-gantt__row">
         <div class="kl-gantt__bar is-light" style="--l:0%; --w:31%;">
-          <span class="kl-gantt__step">STEP 1</span><span class="kl-gantt__title">Research &amp; Analysis</span>
+          <span class="kl-gantt__step" data-cms="klever.timeline.step1.label" data-cms-label="Bước 1 — nhãn" data-cms-group="Klever — Timeline">STEP 1</span><span class="kl-gantt__title" data-cms="klever.timeline.step1.title" data-cms-label="Bước 1 — tên" data-cms-group="Klever — Timeline">Research &amp; Analysis</span>
         </div>
       </div>
       <div class="kl-gantt__row">
         <div class="kl-gantt__bar is-light" style="--l:19%; --w:34%;">
-          <span class="kl-gantt__step">STEP 2</span><span class="kl-gantt__title">Wireframes</span>
+          <span class="kl-gantt__step" data-cms="klever.timeline.step2.label" data-cms-label="Bước 2 — nhãn" data-cms-group="Klever — Timeline">STEP 2</span><span class="kl-gantt__title" data-cms="klever.timeline.step2.title" data-cms-label="Bước 2 — tên" data-cms-group="Klever — Timeline">Wireframes</span>
         </div>
       </div>
       <div class="kl-gantt__weeks">
@@ -157,12 +157,12 @@
       </div>
       <div class="kl-gantt__row">
         <div class="kl-gantt__bar is-dark" style="--l:40%; --w:31%;">
-          <span class="kl-gantt__step">STEP 3</span><span class="kl-gantt__title">Logo Design</span>
+          <span class="kl-gantt__step" data-cms="klever.timeline.step3.label" data-cms-label="Bước 3 — nhãn" data-cms-group="Klever — Timeline">STEP 3</span><span class="kl-gantt__title" data-cms="klever.timeline.step3.title" data-cms-label="Bước 3 — tên" data-cms-group="Klever — Timeline">Logo Design</span>
         </div>
       </div>
       <div class="kl-gantt__row">
         <div class="kl-gantt__bar is-dark" style="--l:57%; --w:43%;">
-          <span class="kl-gantt__step">STEP 4</span><span class="kl-gantt__title">Web Design &amp; Prototype</span>
+          <span class="kl-gantt__step" data-cms="klever.timeline.step4.label" data-cms-label="Bước 4 — nhãn" data-cms-group="Klever — Timeline">STEP 4</span><span class="kl-gantt__title" data-cms="klever.timeline.step4.title" data-cms-label="Bước 4 — tên" data-cms-group="Klever — Timeline">Web Design &amp; Prototype</span>
         </div>
       </div>
     </div>
@@ -170,40 +170,40 @@
 
   <!-- A TOUGH BEGINNING -->
   <section class="kl-section" data-theme="light">
-    <h2 class="kl-headline">A Tough Beginning...</h2>
-    <p class="kl-body-text">After reviewing the project, we conducted in-depth research and created numerous hand-drawn sketches on paper, exploring multiple variations with different concepts.</p>
+    <h2 class="kl-headline" data-cms="klever.s1.headline" data-cms-label="Tiêu đề" data-cms-group="Klever — Phần 1">A Tough Beginning...</h2>
+    <p class="kl-body-text" data-cms="klever.s1.body" data-cms-label="Đoạn văn" data-cms-group="Klever — Phần 1">After reviewing the project, we conducted in-depth research and created numerous hand-drawn sketches on paper, exploring multiple variations with different concepts.</p>
     <div class="kl-sketches">
-      <img src="assets/klever/sketch-1.jpg" alt="Early concept sketch 1">
-      <img src="assets/klever/sketch-2.jpg" alt="Early concept sketch 2">
-      <img src="assets/klever/sketch-3.jpg" alt="Early concept sketch 3">
+      <img data-cms-src="klever.s1.sketch1" data-cms-label="Ảnh phác thảo 1" data-cms-group="Klever — Phần 1" src="assets/klever/sketch-1.jpg" alt="Early concept sketch 1">
+      <img data-cms-src="klever.s1.sketch2" data-cms-label="Ảnh phác thảo 2" data-cms-group="Klever — Phần 1" src="assets/klever/sketch-2.jpg" alt="Early concept sketch 2">
+      <img data-cms-src="klever.s1.sketch3" data-cms-label="Ảnh phác thảo 3" data-cms-group="Klever — Phần 1" src="assets/klever/sketch-3.jpg" alt="Early concept sketch 3">
     </div>
-    <p class="kl-caption">and many other sketches</p>
+    <p class="kl-caption" data-cms="klever.s1.caption" data-cms-label="Chú thích ảnh" data-cms-group="Klever — Phần 1">and many other sketches</p>
 
-    <img class="kl-full-image" src="assets/klever/logo-exploration.png" alt="Exploring the candle and oak logo directions across black, white and green marks">
+    <img data-cms-src="klever.s1.explore" data-cms-label="Ảnh khám phá logo" data-cms-group="Klever — Phần 1" class="kl-full-image" src="assets/klever/logo-exploration.png" alt="Exploring the candle and oak logo directions across black, white and green marks">
   </section>
 
   <!-- FROM DEADLOCK TO CLARITY -->
   <section class="kl-section" data-theme="light">
-    <h2 class="kl-headline">From Deadlock to Clarity</h2>
-    <p class="kl-body-text">After many discussions and explorations, we ultimately aligned on a final concept that blends fluidity with a futuristic direction.</p>
+    <h2 class="kl-headline" data-cms="klever.s2.headline" data-cms-label="Tiêu đề" data-cms-group="Klever — Phần 2">From Deadlock to Clarity</h2>
+    <p class="kl-body-text" data-cms="klever.s2.body1" data-cms-label="Đoạn văn 1" data-cms-group="Klever — Phần 2">After many discussions and explorations, we ultimately aligned on a final concept that blends fluidity with a futuristic direction.</p>
 
     <div class="kl-full-image kl-media-pair">
-      <img class="kl-media-pair__gif" src="assets/klever/logomark-kandle.gif" alt="Klever liquid logomark animation forming the letter K" loading="lazy">
-      <img class="kl-media-pair__still" src="assets/klever/logomark-grid.png" alt="Klever logomark grid construction and proportions">
+      <img data-cms-src="klever.s2.gif" data-cms-label="Ảnh động logomark" data-cms-group="Klever — Phần 2" class="kl-media-pair__gif" src="assets/klever/logomark-kandle.gif" alt="Klever liquid logomark animation forming the letter K" loading="lazy">
+      <img data-cms-src="klever.s2.grid" data-cms-label="Ảnh lưới logomark" data-cms-group="Klever — Phần 2" class="kl-media-pair__still" src="assets/klever/logomark-grid.png" alt="Klever logomark grid construction and proportions">
     </div>
 
-    <p class="kl-body-text">When complex, layered ideas no longer felt appropriate, we returned to the original simple concept. This time, we focused on stylizing the letter "K" from Klever's name — enhancing brand recognition while clearly expressing the liquid concept we developed, and allowing for smooth and flexible motion implementation.</p>
+    <p data-cms="klever.s2.body2" data-cms-label="Đoạn văn 2" data-cms-group="Klever — Phần 2" class="kl-body-text">When complex, layered ideas no longer felt appropriate, we returned to the original simple concept. This time, we focused on stylizing the letter "K" from Klever's name — enhancing brand recognition while clearly expressing the liquid concept we developed, and allowing for smooth and flexible motion implementation.</p>
 
-    <img class="kl-full-image" src="assets/klever/logo-variants.png" alt="Klever wordmark clearspace and scale specification">
-    <img class="kl-full-image" src="assets/klever/device-mockups.png" alt="Klever logo lockup on lime, white and black backgrounds next to a 3D chrome K render">
+    <img data-cms-src="klever.s2.variants" data-cms-label="Ảnh biến thể logo" data-cms-group="Klever — Phần 2" class="kl-full-image" src="assets/klever/logo-variants.png" alt="Klever wordmark clearspace and scale specification">
+    <img data-cms-src="klever.s2.mockups" data-cms-label="Ảnh mockup" data-cms-group="Klever — Phần 2" class="kl-full-image" src="assets/klever/device-mockups.png" alt="Klever logo lockup on lime, white and black backgrounds next to a 3D chrome K render">
   </section>
 
   <!-- TYPOGRAPHY -->
   <section class="kl-section kl-type" data-theme="light">
     <div class="kl-type__block">
       <div class="kl-type__main">
-        <p class="kl-label-sm">Typography 1</p>
-        <p class="kl-type__sample" style="font-family:'Chakra Petch',sans-serif;">ChaChakra Petch</p>
+        <p class="kl-label-sm" data-cms="klever.type1.label" data-cms-label="Nhãn font 1" data-cms-group="Klever — Typography">Typography 1</p>
+        <p class="kl-type__sample" style="font-family:'Chakra Petch',sans-serif;" data-cms="klever.type1.name" data-cms-label="Tên font 1" data-cms-group="Klever — Typography">ChaChakra Petch</p>
       </div>
       <div class="kl-type__weights" style="font-family:'Chakra Petch',sans-serif;">
         <span style="font-weight:400;">Regular</span>
@@ -213,8 +213,8 @@
     </div>
     <div class="kl-type__block">
       <div class="kl-type__main">
-        <p class="kl-label-sm">Typography 2</p>
-        <p class="kl-type__sample" style="font-family:'Inter',sans-serif;">Geist</p>
+        <p class="kl-label-sm" data-cms="klever.type2.label" data-cms-label="Nhãn font 2" data-cms-group="Klever — Typography">Typography 2</p>
+        <p class="kl-type__sample" style="font-family:'Inter',sans-serif;" data-cms="klever.type2.name" data-cms-label="Tên font 2" data-cms-group="Klever — Typography">Geist</p>
       </div>
       <div class="kl-type__weights" style="font-family:'Inter',sans-serif;">
         <span style="font-weight:400;">Regular</span>
@@ -238,22 +238,22 @@
 
   <!-- BANNER BREAK -->
   <div class="kl-banner-break" data-theme="light">
-    <img src="assets/klever/banner-2.png" alt="Klever wordmark on an eclipse-style brand backdrop">
+    <img data-cms-src="klever.banner" data-cms-label="Ảnh banner ngăn cách" data-cms-group="Klever — Showcase" src="assets/klever/banner-2.png" alt="Klever wordmark on an eclipse-style brand backdrop">
   </div>
 
   <!-- FINAL SHOWCASE -->
   <section class="kl-showcase" data-theme="light">
     <div class="kl-imac">
-      <img src="assets/klever/device-1.png" alt="Klever Finance website hero on an iMac display">
+      <img data-cms-src="klever.show.device1" data-cms-label="Ảnh iMac" data-cms-group="Klever — Showcase" src="assets/klever/device-1.png" alt="Klever Finance website hero on an iMac display">
       <video class="kl-imac__screen" data-src="assets/klever/logomark-kandle.mp4" muted loop playsinline preload="none" aria-hidden="true"></video>
       <div class="kl-imac__blackout" aria-hidden="true"></div>
     </div>
-    <img src="assets/klever/device-2.png" alt="Klever Finance product feature sections: AI Engine, Strategy Core, LP Market">
+    <img data-cms-src="klever.show.device2" data-cms-label="Ảnh tính năng" data-cms-group="Klever — Showcase" src="assets/klever/device-2.png" alt="Klever Finance product feature sections: AI Engine, Strategy Core, LP Market">
     <div class="kl-showcase__pair">
-      <img class="kl-showcase__gif" src="assets/klever/crystal-kandle.gif" alt="Klever 3D crystal logomark animation" loading="lazy">
-      <img src="assets/klever/device-3-social-phone.png" alt="Klever Finance social profile mockup on a phone">
+      <img data-cms-src="klever.show.crystal" data-cms-label="Ảnh động crystal" data-cms-group="Klever — Showcase" class="kl-showcase__gif" src="assets/klever/crystal-kandle.gif" alt="Klever 3D crystal logomark animation" loading="lazy">
+      <img data-cms-src="klever.show.social" data-cms-label="Ảnh mockup điện thoại" data-cms-group="Klever — Showcase" src="assets/klever/device-3-social-phone.png" alt="Klever Finance social profile mockup on a phone">
     </div>
-    <img src="assets/klever/device-final.png" alt="Klever app icon on a home screen next to exterior signage">
+    <img data-cms-src="klever.show.final" data-cms-label="Ảnh cuối" data-cms-group="Klever — Showcase" src="assets/klever/device-final.png" alt="Klever app icon on a home screen next to exterior signage">
   </section>
 
   <!-- FOOTER -->
@@ -269,30 +269,30 @@
 
     <div class="sfooter__top">
       <div class="sfooter__col">
-        <p class="sfooter__label">Services</p>
+        <p class="sfooter__label" data-cms="footer.servicesLabel" data-cms-label="Tiêu đề cột dịch vụ" data-cms-group="Footer">Services</p>
         <ul class="sfooter__services">
-          <li><span>[01]</span>Product design</li>
-          <li><span>[02]</span>Brand design</li>
-          <li><span>[03]</span>Websites</li>
-          <li><span>[04]</span>Game design</li>
-          <li><span>[05]</span>Motion video</li>
+          <li data-cms="footer.service1" data-cms-type="text" data-cms-label="Dịch vụ 1" data-cms-group="Footer"><span>[01]</span>Product design</li>
+          <li data-cms="footer.service2" data-cms-type="text" data-cms-label="Dịch vụ 2" data-cms-group="Footer"><span>[02]</span>Brand design</li>
+          <li data-cms="footer.service3" data-cms-type="text" data-cms-label="Dịch vụ 3" data-cms-group="Footer"><span>[03]</span>Websites</li>
+          <li data-cms="footer.service4" data-cms-type="text" data-cms-label="Dịch vụ 4" data-cms-group="Footer"><span>[04]</span>Game design</li>
+          <li data-cms="footer.service5" data-cms-type="text" data-cms-label="Dịch vụ 5" data-cms-group="Footer"><span>[05]</span>Motion video</li>
         </ul>
       </div>
 
       <div class="sfooter__col sfooter__col--socials">
-        <p class="sfooter__label">Socials</p>
+        <p class="sfooter__label" data-cms="footer.socialsLabel" data-cms-label="Tiêu đề cột mạng xã hội" data-cms-group="Footer">Socials</p>
         <div class="sfooter__socials">
-          <a class="sfooter__social" href="#">Instagram<img src="assets/footer/arrow-up-right.svg" alt="" width="24" height="24"></a>
-          <a class="sfooter__social" href="#">X / Twitter<img src="assets/footer/arrow-up-right.svg" alt="" width="24" height="24"></a>
-          <a class="sfooter__social" href="#">Behance<img src="assets/footer/arrow-up-right.svg" alt="" width="24" height="24"></a>
-          <a class="sfooter__social" href="#">LinkedIn<img src="assets/footer/arrow-up-right.svg" alt="" width="24" height="24"></a>
+          <a class="sfooter__social" href="#" data-cms-href="footer.social1.url" data-cms-label="Link mạng xã hội 1" data-cms-group="Footer"><span data-cms="footer.social1.name" data-cms-label="Tên mạng xã hội 1" data-cms-group="Footer">Instagram</span><img src="assets/footer/arrow-up-right.svg" alt="" width="24" height="24"></a>
+          <a class="sfooter__social" href="#" data-cms-href="footer.social2.url" data-cms-label="Link mạng xã hội 2" data-cms-group="Footer"><span data-cms="footer.social2.name" data-cms-label="Tên mạng xã hội 2" data-cms-group="Footer">X / Twitter</span><img src="assets/footer/arrow-up-right.svg" alt="" width="24" height="24"></a>
+          <a class="sfooter__social" href="#" data-cms-href="footer.social3.url" data-cms-label="Link mạng xã hội 3" data-cms-group="Footer"><span data-cms="footer.social3.name" data-cms-label="Tên mạng xã hội 3" data-cms-group="Footer">Behance</span><img src="assets/footer/arrow-up-right.svg" alt="" width="24" height="24"></a>
+          <a class="sfooter__social" href="#" data-cms-href="footer.social4.url" data-cms-label="Link mạng xã hội 4" data-cms-group="Footer"><span data-cms="footer.social4.name" data-cms-label="Tên mạng xã hội 4" data-cms-group="Footer">LinkedIn</span><img src="assets/footer/arrow-up-right.svg" alt="" width="24" height="24"></a>
         </div>
       </div>
     </div>
 
     <div class="sfooter__bottom">
       <div class="sfooter__main">
-        <p class="sfooter__tagline">Designing a vision of big thinking founders</p>
+        <p class="sfooter__tagline" data-cms="footer.tagline" data-cms-label="Câu tagline lớn" data-cms-group="Footer">Designing a vision of big thinking founders</p>
 
         <div class="sfooter__name">
           <img src="assets/hero/wordmark-ninefive.svg" alt="NINEFIVESEVEN">
@@ -300,13 +300,13 @@
         </div>
 
         <div class="sfooter__legal">
-          <a href="#">Privacy policy</a>
-          <a href="#">Cookie policy</a>
-          <p><span>957Studio @2026.</span><span>All rights reserved.</span></p>
+          <a href="#" data-cms="footer.legal1" data-cms-href="footer.legal1.url" data-cms-label="Link pháp lý 1" data-cms-group="Footer">Privacy policy</a>
+          <a href="#" data-cms="footer.legal2" data-cms-href="footer.legal2.url" data-cms-label="Link pháp lý 2" data-cms-group="Footer">Cookie policy</a>
+          <p><span data-cms="footer.copyright" data-cms-label="Dòng bản quyền" data-cms-group="Footer">957Studio @2026.</span><span data-cms="footer.rights" data-cms-label="Dòng quyền" data-cms-group="Footer">All rights reserved.</span></p>
         </div>
       </div>
 
-      <p class="sfooter__motto"><span>Align</span><span>Drive</span><span>Vision</span></p>
+      <p class="sfooter__motto"><span data-cms="footer.motto1" data-cms-label="Từ 1" data-cms-group="Footer">Align</span><span data-cms="footer.motto2" data-cms-label="Từ 2" data-cms-group="Footer">Drive</span><span data-cms="footer.motto3" data-cms-label="Từ 3" data-cms-group="Footer">Vision</span></p>
     </div>
   </footer>
 
