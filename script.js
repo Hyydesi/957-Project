@@ -629,48 +629,53 @@ if (categoryFilter && yearFilter && worksGrid) {
     });
   });
 
-  // ---------- Works: LIST view hover panel ----------
-  // The row markup is only [ name | tags ]; everything the open row shows —
-  // logomark, "view more", detail-page stills — is built here from PROJECTS so
-  // the panel stays in step with the data both pages already render from.
+  // ---------- Works: LIST view row ----------
+  // The card markup only carries [ name | tag chips ]; the LIST row's own
+  // columns — status dot, year, type, tag string — plus the "view project"
+  // badge are built here from PROJECTS, so the row stays in step with the data
+  // both pages already render from. They live inside .project__link when the
+  // project has a detail page, which makes the whole row one click target.
   const byCode = new Map(
     typeof PROJECTS !== 'undefined' ? PROJECTS.map((p) => [p.code, p]) : []
   );
+  const cell = (mod, text) => {
+    const el = document.createElement('span');
+    el.className = `project__cell project__cell--${mod}`;
+    el.textContent = text;
+    return el;
+  };
   projects.forEach((project) => {
     const p = byCode.get(project.dataset.code);
     if (!p) return;
-    // projects whose detail page isn't built yet fall back to what they have
-    const shots = (p.shots && p.shots.length ? p.shots : [p.cover, p.image]).filter(Boolean);
-    const cta = p.href
-      ? `<a class="project__view" href="${p.href}">` +
-        '<img src="assets/icons/corner-right-up.svg" alt="" width="16" height="16">' +
-        '<span>View more</span></a>'
-      : '<p class="project__soon">Coming soon</p>';
-    const more = document.createElement('div');
-    more.className = 'project__more';
-    more.innerHTML =
-      '<div class="project__more-inner"><div class="project__more-row">' +
-        `<div class="project__mark"><img src="${p.mark || p.logo}" alt=""></div>` +
-        cta +
-        `<div class="project__shots">${shots
-          .map((s) => `<img src="${s}" alt="" loading="lazy">`)
-          .join('')}</div>` +
-      '</div></div>';
-    project.appendChild(more);
-  });
+    const host = project.querySelector('.project__link') || project;
 
-  // The tiles sit in a clipped, zero-height container, so lazy loading never
-  // fires until a row is already open — warm them at idle instead, or the very
-  // first hover opens onto blank squares while the stills download.
-  const warmPanels = () => {
-    projects.forEach((project) => {
-      project
-        .querySelectorAll('.project__more img')
-        .forEach((img) => { new Image().src = img.getAttribute('src'); });
-    });
-  };
-  if ('requestIdleCallback' in window) requestIdleCallback(warmPanels, { timeout: 4000 });
-  else setTimeout(warmPanels, 2000);
+    // the dot leads the name, so it belongs inside the name cell
+    const head = project.querySelector('.project__head');
+    if (head) {
+      const dot = document.createElement('i');
+      dot.className = 'project__dot';
+      dot.style.setProperty('--dot', p.dot || 'var(--accent)');
+      head.prepend(dot);
+    }
+
+    host.append(
+      cell('year', p.year),
+      cell('type', p.listType || ''),
+      cell('tags', (p.listTags || p.tags || []).join('・'))
+    );
+
+    // the badge floats above the row's right edge on an elbow leader, drawn
+    // from the row's top edge — decorative, the row itself is the link
+    const cta = document.createElement('span');
+    cta.className = 'project__cta';
+    cta.setAttribute('aria-hidden', 'true');
+    cta.innerHTML =
+      '<svg class="project__cta-line" viewBox="0 0 54 56" preserveAspectRatio="none" fill="none">' +
+        '<path d="M1 56V1H54" stroke="currentColor" stroke-width="2"/>' +
+      '</svg>' +
+      `<span class="project__cta-label">${p.href ? 'View project' : 'Coming soon'}</span>`;
+    host.append(cta);
+  });
 
   // ---------- Works: "VIEW" label that follows the cursor (GRID view) ----------
   const cursorView = document.createElement('div');

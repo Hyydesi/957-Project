@@ -462,7 +462,7 @@ button{font:inherit;background:none;border:none;color:inherit;cursor:pointer;}
   .works__grid:not(.is-list) .project.pos-3{margin-left:15%;}
   /* % margin resolves against container width, so spacing scales with the cards */
   .works__grid:not(.is-list) .project:not(.is-first){margin-top:5%;}
-  .works__grid.is-list{gap:1px;}
+  .works__grid.is-list{gap:0;}
 }
 /* transform is composed from vars so reveal (--ry), scroll parallax (--par),
    hover shrink (--sc) and the cursor bump (--fx/--fy/--fr) can run together
@@ -705,116 +705,131 @@ button{font:inherit;background:none;border:none;color:inherit;cursor:pointer;}
 @media(prefers-reduced-motion:reduce){
   .project,.project::before,.project::after,.project__img img,.project__img::after{transition:none;}
   .project:hover{transform:none;}
-  .works__grid.is-list .project__more,
-  .works__grid.is-list .project__more-row{transition:none;}
-  .works__grid.is-list .project__more-row{opacity:1;transform:none;}
+  .works__grid.is-list .project::after,
+  .works__grid.is-list .project__cta-line,
+  .works__grid.is-list .project__cta-label{animation:none!important;}
+  .works__grid.is-list .project:hover::after,
+  .works__grid.is-list .project:hover .project__cta-line,
+  .works__grid.is-list .project:hover .project__cta-label{opacity:1;}
 }
 
-/* LIST view — a hairline row [ name | tags ] that opens into a full project
-   panel on hover (Figma: 1289:4414 default, 1291:4496 hover). The name, the
-   chips and the still all sit inside wrappers, so link / header / image are
-   flattened with display:contents and each piece becomes a cell of the row. */
+/* LIST view — a hairline row [ ● name | year | type | tags ] (Figma 1289:4414).
+   Hovering a row outlines it in red and floats a "view project" badge above its
+   right edge on an elbow leader; both arrive with the same staged flicker the
+   GRID cards use for their annotations, and every other row drops to 50%.
+   The name sits inside wrappers, so link / image are flattened with
+   display:contents and each piece becomes a cell of the row. */
 .works__grid.is-list .project__img{
   aspect-ratio:auto;background:none;overflow:visible;position:static;
 }
 .works__grid.is-list .project__link,
-.works__grid.is-list .project__head,
 .works__grid.is-list .project__img{display:contents;}
+/* the still and the grid view's colour-cycled chips have no place in a text row */
 .works__grid.is-list .project__img img,
-.works__grid.is-list .project__img::after{display:none;}
-.works__grid.is-list .project__tags{position:static;}
+.works__grid.is-list .project__img::after,
+.works__grid.is-list .project__tags{display:none;}
+/* the row cells and the badge are a list-view device only */
+.works__grid:not(.is-list) .project__cell,
+.works__grid:not(.is-list) .project__dot,
+.works__grid:not(.is-list) .project__cta{display:none;}
 /* no scroll-reveal in list view: rows are always fully visible (no fade either),
    otherwise switching views mid-page leaves never-revealed rows invisible */
 .works__grid.is-list .project{
   opacity:1;--ry:0px;
   background:transparent;
-  border:0;border-top:1px solid #656565;
-  /* the row's only motion is the panel opening: no parallax, no reveal offset
+  border:0;border-top:1px solid #3e3e3e;
+  /* the row's only motion is the hover reveal: no parallax, no reveal offset
      and none of the grid view's cursor spring */
   transform:none;
-  transition:background-color .4s ease;
+  transition:opacity .3s ease;
 }
-/* the panel is a list-view device only */
-.works__grid:not(.is-list) .project__more{display:none;}
+/* pointing at one row pushes the rest back */
+.works__grid.is-list:has(.project:hover) .project:not(:hover){opacity:.5;}
+/* the grid view's outer frame + crop marks don't belong on a row; ::after is
+   reused as the red outline, which is why its gradient background is cleared */
+.works__grid.is-list .project::before{display:none;}
+.works__grid.is-list .project::after{
+  inset:0;background:none;border:2px solid var(--red);
+  transition:none;
+}
 
 @media(min-width:800px){
+  /* the badge hangs 55px above its row, so the first row needs clearance to
+     rise into — otherwise it lands under the sticky filter bar */
+  .works__grid.is-list{padding-top:56px;}
   .works__grid.is-list .project{
     /* full container width so rows align with the section padding above */
     width:100%;margin:0;
-    display:grid;grid-template-columns:auto 1fr;align-items:center;
-    column-gap:40px;
+    display:grid;
+    /* the design's four tracks; the leftover spreads between them, and each
+       track may shrink below its ideal width before anything overflows */
+    grid-template-columns:minmax(0,250px) 40px minmax(0,180px) minmax(0,450px);
+    justify-content:space-between;
+    align-items:center;
+    column-gap:24px;
     padding:16px;
   }
-  .works__grid.is-list .project:hover{background:var(--red);}
-  /* the name flips to a white chip while the row is open. The 4px inset is
-     carried in both states so the text can't jump sideways on hover. */
-  .works__grid.is-list .project__head span{
+  /* the name cell: dot + code, flattened out of the grid view's grey bar */
+  .works__grid.is-list .project__head{
     grid-column:1;grid-row:1;
-    padding:0 4px;font-size:16px;
-    background:transparent;color:var(--white);
-    transition:background-color .3s ease,color .3s ease;
+    display:flex;align-items:center;gap:12px;
+    background:transparent;padding:0;
   }
-  .works__grid.is-list .project:hover .project__head span{
-    background:var(--white);color:#000;
+  .works__grid.is-list .project__head span{
+    font-size:16px;color:var(--white);
   }
-  /* the chips take the right-hand cell the tag text used to hold, keeping the
-     grid view's colour cycle — only the padding follows the list spec */
-  .works__grid.is-list .project__tags{
-    grid-column:2;grid-row:1;justify-self:end;font-size:14px;
+  .works__grid.is-list .project__dot{
+    width:8px;height:8px;flex:none;background:var(--dot,var(--accent));
   }
-  .works__grid.is-list .project__tag{padding:2px 10px;}
+  .works__grid.is-list .project__cell{
+    grid-row:1;
+    font-family:var(--font-mono);font-size:16px;line-height:normal;
+    text-transform:uppercase;color:var(--white);
+    overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  }
+  .works__grid.is-list .project__cell--year{grid-column:2;}
+  .works__grid.is-list .project__cell--type{grid-column:3;}
+  .works__grid.is-list .project__cell--tags{grid-column:4;}
 
-  /* The panel opens by growing a 0fr → 1fr track, so the row settles at the
-     panel's natural height instead of a hard-coded one. overflow:hidden on the
-     inner element is what lets it be clipped to zero. */
-  .works__grid.is-list .project__more{
-    grid-column:1 / -1;grid-row:2;
-    display:grid;grid-template-rows:0fr;
-    transition:grid-template-rows .5s cubic-bezier(.16,1,.3,1);
+  /* staged reveal, mirroring the GRID annotations: (1) the red outline snaps
+     in, (2) the leader line, (3) the label last — each with an on/off blink */
+  .works__grid.is-list .project:hover::after{animation:fxFlicker .45s linear both;}
+  /* the badge hangs off the row's top-right corner: the elbow rises 55px out of
+     the row's top edge, then runs right into the label's vertical centre */
+  .works__grid.is-list .project__cta{
+    position:absolute;right:0;bottom:100%;height:55px;z-index:5;
+    display:flex;align-items:flex-start;justify-content:flex-end;
+    pointer-events:none;color:var(--red);
   }
-  .works__grid.is-list .project:hover .project__more{grid-template-rows:1fr;}
-  /* the clipper carries no padding of its own: padding survives a zero height,
-     so a padded clipper would leave a band of red under every closed row */
-  .works__grid.is-list .project__more-inner{overflow:hidden;}
-  .works__grid.is-list .project__more-row{
-    display:flex;align-items:flex-end;gap:16px;
-    /* 16px below the name row + the block's own 24px, per the design */
-    padding:40px 0 24px;
-    /* the contents rise into the space the row is making, so the whole thing
-       reads as one opening movement instead of a block snapping into view */
-    opacity:0;transform:translateY(12px);
-    transition:opacity .3s ease,transform .5s cubic-bezier(.16,1,.3,1);
+  .works__grid.is-list .project__cta-line{width:53px;height:55px;flex:none;opacity:0;}
+  .works__grid.is-list .project__cta-label{
+    transform:translateY(-50%);
+    background:var(--red);color:var(--white);
+    font-family:var(--font-mono);font-size:16px;line-height:normal;
+    text-transform:uppercase;white-space:nowrap;padding:2px 8px;
+    opacity:0;
   }
-  .works__grid.is-list .project:hover .project__more-row{
-    opacity:1;transform:translateY(0);transition-delay:.06s;
+  .works__grid.is-list .project:hover .project__cta-line{
+    animation:fxFlicker .45s linear both;animation-delay:.3s;
   }
-  .works__grid.is-list .project__mark{
-    flex:1;min-width:0;height:120px;display:flex;align-items:center;
-  }
-  .works__grid.is-list .project__mark img{
-    height:100%;width:auto;object-fit:contain;
-  }
-  /* a vector mark is a single-colour glyph in the product's own brand colour,
-     so it gets flattened to white for the red row. The PNG placeholders are
-     full brand tiles — flattening those would just paint a white square. */
-  .works__grid.is-list .project__mark img[src$=".svg"]{filter:brightness(0) invert(1);}
-  .works__grid.is-list .project__view,
-  .works__grid.is-list .project__soon{
-    display:flex;align-items:center;gap:4px;padding:0 10px;
-    font-family:var(--font-mono);font-size:14px;text-transform:uppercase;
-    white-space:nowrap;
-  }
-  .works__grid.is-list .project__view img{width:16px;height:16px;transform:rotate(90deg);}
-  .works__grid.is-list .project__view:hover span{text-decoration:underline;}
-  .works__grid.is-list .project__soon{color:rgba(255,255,255,.6);}
-  .works__grid.is-list .project__shots{display:flex;gap:12px;}
-  .works__grid.is-list .project__shots img{
-    width:120px;height:120px;object-fit:cover;background:#d9d9d9;
+  .works__grid.is-list .project:hover .project__cta-label{
+    animation:fxFlicker .45s linear both;animation-delay:.6s;
   }
 }
-/* the panel is a pointer affordance — narrow screens keep the plain row */
+
+/* narrow screens have no pointer to hover with: the badge goes, and the row
+   wraps to [ ● name | year ] over its tag string */
 @media(max-width:799px){
-  .works__grid.is-list .project__more{display:none;}
+  .works__grid.is-list .project{
+    display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;padding:14px 0;
+  }
+  .works__grid.is-list .project__head{background:transparent;padding:0;gap:10px;}
+  .works__grid.is-list .project__cell{
+    font-family:var(--font-mono);font-size:13px;text-transform:uppercase;
+    color:rgba(255,255,255,.7);
+  }
+  .works__grid.is-list .project__cell--tags{flex-basis:100%;}
+  .works__grid.is-list .project__cta{display:none;}
 }
 
 /* consistent horizontal rhythm: 24px on mobile, 40px on desktop (matches the nav) */
@@ -921,6 +936,12 @@ button{font:inherit;background:none;border:none;color:inherit;cursor:pointer;}
     visibility:hidden;
   }
   .home .sfooter.is-revealing{visibility:visible;}
+  /* LIST view collapses .works to a handful of rows. Without a viewport-tall
+     floor the 100vh reveal spacer sits on screen alongside those rows, so the
+     observer arms and the fixed footer shows through above and below them.
+     Keeping .works at least a screen tall means the curtain can only start
+     once the rows have actually scrolled away. */
+  .home .works{min-height:100vh;min-height:100dvh;}
   .home .sfooter__reveal{display:block; height:100vh; height:100dvh; pointer-events:none;}
 }
 

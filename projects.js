@@ -4,12 +4,18 @@
 //   name      → display name (works hero badge / thumbs)
 //   category  → space-separated tokens for the home grid category filter
 //   year      → used by both the home year filter and the works listing
+//   dot       → status square that leads the LIST row, in the product's colour
+//   listType  → LIST row "type" column (platform), separate from the tag list
+//   listTags  → LIST row tag column, joined with '・'
 //   mark      → one-colour logomark, painted white on the hovered list row
 //   shots     → detail-page stills used as the thumbs on that row; a project
 //               without a detail page yet falls back to its cover + still
 const PROJECTS = [
   {
     code: 'KLEVER',
+    dot: '#1DF733',
+    listType: 'WEB APP',
+    listTags: ['VISUAL IDENTITY', 'BLOCKCHAIN'],
     name: 'Klever',
     year: '2025',
     category: 'web visual',
@@ -31,6 +37,9 @@ const PROJECTS = [
   },
   {
     code: 'SURFCASH',
+    dot: '#4F72FF',
+    listType: 'MOBILE APP',
+    listTags: ['VISUAL IDENTITY', 'BLOCKCHAIN'],
     name: 'SurfCash',
     year: '2024',
     category: 'app',
@@ -51,6 +60,9 @@ const PROJECTS = [
   },
   {
     code: 'ECHO_VERSE',
+    dot: '#FF9971',
+    listType: 'MOBILE APP',
+    listTags: ['VISUAL IDENTITY', 'SOCIAL MEDIA'],
     name: 'Echo Verse',
     year: '2024',
     category: 'app visual',
@@ -70,6 +82,9 @@ const PROJECTS = [
   },
   {
     code: 'NEW_PAY',
+    dot: '#FF5B1A',
+    listType: 'WEBSITE・MOBILE APP',
+    listTags: ['VISUAL IDENTITY', 'COMPANY WEBSITE', 'CARD DESIGN'],
     name: 'NewPay',
     year: '2025',
     category: 'app',
