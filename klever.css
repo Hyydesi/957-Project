@@ -1,60 +1,49 @@
-.klever-page{background:#fff;color:#101010;}
+.klever-page{background:#fff;color:#101010;--font-heading:'Roboto',sans-serif;}
 .kl{padding-top:var(--nav-h);}
 
-.kl-metabar{
-  display:flex;flex-direction:column;gap:16px;
-  padding:32px max(24px,calc((100% - 1440px) / 2)) 16px;
-}
-@media(min-width:900px){.kl-metabar{flex-direction:row;justify-content:space-between;align-items:center;}}
-.kl-metabar__date{display:flex;align-items:center;gap:12px;}
-.kl-metabar__dot{width:8px;height:8px;background:var(--red);border-radius:50%;flex-shrink:0;}
-.kl-metabar__label{font-family:var(--font-mono);font-size:11px;letter-spacing:.5px;color:#999;}
-.kl-metabar__value{font-family:var(--font-body);font-size:14px;}
-.kl-tags{display:flex;gap:10px;flex-wrap:wrap;}
-.kl-tag{
-  background:#f7f7f7;padding:7px 16px;border-radius:20px;
-  font-family:var(--font-body);font-size:14px;color:#171717;
-  display:flex;align-items:center;gap:6px;
-}
-.kl-tag--pin::before{content:"📍";font-size:12px;}
-
 .kl-hero{
-  display:flex;flex-direction:column;gap:40px;
-  padding:24px max(24px,calc((100% - 1440px) / 2)) 60px;
+  display:flex;flex-direction:column;align-items:center;gap:80px;
+  padding:80px max(24px,calc((100% - 1440px) / 2));
+  border-bottom:1px solid #ecebeb;
 }
-@media(min-width:1100px){.kl-hero{flex-direction:row;gap:80px;}}
-.kl-hero__info{display:flex;flex-direction:column;gap:48px;flex:0 0 auto;}
-@media(min-width:1100px){.kl-hero__info{width:432px;}}
-.kl-hero__heading h1{font-family:var(--font-display);font-size:clamp(36px,5vw,56px);letter-spacing:-.5px;margin-bottom:16px;}
-.kl-hero__desc{font-family:var(--font-body);font-weight:600;font-size:22px;line-height:1.35;}
+.kl-hero__title{
+  font-family:var(--font-display);font-weight:400;text-transform:uppercase;
+  font-size:min(12.5vw,180px);line-height:.9;text-align:center;color:#101010;
+  white-space:nowrap;
+}
+.kl-hero__cols{
+  display:flex;flex-wrap:wrap;justify-content:center;align-items:flex-start;
+  gap:48px;width:100%;
+}
+@media(min-width:1100px){.kl-hero__cols{gap:150px;}}
+.kl-hero__desc{
+  width:450px;max-width:100%;
+  font-family:var(--font-body);font-weight:600;font-size:24px;line-height:1.2;color:#101010;
+}
 
-.kl-meta{display:flex;flex-direction:column;}
+.kl-meta{display:flex;flex-direction:column;width:432px;max-width:100%;}
 .kl-meta__row{
-  display:flex;justify-content:space-between;align-items:center;gap:16px;
-  padding:14px 0;border-top:1px solid #ececec;
-  font-family:var(--font-body);font-size:15px;
+  display:flex;align-items:flex-start;gap:64px;
+  padding:16px 0 12px;border-bottom:1px solid #ecebeb;
+  font-family:var(--font-body);font-size:16px;
 }
-.kl-meta__row:last-child{border-bottom:1px solid #ececec;}
-.kl-meta__row dt{color:#7b7b7b;}
-.kl-meta__row dd{font-weight:500;color:#171717;text-align:right;}
-.kl-meta__swatches{display:flex;gap:6px;}
+.kl-meta__row:last-child{border-bottom:none;}
+.kl-meta__row dt{width:120px;flex-shrink:0;line-height:22px;color:#7b7b7b;}
+.kl-meta__row dd{font-weight:500;line-height:20px;color:#171717;}
+.kl-meta__list{line-height:28px;}
+.kl-meta__swatches{display:flex;gap:8px;}
 .kl-meta__swatches span{width:20px;height:20px;display:block;}
 
-.kl-hero__banner{position:relative;flex:1;border-radius:20px;overflow:hidden;background:#010302;min-height:400px;align-self:stretch;}
-.kl-hero__banner > img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;}
-.kl-hero__banner-logo{
-  position:absolute;left:32px;bottom:32px;right:32px;
-  display:flex;align-items:center;gap:16px;
-}
-.kl-hero__banner-logo img{width:56px;height:56px;object-fit:contain;flex-shrink:0;}
-.kl-hero__banner-logo span{
-  font-family:'Chakra Petch',sans-serif;font-weight:600;color:#fff;
-  font-size:clamp(28px,4vw,48px);
+@media(max-width:700px){
+  .kl-hero{gap:48px;padding-top:48px;padding-bottom:48px;}
+  .kl-hero__desc{font-size:20px;}
+  .kl-meta__row{gap:24px;}
+  .kl-meta__row dt{width:96px;}
 }
 
 /* CHALLENGE */
 .kl-challenge{padding:80px max(24px,calc((100% - 1440px) / 2));}
-.kl-label{font-family:var(--font-body);font-weight:600;font-size:24px;margin-bottom:32px;}
+.kl-label{font-family:var(--font-heading);font-weight:500;font-size:40px;margin-bottom:32px;}
 .kl-challenge__body{display:flex;flex-direction:column;gap:32px;max-width:680px;margin-left:auto;}
 @media(min-width:1100px){.kl-challenge__body{margin-top:-64px;}}
 .kl-body-text{font-family:var(--font-body);font-weight:500;font-size:16px;line-height:1.7;color:#4d4d4d;}
@@ -71,7 +60,7 @@
   display:flex;flex-direction:column;gap:16px;justify-content:space-between;margin-bottom:60px;
 }
 @media(min-width:900px){.kl-timeline__head{flex-direction:row;align-items:flex-end;}}
-.kl-timeline__head h2{font-family:var(--font-body);font-weight:500;font-size:clamp(36px,5vw,56px);line-height:1.05;color:#130000;}
+.kl-timeline__head h2{font-family:var(--font-heading);font-weight:500;font-size:clamp(36px,5vw,56px);line-height:1.05;color:#130000;}
 .kl-timeline__range{display:flex;flex-direction:column;align-items:flex-start;gap:4px;}
 @media(min-width:900px){.kl-timeline__range{align-items:flex-end;}}
 .kl-timeline__dates{font-family:var(--font-body);font-weight:600;font-size:22px;color:#130000;}
@@ -109,7 +98,7 @@
 
 /* GENERIC SECTIONS */
 .kl-section{padding:60px max(24px,calc((100% - 1440px) / 2));}
-.kl-headline{font-family:var(--font-display);font-size:clamp(36px,6vw,64px);letter-spacing:-.5px;margin-bottom:24px;}
+.kl-headline{font-family:var(--font-heading);font-weight:500;font-size:clamp(36px,6vw,64px);letter-spacing:-.5px;margin-bottom:24px;}
 .kl-sketches{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:32px;}
 .kl-sketches img{width:100%;aspect-ratio:1;object-fit:cover;background:#f2f2f2;border-radius:20px;}
 .kl-caption{font-family:var(--font-body);font-size:16px;color:#999;margin-top:12px;}
@@ -178,7 +167,69 @@
   background:#000;pointer-events:none;
 }
 .kl-showcase__pair{display:flex;flex-wrap:wrap;gap:4px;}
-.kl-showcase__pair img{
-  flex:1 1 320px;min-width:0;width:100%;aspect-ratio:756/890;
-  display:block;object-fit:cover;background:#000;
+.kl-showcase__pair > *{flex:1 1 320px;min-width:0;aspect-ratio:756/890;}
+/* The gif is 218x890-equivalent — much narrower than this frame — so covering it
+   cut the crystal off top and bottom. It is contained instead and sits on its
+   own black ground, which is the animation's background colour, so the strips
+   left over at the sides read as part of the panel rather than as letterboxing. */
+.kl-showcase__gif{
+  width:100%;height:100%;display:block;
+  object-fit:contain;background:#000;
+}
+/* The phone mockup carries a transparent bleed down its left edge (12 of its
+   756px), which showed through as a black band. A small scale-up pushes that
+   bleed out of frame; the wrapper does the clipping and carries the card's
+   radius, and its light ground matches the mockup so nothing dark can show. */
+.kl-showcase__zoom{
+  overflow:hidden;border-radius:20px;line-height:0;background:#EFF0F0;
+}
+.kl-showcase__zoom img{
+  width:100%;height:100%;display:block;
+  object-fit:cover;border-radius:0;
+  transform:scale(1.05);
+}
+
+/* DISCOVER MORE PROJECTS (Figma 1300:6762) — the card is the same component the
+   home grid uses, so .project__head / __img / __tags carry the header bar, the
+   655/483 still and the colour-cycled chips. Only the card box is redeclared:
+   .project itself owns the works grid's reveal state (opacity:0 until JS marks
+   it revealed) and its crop-mark pseudo-elements, neither of which belongs on a
+   static section. Generous vertical padding keeps the band clear of the
+   showcase above and the footer below. */
+.kl-more{
+  display:flex;flex-direction:column;gap:68px;
+  padding:120px max(24px,calc((100% - 1440px) / 2));
+  background:#fff;
+}
+.kl-more h2{
+  font-family:var(--font-heading);font-weight:500;
+  font-size:40px;line-height:1.1;
+  letter-spacing:-.02em;text-transform:uppercase;color:#130000;
+}
+.kl-more__grid{
+  display:grid;gap:16px;
+  grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
+}
+.kl-more__card{
+  /* the default chip accent; this section paints every card orange rather than
+     each product's own colour, as the design does */
+  --accent:#ff723b;--accent-ink:var(--white);
+  display:flex;flex-direction:column;
+  border:1px solid #525252;background:#1a1a1a;overflow:hidden;
+  color:inherit;text-decoration:none;
+  transition:border-color .3s ease;
+}
+/* the card is a link, so it needs to say so: the border lifts and the still
+   pushes in slightly. .project__img already declares the transform transition. */
+.kl-more__card:hover{border-color:var(--red);}
+.kl-more__card:hover .project__img img{transform:scale(1.04);}
+.kl-more__card:focus-visible{outline:2px solid var(--red);outline-offset:2px;}
+@media(prefers-reduced-motion:reduce){
+  .kl-more__card:hover .project__img img{transform:none;}
+}
+/* the page is light, so the header bar has to state its own ink */
+.kl-more__card .project__head{color:var(--white);}
+
+@media(max-width:700px){
+  .kl-more{gap:40px;padding-top:72px;padding-bottom:72px;}
 }
