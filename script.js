@@ -77,26 +77,6 @@ document.querySelectorAll('.nav__links a, .menu-link').forEach((el) => {
   el.addEventListener('mouseenter', () => scrambler.run());
 });
 
-// ---------- Live Vietnam clock ----------
-const liveClock = document.getElementById('liveClock');
-
-if (liveClock) {
-  const clockFormatter = new Intl.DateTimeFormat('en-GB', {
-    timeZone: 'Asia/Ho_Chi_Minh',
-    hour: '2-digit',
-    minute: '2-digit',
-    second: '2-digit',
-    hour12: false,
-  });
-
-  const updateClock = () => {
-    liveClock.textContent = clockFormatter.format(new Date());
-  };
-
-  updateClock();
-  setInterval(updateClock, 1000);
-}
-
 // ---------- Nav theme swap (dark/light) based on section behind it ----------
 const nav = document.getElementById('nav');
 // Exclude the nav itself — it also carries [data-theme] to set its own
@@ -129,19 +109,6 @@ if (nav && themedSections.length) {
   window.addEventListener('scroll', updateBottomTheme, { passive: true });
   window.addEventListener('resize', updateBottomTheme);
   updateBottomTheme();
-}
-
-// ---------- Pinned hero: hide once fully covered by the next section ----------
-const heroPinned = document.getElementById('hero');
-const heroSpacer = document.querySelector('.hero__spacer');
-if (heroPinned && heroSpacer) {
-  const updateHeroCover = () => {
-    const spacerBottom = heroSpacer.getBoundingClientRect().bottom;
-    heroPinned.classList.toggle('is-covered', spacerBottom <= 0);
-  };
-  window.addEventListener('scroll', updateHeroCover, { passive: true });
-  window.addEventListener('resize', updateHeroCover);
-  updateHeroCover();
 }
 
 // ---------- Home: curtain-reveal the fixed footer once its spacer enters the
@@ -183,158 +150,164 @@ if (menuToggle && menuOverlay && menuClose) {
   });
 }
 
-// ---------- About stage: pinned copy, then the services walk ----------
-// The copy is sticky-pinned, so its own rect stops moving and can no longer
-// drive the word reveal — the stage's scroll progress drives both instead:
-//   0 → COPY_END   the words light up
-//   COPY_END → LIST_END   the highlight walks the list, swapping the preview
-// Registered before the reveal below so __progress is fresh when it runs.
-const aboutStage = document.getElementById('about');
-const aboutPara = aboutStage && aboutStage.querySelector('.about__paragraph');
+// ---------- Hero stage: the image grows to fill the screen, then the about copy rises over it ----------
+// One pinned stage, three beats driven by how far the page has scrolled into it
+// (frames 1 → 4 of the Figma storyboard):
+//   1. the image grows from its slot under the heading to the full viewport
+//      height and a third of the width, while the heading block drifts up over it
+//   2. then to the full width, its corners squaring off, as the block scrolls out
+//   3. a black veil settles over it and the about copy scrolls up through the
+//      frame, each word sharpening in as it crosses the reveal line
+// The stage's height is set here from the copy's measured height, so the copy
+// moves 1:1 with the scroll and the stage lets go once the last line is read.
+const heroStage = document.getElementById('hero');
+const heroMedia = heroStage && heroStage.querySelector('.hero__media');
 
-if (aboutStage && aboutPara) {
-  const COPY_END = 0.45;
-  const LIST_END = 0.92; // the last service holds lit through the exit
-  const aboutSticky = aboutStage.querySelector('.about__sticky');
-  const items = Array.from(aboutStage.querySelectorAll('.about__list li'));
-  const shots = Array.from(aboutStage.querySelectorAll('.about__shot'));
+if (heroStage && heroMedia) {
+  const sticky = heroStage.querySelector('.hero__sticky');
+  const slot = heroStage.querySelector('.hero__media-slot');
+  const intro = heroStage.querySelector('.hero__intro');
+  const shade = heroStage.querySelector('.hero__shade');
+  const copy = heroStage.querySelector('.hero__about');
+  const copyText = heroStage.querySelector('.hero__about-text');
+  const anchor = document.getElementById('about');
+
+  // scroll distance of each beat, as a share of the viewport height
+  const GROW_H = 0.9;
+  const GROW_W = 0.9;
+  const MID_WIDTH = 1 / 3;        // beat 1 ends 640 wide in the 1920 frame
+  const START_RADIUS = 16 / 1920; // corner radius in the slot, per px of width
+  const MID_RADIUS = 60 / 1920;   // …and once it's a full-height column
+  const INTRO_DRIFT = 183 / 977;  // how far the block has risen by the end of beat 1, per px of height
+  const VEIL = 0.35;
+  const VEIL_OPACITY = 0.55;
+  const COPY_END = 0.55;     // the copy stops once its last line sits this far down
+  const REVEAL_AT = 0.85;    // a word starts sharpening as it rises past this line…
+  const REVEAL_BAND = 0.25;  // …and is fully lit this much higher
+  const MAX_BLUR = 4;
+  const MIN_OPACITY = 0.35;  // unread words sit grey, as in the storyboard
+
   const clamp01 = (v) => Math.min(1, Math.max(0, v));
+  const lerp = (a, b, t) => a + (b - a) * t;
+  const ease = (t) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
 
-  // Whether the stage actually pins — the section is taller than the viewport
-  // either way, so height alone can't tell us; the media query decides.
-  let pinned = false;
-  const measure = () => {
-    pinned = !!aboutSticky && getComputedStyle(aboutSticky).position === 'sticky';
-  };
-
-  let active = -1;
-  const setActive = (i) => {
-    if (i === active) return;
-    const prev = active;
-    active = i;
-    items.forEach((li, n) => li.classList.toggle('is-active', n === i));
-
-    // Slide mask: the incoming still wipes up from its bottom edge while the
-    // outgoing one stays fully drawn just underneath, so the wipe reads as one
-    // image sliding over another — and it plays the same way scrolling back up.
-    const cur = Math.max(0, i);
-    // The wipe is a transition BETWEEN services, so the first still is simply
-    // already there when the list arrives — sliding it in would animate against
-    // nothing. Motion starts on the move from the first service to the second.
-    const wipe = prev >= 0 && cur !== Math.max(0, prev);
-    shots.forEach((img, n) => {
-      img.classList.toggle('is-on', n === cur);
-      if (n === cur) {
-        img.style.transition = 'none';
-        img.style.zIndex = '2';
-        img.style.clipPath = wipe ? 'inset(100% 0 0 0)' : 'inset(0 0 0 0)';
-        if (wipe) {
-          void img.offsetWidth; // flush, so the wipe always starts from closed
-          img.style.transition = '';
-          img.style.clipPath = 'inset(0 0 0 0)';
-        }
-      } else if (n === prev) {
-        img.style.transition = 'none';
-        img.style.zIndex = '1';
-        img.style.clipPath = 'inset(0 0 0 0)';
+  // split the copy into words so each can be lit on its own
+  Array.from(copyText.childNodes).forEach((node) => {
+    if (node.nodeType !== Node.TEXT_NODE) return;
+    const frag = document.createDocumentFragment();
+    node.textContent.split(/(\s+)/).forEach((part) => {
+      if (part.trim() === '') {
+        frag.appendChild(document.createTextNode(part));
       } else {
-        img.style.transition = 'none';
-        img.style.zIndex = '0';
-        img.style.clipPath = 'inset(100% 0 0 0)';
+        const span = document.createElement('span');
+        span.className = 'sr-word';
+        span.textContent = part;
+        frag.appendChild(span);
       }
     });
-  };
-
-  const updateAboutStage = () => {
-    const rect = aboutStage.getBoundingClientRect();
-    const span = rect.height - window.innerHeight;
-
-    // Not pinned (mobile): leave the copy on its own rect-based reveal and
-    // light whichever service sits closest to the middle of the screen.
-    if (!pinned || span <= 0) {
-      aboutPara.__progress = null;
-      const mid = window.innerHeight / 2;
-      let best = 0;
-      let bestDist = Infinity;
-      items.forEach((li, n) => {
-        const r = li.getBoundingClientRect();
-        const d = Math.abs(r.top + r.height / 2 - mid);
-        if (d < bestDist) { bestDist = d; best = n; }
-      });
-      setActive(best);
-      return;
-    }
-
-    const p = clamp01(-rect.top / span);
-    aboutPara.__progress = clamp01(p / COPY_END);
-
-    const q = (p - COPY_END) / (LIST_END - COPY_END);
-    setActive(q <= 0 ? -1 : Math.min(items.length - 1, Math.floor(q * items.length)));
-  };
-
-  window.addEventListener('scroll', updateAboutStage, { passive: true });
-  window.addEventListener('resize', () => { measure(); updateAboutStage(); });
-  measure();
-  updateAboutStage();
-}
-
-// ---------- Scroll-reveal paragraph (word-by-word, like reactbits ScrollReveal) ----------
-const revealParagraphs = document.querySelectorAll('[data-scroll-reveal]');
-
-if (revealParagraphs.length) {
-  const FROM_COLOR = [85, 84, 84];
-  const TO_COLOR = [255, 255, 255];
-
-  revealParagraphs.forEach((p) => {
-    Array.from(p.childNodes).forEach((node) => {
-      if (node.nodeType !== Node.TEXT_NODE) return;
-      const frag = document.createDocumentFragment();
-      node.textContent.split(/(\s+)/).forEach((part) => {
-        if (part.trim() === '') {
-          frag.appendChild(document.createTextNode(part));
-        } else {
-          const span = document.createElement('span');
-          span.className = 'sr-word';
-          span.textContent = part;
-          frag.appendChild(span);
-        }
-      });
-      node.replaceWith(frag);
-    });
+    node.replaceWith(frag);
   });
+  const words = Array.from(copyText.querySelectorAll('.sr-word'));
 
-  // A pinned paragraph can't read its own rect (it stops moving), so a stage
-  // may hand it progress directly via __progress; otherwise fall back to the
-  // paragraph's own travel through the viewport.
-  const progressFor = (p) => {
-    if (typeof p.__progress === 'number') return p.__progress;
-    const rect = p.getBoundingClientRect();
-    const start = window.innerHeight * 0.9;
-    const end = window.innerHeight * 0.35;
-    const total = rect.height + (start - end);
-    return Math.min(1, Math.max(0, (start - rect.top) / total));
-  };
+  let vw = 0;
+  let vh = 0;
+  let start = { w: 0, h: 0, top: 0 };
+  let growH = 0;
+  let growW = 0;
+  let veil = 0;
+  let travel = 0;
+  let drift = 0;
+  let introExit = 0;
 
-  const updateScrollReveal = () => {
-    revealParagraphs.forEach((p) => {
-      const words = p.querySelectorAll('.sr-word');
-      const n = words.length;
-      const progress = progressFor(p);
+  const measure = () => {
+    vw = sticky.clientWidth;
+    vh = sticky.clientHeight;
 
-      words.forEach((w, i) => {
-        const wordStart = i / n;
-        const local = Math.min(1, Math.max(0, (progress - wordStart) * n * 1.4));
-        const mixed = FROM_COLOR.map((f, idx) => Math.round(f + (TO_COLOR[idx] - f) * local));
-        w.style.color = `rgb(${mixed.join(',')})`;
-        w.style.opacity = 0.4 + 0.6 * local;
-        w.style.filter = `blur(${(1 - local) * 3}px)`;
-      });
+    // measure the block where it rests, not wherever the scroll has moved it
+    intro.style.setProperty('--intro-y', '0px');
+    const box = sticky.getBoundingClientRect();
+    const s = slot.getBoundingClientRect();
+    start = { w: s.width, h: s.height, top: s.top - box.top };
+    drift = INTRO_DRIFT * vh;
+    // far enough that the buttons have cleared the top edge by the end of beat 2
+    introExit = intro.lastElementChild.getBoundingClientRect().bottom - box.top + 40;
+
+    growH = GROW_H * vh;
+    growW = GROW_W * vh;
+    veil = VEIL * vh;
+    // from just below the screen until the last line sits at COPY_END
+    travel = vh * (1 - COPY_END) + copy.offsetHeight;
+
+    heroStage.style.height = `${vh + growH + growW + veil + travel}px`;
+    if (anchor) anchor.style.top = `${growH + growW}px`;
+
+    // where each word sits inside the copy; a little of its x is folded in so
+    // a line lights left → right instead of all at once
+    const lineW = copyText.offsetWidth || 1;
+    words.forEach((w) => {
+      w.__at = w.offsetTop + w.offsetHeight / 2 + (w.offsetLeft / lineW) * w.offsetHeight;
+      w.__k = -1;
     });
   };
 
-  window.addEventListener('scroll', updateScrollReveal, { passive: true });
-  window.addEventListener('resize', updateScrollReveal);
-  updateScrollReveal();
+  const update = () => {
+    const y = -heroStage.getBoundingClientRect().top;
+
+    const aRaw = clamp01(y / growH);
+    const bRaw = clamp01((y - growH) / growW);
+    const a = ease(aRaw);
+    const b = ease(bRaw);
+
+    // the block drifts up at a steady pace through beat 1, then picks up speed
+    // (without a jolt — the pace carries over) until it has scrolled out
+    const lift = bRaw === 0
+      ? drift * aRaw
+      : drift + drift * bRaw + Math.max(0, introExit - 2 * drift) * bRaw * bRaw;
+    intro.style.setProperty('--intro-y', `${-lift}px`);
+
+    const midW = Math.max(start.w, vw * MID_WIDTH);
+    const w = b > 0 ? lerp(midW, vw, b) : lerp(start.w, midW, a);
+    const h = lerp(start.h, vh, a);
+    // the image leaves the slot as it rose with the block, then meets the top edge
+    const top = lerp(start.top - drift * aRaw, 0, a);
+    const r0 = Math.max(8, vw * START_RADIUS);
+    const r1 = Math.max(20, vw * MID_RADIUS);
+    heroMedia.style.width = `${w}px`;
+    heroMedia.style.height = `${h}px`;
+    heroMedia.style.transform = `translate3d(${(vw - w) / 2}px,${top}px,0)`;
+    heroMedia.style.borderRadius = `${b > 0 ? lerp(r1, 0, b) : lerp(r0, r1, a)}px`;
+
+    shade.style.opacity = VEIL_OPACITY * clamp01((y - growH - growW) / veil);
+
+    const copyTop = vh - Math.min(travel, Math.max(0, y - growH - growW - veil));
+    copy.style.transform = `translate3d(0,${copyTop}px,0)`;
+
+    words.forEach((word) => {
+      const t = clamp01((REVEAL_AT * vh - (copyTop + word.__at)) / (REVEAL_BAND * vh));
+      const k = Math.round(t * 50) / 50;
+      if (k === word.__k) return;
+      word.__k = k;
+      word.style.opacity = MIN_OPACITY + (1 - MIN_OPACITY) * k;
+      word.style.filter = k === 1 ? 'none' : `blur(${(1 - k) * MAX_BLUR}px)`;
+    });
+  };
+
+  const refresh = () => { measure(); update(); };
+
+  window.addEventListener('scroll', update, { passive: true });
+  window.addEventListener('resize', refresh);
+  window.addEventListener('load', refresh);
+  if (document.fonts) document.fonts.ready.then(refresh);
+  refresh();
+
+  // no point decoding the clip once the stage has scrolled away
+  const video = heroMedia.querySelector('video');
+  if (video && 'IntersectionObserver' in window) {
+    new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) video.play().catch(() => {});
+      else video.pause();
+    }).observe(heroStage);
+  }
 }
 
 // ---------- Core keyword field: nudot-style dual wave (scroll-driven) ----------
@@ -970,57 +943,6 @@ if (categoryFilter && yearFilter && worksGrid) {
 // custom wheel-lerp block was removed during the Development merge so the two
 // smooth-scroll engines don't fight over the wheel event. The Works year-rail
 // scroll-spy still works because it polls window.scrollY every frame.
-
-// ---------- Hero reel: wheel-over-reel drives it horizontally (Jesper-Landberg
-// style), with an eased glide. The wheel is only intercepted while the pointer is
-// over the reel — capture + stopPropagation keep Lenis's window-level wheel from
-// also scrolling the page — so moving the cursor off the reel restores normal
-// vertical scrolling. JS takes over the transform from the CSS marquee, which
-// stays as the no-JS / reduced-motion fallback. ----------
-(function heroReelWheel() {
-  const reel = document.querySelector('.hero__reel');
-  const track = document.querySelector('.hero__reel-track');
-  if (!reel || !track) return;
-  if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-
-  track.style.animation = 'none';       // JS now owns the transform
-  track.style.willChange = 'transform';
-
-  // one un-duplicated set = half the track (the markup duplicates the 8 cards),
-  // so wrapping every `cycle` px is seamless.
-  let cycle = track.scrollWidth / 2 || 1;
-  const measure = () => { cycle = track.scrollWidth / 2 || cycle; };
-  window.addEventListener('resize', measure);
-  window.addEventListener('load', measure);
-  track.querySelectorAll('img').forEach((img) => {
-    if (!img.complete) img.addEventListener('load', measure, { once: true });
-  });
-
-  const DRIFT = 0.45;   // px/frame idle drift (≈ the old ~40px/s marquee)
-  const LERP = 0.085;   // eased follow — the horizontal-scroll glide
-  let current = 0;      // rendered X
-  let target = 0;       // desired X
-
-  reel.addEventListener('wheel', (e) => {
-    const delta = Math.abs(e.deltaY) >= Math.abs(e.deltaX) ? e.deltaY : e.deltaX;
-    if (!delta) return;
-    e.preventDefault();
-    e.stopPropagation();  // keep Lenis from scrolling the page too
-    target -= delta;
-  }, { passive: false, capture: true });
-
-  let last = performance.now();
-  const frame = (now) => {
-    const dt = Math.min(50, now - last); last = now;
-    target -= DRIFT * (dt / 16.667);
-    current += (target - current) * LERP;
-    if (current <= -cycle) { current += cycle; target += cycle; }
-    else if (current > 0) { current -= cycle; target -= cycle; }
-    track.style.transform = `translate3d(${current}px,0,0)`;
-    requestAnimationFrame(frame);
-  };
-  requestAnimationFrame(frame);
-})();
 
 // ---------- Klever: lazy-load + loop videos only while scrolled into view ----------
 const lazyVideos = document.querySelectorAll('video[data-src]');

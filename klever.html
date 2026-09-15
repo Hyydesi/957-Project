@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=Roboto:wght@400;500&family=Roboto+Mono:wght@400;500&family=Inter:wght@400;500;600;700&family=Chakra+Petch:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=62">
+<link rel="stylesheet" href="styles.css?v=68">
 <link rel="stylesheet" href="klever.css?v=25">
 </head>
 <body class="klever-page">
@@ -15,7 +15,8 @@
 <nav class="nav" id="nav" data-theme="light">
   <div class="nav__inner">
     <div class="nav__meta">
-      <span class="nav__meta-item"><span class="dim">// time zone:</span> GMT +7 <span id="liveClock" class="nav__clock"></span></span>
+      <span class="nav__meta-item"><span class="dim">// location:</span> hcm, Vietnam</span>
+      <span class="nav__meta-item"><span class="dim">// time zone:</span> GMT +7</span>
     </div>
     <a href="index.html" class="nav__logo">
       <img src="assets/logo-nav-white.svg" alt="NINEFIVESEVEN" class="nav__logo-img nav__logo-img--white">
@@ -24,10 +25,10 @@
     <div class="nav__links">
       <a href="works.html">[01] WORKS</a>
       <a href="index.html#about">[02] ABOUT</a>
-      <button class="nav__menu" id="menuToggle" aria-label="Open menu">
-        <span>MENU</span>
-        <span class="nav__menu-icon"><i></i><i></i></span>
-      </button>
+      <div class="nav__actions">
+        <button type="button" class="nav__cta" data-contact-open>Start a project</button>
+        <button type="button" class="nav__menu" id="menuToggle" aria-label="Open menu"><i></i><i></i><i></i><i></i></button>
+      </div>
     </div>
   </div>
 </nav>
@@ -328,7 +329,7 @@
 
 </main>
 
-<script src="script.js?v=32"></script>
+<script src="script.js?v=37"></script>
 <script src="contact.js?v=6"></script>
 </body>
 </html>

@@ -6,8 +6,8 @@
 <title>NINEFIVESEVEN — Concept-driven design studio</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Anton&family=Roboto+Mono:wght@400;500&family=Inter:wght@400;500;600&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=62">
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Roboto:wght@500;700&family=Roboto+Mono:wght@400;500&family=Inter:wght@400;500;600&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css?v=68">
 <script>try{if(!matchMedia('(prefers-reduced-motion: reduce)').matches)document.documentElement.classList.add('is-loading');}catch(e){}</script>
 </head>
 <body class="home">
@@ -52,7 +52,8 @@
 <nav class="nav" id="nav" data-theme="dark">
   <div class="nav__inner">
     <div class="nav__meta">
-      <span class="nav__meta-item"><span class="dim">// time zone:</span> GMT +7 <span id="liveClock" class="nav__clock"></span></span>
+      <span class="nav__meta-item"><span class="dim">// location:</span> hcm, Vietnam</span>
+      <span class="nav__meta-item"><span class="dim">// time zone:</span> GMT +7</span>
     </div>
     <a href="#top" class="nav__logo">
       <img src="assets/logo-nav-white.svg" alt="NINEFIVESEVEN" class="nav__logo-img nav__logo-img--white">
@@ -61,10 +62,10 @@
     <div class="nav__links">
       <a href="works.html">[01] WORKS</a>
       <a href="#about">[02] ABOUT</a>
-      <button class="nav__menu" id="menuToggle" aria-label="Open menu">
-        <span>MENU</span>
-        <span class="nav__menu-icon"><i></i><i></i></span>
-      </button>
+      <div class="nav__actions">
+        <button type="button" class="nav__cta" data-contact-open>Start a project</button>
+        <button type="button" class="nav__menu" id="menuToggle" aria-label="Open menu"><i></i><i></i><i></i><i></i></button>
+      </div>
     </div>
   </div>
 </nav>
@@ -97,82 +98,28 @@
 
 <main id="top">
 
-  <!-- HERO -->
+  <!-- HERO + ABOUT — one pinned stage: the image above the heading grows to fill
+       the screen, then the about copy scrolls up over it (see the hero stage in script.js) -->
   <section class="hero" id="hero" data-theme="dark">
-    <div class="hero__head">
-      <!-- two marks pushed to the edges, as in the design — together they fill the row -->
-      <div class="hero__wordmark" role="img" aria-label="NINEFIVESEVEN">
-        <img class="hero__wordmark-a" src="assets/hero/wordmark-ninefive.svg" alt="">
-        <img class="hero__wordmark-b" src="assets/hero/wordmark-seven.svg" alt="">
-      </div>
-
-      <div class="hero__available">
-        <p data-cms="hero.available.line1" data-cms-label="Dòng 1" data-cms-group="Hero">BASED IN VIETNAM</p>
-        <p data-cms="hero.available.line2" data-cms-label="Dòng 2" data-cms-group="Hero">AVAILABLE WORLDWIDE</p>
-      </div>
-    </div>
-
-    <!-- the set is listed twice so the right-to-left loop wraps seamlessly -->
-    <div class="hero__reel" aria-hidden="true" data-lenis-prevent>
-      <div class="hero__reel-track">
-        <div class="hero__reel-card"><img src="assets/hero/reel-1.png" alt=""></div>
-        <div class="hero__reel-card"><img src="assets/hero/reel-2.png" alt=""></div>
-        <div class="hero__reel-card"><img src="assets/hero/reel-3.png" alt=""></div>
-        <div class="hero__reel-card"><img src="assets/hero/reel-4.png" alt=""></div>
-        <div class="hero__reel-card"><img src="assets/hero/reel-5.png" alt=""></div>
-        <div class="hero__reel-card"><img src="assets/hero/reel-6.png" alt=""></div>
-        <div class="hero__reel-card"><img src="assets/hero/reel-7.png" alt=""></div>
-        <div class="hero__reel-card"><img src="assets/hero/reel-8.png" alt=""></div>
-        <div class="hero__reel-card"><img src="assets/hero/reel-1.png" alt=""></div>
-        <div class="hero__reel-card"><img src="assets/hero/reel-2.png" alt=""></div>
-        <div class="hero__reel-card"><img src="assets/hero/reel-3.png" alt=""></div>
-        <div class="hero__reel-card"><img src="assets/hero/reel-4.png" alt=""></div>
-        <div class="hero__reel-card"><img src="assets/hero/reel-5.png" alt=""></div>
-        <div class="hero__reel-card"><img src="assets/hero/reel-6.png" alt=""></div>
-        <div class="hero__reel-card"><img src="assets/hero/reel-7.png" alt=""></div>
-        <div class="hero__reel-card"><img src="assets/hero/reel-8.png" alt=""></div>
-      </div>
-    </div>
-  </section>
-  <div class="hero__spacer" aria-hidden="true"></div>
-
-  <!-- ABOUT — pinned stage: the copy reveals, then the services list walks -->
-  <section class="about" id="about" data-theme="dark">
-    <div class="about__sticky">
-      <div class="about__inner">
-        <div class="about__copy">
-          <p class="about__paragraph" data-scroll-reveal data-cms="about.paragraph" data-cms-type="text" data-cms-label="Đoạn giới thiệu studio" data-cms-group="Giới thiệu">
-            <span class="about__mark" aria-hidden="true"></span>
-            957 is a concept-driven design studio founded in 2025 and based in Vietnam. Rooted in modernist design principles and graphic design tradition, our work combines typography, grid systems and motion to create digital experiences that balance clarity, usability and bold visual expression. Our team remains intentionally small, under 10 people, which allows creative direction to stay personal and decisions to stay sharp. Every project is led closely by the founders. No layers. No dilution.
-          </p>
+    <span class="hero__anchor" id="about" aria-hidden="true"></span>
+    <div class="hero__sticky">
+      <div class="hero__intro">
+        <h1 class="hero__title" data-cms="hero.title" data-cms-label="Tiêu đề" data-cms-group="Hero">Designing ideas into scalable digital experiences</h1>
+        <div class="hero__media-slot" aria-hidden="true"></div>
+        <p class="hero__lead" data-cms="hero.lead" data-cms-label="Mô tả" data-cms-group="Hero">We are a design agency helping teams design, build, and scale digital products that actually work and drive real impact.</p>
+        <div class="hero__actions">
+          <a href="#contact" class="hero__btn hero__btn--red" data-contact-open><img src="assets/hero/dot-white.svg" alt=""><span data-cms="hero.cta1" data-cms-label="Nút 1" data-cms-group="Hero">Book a 15min call</span></a>
+          <a href="works.html" class="hero__btn hero__btn--white"><img src="assets/hero/dot-red.svg" alt=""><span data-cms="hero.cta2" data-cms-label="Nút 2" data-cms-group="Hero">View Projects</span></a>
         </div>
+      </div>
 
-        <div class="about__row">
-          <div class="about__services-col">
-            <span class="about__label" data-cms="about.label" data-cms-label="Nhãn cột dịch vụ" data-cms-group="Giới thiệu">SERVICES</span>
-            <img class="about__logo-mark" src="assets/logo-about-stacked.svg" alt="NINEFIVESEVEN">
-          </div>
+      <div class="hero__media" aria-hidden="true">
+        <video class="hero__video" src="assets/hero/stage.mp4" poster="assets/hero/stage.jpg" autoplay muted loop playsinline preload="auto" data-cms-src="hero.video" data-cms-label="Video nền" data-cms-group="Hero"></video>
+        <span class="hero__shade"></span>
+      </div>
 
-          <ul class="about__list">
-            <li data-cms="about.service1" data-cms-label="Dịch vụ 1" data-cms-group="Giới thiệu">PRODUCT DESIGN</li>
-            <li data-cms="about.service2" data-cms-label="Dịch vụ 2" data-cms-group="Giới thiệu">BRAND DESIGN</li>
-            <li data-cms="about.service3" data-cms-label="Dịch vụ 3" data-cms-group="Giới thiệu">WEBSITES</li>
-            <li data-cms="about.service4" data-cms-label="Dịch vụ 4" data-cms-group="Giới thiệu">GAME DESIGN</li>
-            <li data-cms="about.service5" data-cms-label="Dịch vụ 5" data-cms-group="Giới thiệu">MOTION VIDEO</li>
-          </ul>
-
-          <!-- one still per service, in list order; motion video is a muted loop -->
-          <div class="about__preview" aria-hidden="true">
-            <img data-cms-src="about.shot1" data-cms-label="Ảnh dịch vụ 1" data-cms-group="Giới thiệu" class="about__shot is-on" src="assets/services/web3-product.png" alt="">
-            <img data-cms-src="about.shot2" data-cms-label="Ảnh dịch vụ 2" data-cms-group="Giới thiệu" class="about__shot" src="assets/services/visual-identity.png" alt="">
-            <img data-cms-src="about.shot3" data-cms-label="Ảnh dịch vụ 3" data-cms-group="Giới thiệu" class="about__shot" src="assets/services/web-design.png" alt="">
-            <img data-cms-src="about.shot4" data-cms-label="Ảnh dịch vụ 4" data-cms-group="Giới thiệu" class="about__shot" src="assets/services/game-design.png" alt="">
-            <div class="about__shot about__shot--video">
-              <iframe src="https://player.vimeo.com/video/1222122809?background=1&amp;autoplay=1&amp;loop=1&amp;muted=1"
-                      title="Motion video reel" tabindex="-1" allow="autoplay" frameborder="0"></iframe>
-            </div>
-          </div>
-        </div>
+      <div class="hero__about">
+        <p class="hero__about-text" data-cms="about.paragraph" data-cms-type="text" data-cms-label="Đoạn giới thiệu studio" data-cms-group="Giới thiệu">957 is a concept-driven design studio founded in 2025 and based in Vietnam. Rooted in modernist design principles and graphic design tradition, our work combines typography, grid systems and motion to create digital experiences that balance clarity, usability and bold visual expression. Our team remains intentionally small, under 10 people, which allows creative direction to stay personal and decisions to stay sharp. Every project is led closely by the founders. No layers. No dilution.</p>
       </div>
     </div>
   </section>
@@ -546,7 +493,7 @@
 
 <script src="https://cdn.jsdelivr.net/npm/lenis@1.1.13/dist/lenis.min.js"></script>
 <script src="projects.js?v=23"></script>
-<script src="script.js?v=32"></script>
+<script src="script.js?v=37"></script>
 <script src="contact.js?v=6"></script>
 </body>
 </html>
