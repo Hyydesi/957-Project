@@ -10,6 +10,8 @@ const wpBadgeYear = document.getElementById('wpBadgeYear');
 const wpProgress = document.getElementById('wpProgress');
 const wpThumbs = document.getElementById('wpThumbs');
 const wpBadgeIcon = document.getElementById('wpBadgeIcon');
+const wpCta = document.getElementById('wpCta');
+const wpHero = document.getElementById('wpHero');
 
 let activeSlide = 0;
 let autoplayTimer = null;
@@ -20,13 +22,13 @@ function withFallback(img, fallback) {
   img.addEventListener('error', () => { img.src = fallback; }, { once: true });
 }
 
+// the switcher shows each project's still — grey until it's the active slide
 function renderThumbs() {
   wpThumbs.innerHTML = PROJECTS.map((p, i) => `
     <button class="wp-thumb${i === activeSlide ? ' is-active' : ''}" data-index="${i}" aria-label="${p.name}">
-      <img src="${p.logo || p.image}" alt="">
+      <img src="${p.image}" alt="">
     </button>
   `).join('');
-  wpThumbs.querySelectorAll('img').forEach((img, i) => withFallback(img, PROJECTS[i].image));
 }
 
 function renderProgress() {
@@ -51,8 +53,11 @@ function goToSlide(index) {
       wpHeroImg.style.opacity = 1;
     }, 200);
   }
+  wpHero.style.setProperty('--wp-dim', p.coverDim || 0);
   wpTitle.textContent = p.title;
   wpDesc.textContent = p.desc;
+  // projects without a case study yet point at their card in the listing
+  wpCta.href = p.href || '#projects-list';
   wpBadgeName.textContent = p.name;
   wpBadgeYear.textContent = p.year;
   // each project carries its own mark; hidden until one is supplied
@@ -116,3 +121,28 @@ wlistGrid.innerHTML = PROJECTS.map((p) => {
   </article>
 `;
 }).join('');
+
+// ---------- Nav: hide while scrolling down, show again on the way up ----------
+(function autoHideNav() {
+  const nav = document.getElementById('nav');
+  const menu = document.getElementById('menuOverlay');
+  if (!nav) return;
+  const DELTA = 6; // ignore the tiny jitter of trackpads and smooth scroll
+  let lastY = window.scrollY;
+  let ticking = false;
+
+  const update = () => {
+    ticking = false;
+    const y = window.scrollY;
+    const diff = y - lastY;
+    if (Math.abs(diff) < DELTA) return;
+    const menuOpen = menu && menu.classList.contains('is-open');
+    // always shown near the top, or while the menu is open
+    nav.classList.toggle('is-hidden', diff > 0 && y > nav.offsetHeight && !menuOpen);
+    lastY = y;
+  };
+
+  window.addEventListener('scroll', () => {
+    if (!ticking) { ticking = true; requestAnimationFrame(update); }
+  }, { passive: true });
+})();

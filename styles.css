@@ -30,8 +30,10 @@ button{font:inherit;background:none;border:none;color:inherit;cursor:pointer;}
   position:fixed;top:0;left:0;right:0;z-index:100;
   height:var(--nav-h);
   color:var(--white);
-  transition:color .35s ease;
+  transition:color .35s ease,transform .45s cubic-bezier(.22,1,.36,1);
 }
+/* works page: the nav slides away while scrolling down, back on the way up */
+.nav.is-hidden{transform:translateY(-100%);}
 .nav__inner{
   position:relative;
   height:100%;
@@ -60,8 +62,8 @@ button{font:inherit;background:none;border:none;color:inherit;cursor:pointer;}
 @media(min-width:768px){.nav__logo-img{height:40px;}}
 .nav__logo-img--red{display:none;}
 .nav__links{display:flex;align-items:center;gap:16px;font-family:var(--font-mono);font-size:16px;flex-shrink:0;}
-@media(min-width:1024px){.nav__links{font-size:20px;gap:40px;}}
-@media(min-width:1600px){.nav__links{font-size:24px;gap:64px;}}
+@media(min-width:1024px){.nav__links{gap:40px;}}
+@media(min-width:1600px){.nav__links{gap:64px;}}
 @media(min-width:1440px){.nav__links{grid-column:3;justify-self:end;}}
 .nav__links a{display:none;}
 @media(min-width:768px){.nav__links a{display:inline;}}
@@ -71,10 +73,10 @@ button{font:inherit;background:none;border:none;color:inherit;cursor:pointer;}
   display:flex;align-items:center;align-self:stretch;min-height:32px;
   padding:0 12px;
   background:var(--white);color:#101010;
-  font-family:'Roboto', var(--font-body);font-weight:500;font-size:13px;white-space:nowrap;
+  font-family:'Roboto', var(--font-body);font-weight:500;font-size:16px;white-space:nowrap;
   transition:background .35s ease,color .35s ease;
 }
-@media(min-width:480px){.nav__cta{padding:0 16px;font-size:14px;}}
+@media(min-width:480px){.nav__cta{padding:0 16px;font-size:16px;}}
 /* four red dots — two squares, two circles, set on the diagonals */
 .nav__menu{position:relative;width:24px;height:24px;flex-shrink:0;}
 .nav__menu::before{content:'';position:absolute;inset:-8px;}
@@ -841,62 +843,88 @@ button{font:inherit;background:none;border:none;color:inherit;cursor:pointer;}
 }
 
 /* ---------- WORKS: project showcase hero ---------- */
+/* One full-screen slide per project (Figma 1372:9401 and its siblings): the
+   cover fills the screen, a dark fade rises from the floor, and the copy and
+   the project stills sit on it. */
 .wp-hero{
-  position:relative;min-height:100vh;overflow:hidden;
+  position:relative;height:100vh;min-height:640px;overflow:hidden;
   display:flex;flex-direction:column;justify-content:flex-end;
-  padding-top:var(--nav-h);color:var(--white);
-}
-@media(min-width:900px){
-  .wp-hero{min-height:72vh;}
+  color:var(--white);background:var(--bg-dark);
 }
 .wp-hero__bg{position:absolute;inset:0;z-index:0;}
 .wp-hero__bg img{width:100%;height:100%;object-fit:cover;transition:opacity .6s ease;}
-.wp-hero__scrim{
-  position:absolute;inset:0;z-index:1;
-  background:linear-gradient(180deg,rgba(0,0,0,.55) 0%,rgba(0,0,0,.15) 30%,rgba(0,0,0,.55) 55%,rgba(0,0,0,.92) 100%);
+/* some covers carry a light dim in the design; JS sets it per project */
+.wp-hero__bg::after{content:'';position:absolute;inset:0;background:#000;opacity:var(--wp-dim,0);transition:opacity .6s ease;}
+.wp-hero__fade{
+  position:absolute;left:0;right:0;bottom:0;z-index:1;height:63%; /* 680 of 1080 */
+  background:linear-gradient(180deg,rgba(14,14,14,0) 0%,#0e0e0e 77.541%);
+}
+/* a second fade sinking the left edge, under the copy (Figma 1386:9469: 680 of
+   1920 wide, dark from the left edge to 77.5% of its width) */
+.wp-hero__side{
+  position:absolute;top:0;bottom:0;left:0;z-index:1;width:35.42%;
+  background:linear-gradient(270deg,rgba(14,14,14,0) 0%,#0e0e0e 77.541%);
+  pointer-events:none;
 }
 .wp-hero__top{
   position:absolute;top:0;left:0;right:0;z-index:2;
-  display:flex;flex-direction:column;gap:20px;
-  padding:calc(var(--nav-h) + 24px) 40px 0;
+  display:flex;flex-direction:column;gap:16px;
+  padding:calc(var(--nav-h) + 16px) 24px 0;
 }
-.wp-hero__progress{display:flex;gap:20px;}
+@media(min-width:900px){.wp-hero__top{padding-left:64px;padding-right:64px;}}
+.wp-hero__progress{display:flex;gap:8px;}
 .wp-hero__seg{flex:1;height:4px;border-radius:999px;background:rgba(227,227,227,.35);overflow:hidden;}
-.wp-hero__seg-fill{display:block;height:100%;width:0%;border-radius:999px;background:var(--white);}
+.wp-hero__seg-fill{display:block;height:100%;width:0%;background:var(--white);}
 .wp-hero__seg.is-active .wp-hero__seg-fill{transition:width linear;}
 
 .wp-hero__badge{display:flex;align-items:center;gap:12px;}
 .wp-hero__badge-icon{width:40px;height:40px;border-radius:50%;overflow:hidden;flex-shrink:0;}
 .wp-hero__badge-text{display:flex;flex-direction:column;font-family:var(--font-body);}
 .wp-hero__badge-text strong{font-size:18px;font-weight:500;}
-.wp-hero__badge-text span{font-size:14px;color:var(--white);}
+.wp-hero__badge-text span{font-size:14px;color:var(--muted-3);}
 
 .wp-hero__bottom{
   position:relative;z-index:2;
   display:flex;flex-direction:column;gap:32px;
   padding:48px 24px;
 }
+/* one left-hand column: the copy, then the stills 100px below it (Figma
+   1372:3610). Both 100px steps give way on shorter screens so the stack never
+   climbs into the badge. */
 @media(min-width:900px){
-  .wp-hero__bottom{flex-direction:row;align-items:flex-end;justify-content:space-between;padding:48px 40px;}
+  .wp-hero__bottom{
+    align-items:flex-start;gap:clamp(40px,9.26vh,100px);
+    padding:0 64px clamp(48px,9.26vh,100px);
+  }
 }
-.wp-hero__title-block{max-width:500px;}
+.wp-hero__title-block{display:flex;flex-direction:column;align-items:flex-start;gap:40px;max-width:556px;}
+.wp-hero__copy{display:flex;flex-direction:column;gap:0;}
 .wp-hero__title{
-  font-family:var(--font-display);font-size:clamp(40px,6vw,64px);
-  text-align:left;letter-spacing:-.5px;margin-bottom:16px;
-  text-transform:uppercase;
+  font-family:var(--font-display);font-weight:400;
+  font-size:clamp(56px,6.67vw,128px);line-height:normal;text-transform:uppercase;
 }
-.wp-hero__desc{font-family:var(--font-body);font-size:16px;color:var(--muted-4);line-height:1.5;}
-.wp-hero__thumbs{display:flex;gap:16px;}
-/* project marks sit in ringed circles; the active one takes the red ring */
+/* no word left stranded on the last line: pretty where supported, balanced
+   line lengths as the fallback */
+.wp-hero__desc{max-width:400px;font-family:'Roboto',var(--font-body);font-size:14px;line-height:20px;text-wrap:balance;text-wrap:pretty;}
+.wp-hero__cta{
+  display:inline-flex;align-items:center;justify-content:center;
+  padding:16px 32px;background:var(--white);color:#101010;
+  font-family:'Roboto',var(--font-body);font-weight:500;font-size:16px;text-transform:uppercase;
+  transition:opacity .25s ease;
+}
+.wp-hero__cta:hover{opacity:.85;}
+/* the project stills: grey until picked, the active one in colour inside a
+   white frame (6.7px on the 297px still) */
+.wp-hero__thumbs{display:flex;gap:15px;flex-shrink:0;max-width:100%;overflow-x:auto;scrollbar-width:none;}
 .wp-thumb{
-  width:80px;height:80px;border-radius:50%;overflow:hidden;
-  border:2px solid rgba(255,255,255,.55);padding:2px;flex-shrink:0;
-  background:#141414;
-  transition:border-color .25s ease,transform .25s ease;
+  position:relative;flex-shrink:0;padding:0;border:0;
+  width:clamp(120px,15.49vw,297px);aspect-ratio:297/200;
+  overflow:hidden;background:#141414;cursor:pointer;
 }
-.wp-thumb img{width:100%;height:100%;object-fit:cover;border-radius:50%;background:#141414;}
-.wp-thumb.is-active{border-color:var(--red);transform:scale(1.05);}
-.wp-thumb:hover{border-color:var(--white);}
+.wp-thumb img{width:100%;height:100%;object-fit:cover;filter:grayscale(1);transition:filter .3s ease;}
+.wp-thumb::after{content:'';position:absolute;inset:0;border:clamp(4px,.35vw,7px) solid var(--white);opacity:0;transition:opacity .25s ease;}
+.wp-thumb.is-active img,.wp-thumb:hover img{filter:none;}
+.wp-thumb.is-active::after{opacity:1;}
 
 /* ---------- WORKS: project listing ---------- */
 .wlist{background:var(--bg-dark);color:var(--white);padding:100px max(24px,calc((100% - 1600px) / 2)) 120px;width:100%;}

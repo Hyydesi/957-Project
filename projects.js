@@ -8,6 +8,9 @@
 //   listType  → LIST row "type" column (platform), separate from the tag list
 //   listTags  → LIST row tag column, joined with '・'
 //   mark      → one-colour logomark, painted white on the hovered list row
+//   cover     → full-screen still behind the works hero slide (coverDim: optional
+//               black dim over it, 0–1)
+//   desc      → the works hero slide's paragraph
 //   shots     → detail-page stills used as the thumbs on that row; a project
 //               without a detail page yet falls back to its cover + still
 const PROJECTS = [
@@ -30,7 +33,7 @@ const PROJECTS = [
     ],
     video: 'https://player.vimeo.com/video/1220387401?background=1&autoplay=1&loop=1&muted=1',
     title: 'Klever',
-    desc: 'Illuminating the future of decentralized finance through a clean, confident product and brand system.',
+    desc: 'Klever is a modular tool that streamlines the development of decentralized finance (DeFi) applications.',
     tags: ['WEB APP', 'VISUAL IDENTITY', 'BLOCKCHAIN'],
     listTitle: '[KLEVER] ILLUMINATING THE FUTURE OF DECENTRALIZED FINANCE',
     href: 'klever.html',
@@ -47,7 +50,7 @@ const PROJECTS = [
     cover: 'assets/covers/surfcash.jpg',
     logo: 'assets/logos/surfcash.png',
     title: 'Surfcash',
-    desc: "What are we good at? Branding, design, and websites. But you've heard that before, true. The expertise lies in perfection.",
+    desc: 'SurfCash is a mobile app that gives you a dollar balance you can actually use. Open it, scan a QR code at any local merchant, and pay in about ten seconds.',
     mark: 'assets/logos/surfcash.png',
     // TODO: only two SurfCash stills exist in the repo — the row shows two
     // tiles until a third is added here
@@ -70,7 +73,8 @@ const PROJECTS = [
     cover: 'assets/covers/echo-verse.jpg',
     logo: 'assets/logos/echo-verse.png',
     title: 'Echo Verse',
-    desc: 'A PWA social networking platform built for creators — from pixels to perfection, designed to feel alive on every screen.',
+    desc: 'Echo Verse is a next-generation social networking platform designed specifically for the Web3 era, where users can connect, create, and interact in an open, decentralized environment.',
+    coverDim: 0.2, // the design lays a 20% black over this cover
     mark: 'assets/logos/echo-verse.png',
     shots: [
       'assets/hero/reel-2.png',
@@ -92,7 +96,7 @@ const PROJECTS = [
     cover: 'assets/covers/newpay.jpg',
     logo: 'assets/logos/newpay.png',
     title: 'NewPay',
-    desc: 'A new way to spend your crypto — a mobile wallet experience balancing clarity, trust and bold visual identity.',
+    desc: 'NewPay is the USDT card for Web3 World USDT, powered virtual/physical card for Web3 spend crypto globally',
     mark: 'assets/logos/newpay.png',
     shots: [
       'assets/hero/reel-1.png',
