@@ -121,28 +121,3 @@ wlistGrid.innerHTML = PROJECTS.map((p) => {
   </article>
 `;
 }).join('');
-
-// ---------- Nav: hide while scrolling down, show again on the way up ----------
-(function autoHideNav() {
-  const nav = document.getElementById('nav');
-  const menu = document.getElementById('menuOverlay');
-  if (!nav) return;
-  const DELTA = 6; // ignore the tiny jitter of trackpads and smooth scroll
-  let lastY = window.scrollY;
-  let ticking = false;
-
-  const update = () => {
-    ticking = false;
-    const y = window.scrollY;
-    const diff = y - lastY;
-    if (Math.abs(diff) < DELTA) return;
-    const menuOpen = menu && menu.classList.contains('is-open');
-    // always shown near the top, or while the menu is open
-    nav.classList.toggle('is-hidden', diff > 0 && y > nav.offsetHeight && !menuOpen);
-    lastY = y;
-  };
-
-  window.addEventListener('scroll', () => {
-    if (!ticking) { ticking = true; requestAnimationFrame(update); }
-  }, { passive: true });
-})();

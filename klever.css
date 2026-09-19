@@ -1,237 +1,329 @@
-.klever-page{background:#fff;color:#101010;--font-heading:'Roboto',sans-serif;}
+/* Klever case study (Figma 1391:9621): a dark page. The hero and timeline span
+   the 1440 frame, everything else reads in a 1000px column down the middle. */
+.klever-page{
+  --kl-bg:#101010;--kl-lime:#7DFF4E;--kl-forest:#003D12;
+  --kl-col:min(1000px,calc(100% - 48px));
+  background:var(--kl-bg);color:var(--white);--font-heading:'Roboto',sans-serif;
+}
 .kl{padding-top:var(--nav-h);}
 
+/* HERO */
 .kl-hero{
   display:flex;flex-direction:column;align-items:center;gap:80px;
-  padding:80px max(24px,calc((100% - 1440px) / 2));
-  border-bottom:1px solid #ecebeb;
+  width:min(1440px,100%);margin:0 auto;
+  padding:80px 40px;
+  border-bottom:1px solid rgba(255,255,255,.2);
 }
 .kl-hero__title{
   font-family:var(--font-display);font-weight:400;text-transform:uppercase;
-  font-size:min(12.5vw,180px);line-height:.9;text-align:center;color:#101010;
+  font-size:min(12.5vw,180px);line-height:.9;text-align:center;color:var(--white);
   white-space:nowrap;
 }
 .kl-hero__cols{
   display:flex;flex-wrap:wrap;justify-content:center;align-items:flex-start;
-  gap:48px;width:100%;
+  gap:48px 100px;width:100%;
 }
-@media(min-width:1100px){.kl-hero__cols{gap:150px;}}
 .kl-hero__desc{
-  width:450px;max-width:100%;
-  font-family:var(--font-body);font-weight:600;font-size:24px;line-height:1.2;color:#101010;
+  width:500px;max-width:100%;
+  font-family:var(--font-heading);font-weight:600;font-size:20px;line-height:1.2;color:var(--white);
 }
 
 .kl-meta{display:flex;flex-direction:column;width:432px;max-width:100%;}
 .kl-meta__row{
   display:flex;align-items:flex-start;gap:64px;
-  padding:16px 0 12px;border-bottom:1px solid #ecebeb;
-  font-family:var(--font-body);font-size:16px;
+  padding:16px 0 12px;border-bottom:1px solid rgba(255,255,255,.2);
+  font-size:16px;
 }
 .kl-meta__row:last-child{border-bottom:none;}
-.kl-meta__row dt{width:120px;flex-shrink:0;line-height:22px;color:#7b7b7b;}
-.kl-meta__row dd{font-weight:500;line-height:20px;color:#171717;}
-.kl-meta__list{line-height:28px;}
+.kl-meta__row dt{width:120px;flex-shrink:0;line-height:22px;color:#7b7b7b;font-family:var(--font-heading);}
+.kl-meta__row dd{font-family:'Geist',var(--font-body);font-weight:500;line-height:20px;color:var(--white);}
+.kl-meta__list{line-height:28px !important;}
 .kl-meta__swatches{display:flex;gap:8px;}
 .kl-meta__swatches span{width:20px;height:20px;display:block;}
 
 @media(max-width:700px){
-  .kl-hero{gap:48px;padding-top:48px;padding-bottom:48px;}
-  .kl-hero__desc{font-size:20px;}
+  .kl-hero{gap:48px;padding:48px 24px;}
+  .kl-hero__desc{font-size:18px;}
   .kl-meta__row{gap:24px;}
   .kl-meta__row dt{width:96px;}
 }
 
 /* CHALLENGE */
-.kl-challenge{padding:80px max(24px,calc((100% - 1440px) / 2));}
-.kl-label{font-family:var(--font-heading);font-weight:500;font-size:40px;margin-bottom:32px;}
-.kl-challenge__body{display:flex;flex-direction:column;gap:32px;max-width:680px;margin-left:auto;}
-@media(min-width:1100px){.kl-challenge__body{margin-top:-64px;}}
-.kl-body-text{font-family:var(--font-body);font-weight:500;font-size:16px;line-height:1.7;color:#4d4d4d;}
-.kl-challenge__icons{display:flex;gap:16px;margin-top:8px;}
+.kl-challenge{
+  width:var(--kl-col);margin:0 auto;padding:100px 0;
+  display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-start;gap:32px;
+}
+.kl-label{font-family:var(--font-heading);font-weight:600;font-size:40px;line-height:32px;}
+.kl-challenge__body{display:flex;flex-direction:column;gap:60px;width:680px;max-width:100%;}
+.kl-challenge__text{
+  display:flex;flex-direction:column;gap:24px;
+  font-family:var(--font-heading);font-weight:500;font-size:16px;line-height:24px;color:var(--white);
+}
+.kl-challenge__icons{display:flex;gap:24px;}
 .kl-icon-card{
-  width:130px;height:130px;background:#003C12;border-radius:8px;
+  flex:1 1 0;min-width:0;height:274px;background:var(--kl-forest);border-radius:12px;
   display:flex;align-items:center;justify-content:center;
 }
-.kl-icon-card svg{height:82px;width:auto;}
+.kl-icon-card:first-child svg{height:176px;width:auto;}
+.kl-icon-card:last-child svg{height:133px;width:auto;}
+@media(max-width:700px){
+  .kl-challenge{padding:64px 0;}
+  .kl-challenge__icons{gap:12px;}
+  .kl-icon-card{height:auto;aspect-ratio:1;}
+  .kl-icon-card:first-child svg{height:60%;}
+  .kl-icon-card:last-child svg{height:46%;}
+}
 
-/* TIMELINE */
-.kl-timeline{background:#fff;padding:60px max(24px,calc((100% - 1440px) / 2)) 100px;}
+/* TIMELINE — a black band the width of the 1440 frame */
+.kl-timeline{
+  width:min(1440px,100%);margin:0 auto;background:#000;padding-top:40px;
+}
+.kl-timeline > *{width:var(--kl-col);margin-left:auto;margin-right:auto;}
 .kl-timeline__head{
-  display:flex;flex-direction:column;gap:16px;justify-content:space-between;margin-bottom:60px;
+  display:flex;flex-wrap:wrap;gap:16px;justify-content:space-between;align-items:flex-start;
 }
-@media(min-width:900px){.kl-timeline__head{flex-direction:row;align-items:flex-end;}}
-.kl-timeline__head h2{font-family:var(--font-heading);font-weight:500;font-size:clamp(36px,5vw,56px);line-height:1.05;color:#130000;}
-.kl-timeline__range{display:flex;flex-direction:column;align-items:flex-start;gap:4px;}
-@media(min-width:900px){.kl-timeline__range{align-items:flex-end;}}
-.kl-timeline__dates{font-family:var(--font-body);font-weight:600;font-size:22px;color:#130000;}
-.kl-timeline__duration{font-family:var(--font-body);font-weight:600;font-size:18px;color:#807676;}
+.kl-timeline__head h2{
+  font-family:var(--font-heading);font-weight:500;text-transform:uppercase;
+  font-size:clamp(40px,5vw,64px);line-height:1;letter-spacing:-.02em;color:var(--white);
+}
+.kl-timeline__range{display:flex;flex-direction:column;align-items:flex-end;gap:4px;font-family:var(--font-heading);font-weight:600;}
+.kl-timeline__dates{font-size:24px;letter-spacing:-.02em;}
+.kl-timeline__duration{font-size:20px;letter-spacing:-.02em;opacity:.8;}
+@media(max-width:700px){.kl-timeline__range{align-items:flex-start;}}
 
-.kl-gantt{position:relative;display:flex;flex-direction:column;gap:10px;padding-top:8px;}
-/* vertical week gridlines running the full height, behind the bars */
-.kl-gantt__grid{
-  position:absolute;inset:0;z-index:0;pointer-events:none;
-  display:grid;grid-template-columns:repeat(7,1fr);
-}
-.kl-gantt__grid span{border-right:1px solid #ececec;}
-.kl-gantt__grid span:first-child{border-left:1px solid #ececec;}
-.kl-gantt__row{position:relative;z-index:1;min-height:56px;display:flex;}
-.kl-gantt__bar{
-  margin-left:var(--l);width:var(--w);min-width:170px;height:56px;border-radius:8px;
-  display:flex;align-items:center;justify-content:space-between;gap:16px;padding:0 18px;
-}
-.kl-gantt__bar.is-light{background:#fff;box-shadow:0 0 0 1px #ececec;}
-.kl-gantt__bar.is-dark{background:#003C12;color:#fff;}
-.kl-gantt__step{
-  display:flex;align-items:center;gap:8px;white-space:nowrap;
-  font-family:var(--font-mono);font-size:12px;letter-spacing:.5px;
-}
-.kl-gantt__step::before{content:"";width:9px;height:9px;background:#7DFF4E;flex-shrink:0;}
-.kl-gantt__bar.is-light .kl-gantt__step{color:#130000;}
-.kl-gantt__bar.is-dark .kl-gantt__step{color:#7DFF4E;}
-.kl-gantt__title{font-family:var(--font-body);font-weight:600;font-size:13px;text-transform:uppercase;white-space:nowrap;}
+/* the chart keeps its proportions and scrolls sideways on narrow screens */
+.kl-gantt-scroll{overflow-x:auto;overflow-y:hidden;margin-top:-5px;}
+.kl-gantt{position:relative;min-width:760px;height:595px;}
 .kl-gantt__weeks{
-  position:relative;z-index:1;display:grid;grid-template-columns:repeat(7,1fr);align-items:center;
-  font-family:var(--font-mono);font-size:13px;color:#8a8a8a;padding:16px 0;margin:4px 0;
-  background:#f7f7f7;border-radius:8px;
+  position:absolute;left:0;right:0;top:277px;height:40px;
+  display:grid;grid-template-columns:repeat(7,1fr);align-items:center;
+  background:rgba(255,255,255,.3);
+  font-family:'Geist Mono',var(--font-mono);font-weight:500;font-size:15px;line-height:22px;
+  letter-spacing:.3px;text-transform:uppercase;color:var(--white);
 }
-.kl-gantt__weeks span{padding-left:10px;}
+/* each week's gridline runs the full height of the chart, just left of its label */
+.kl-gantt__weeks span{position:relative;align-self:stretch;display:flex;align-items:center;padding-left:50px;white-space:nowrap;}
+.kl-gantt__weeks span::before{
+  content:"";position:absolute;left:40px;top:-277px;height:595px;width:1px;
+  background:rgba(255,255,255,.2);
+}
+.kl-gantt__bar{
+  position:absolute;left:var(--l);top:var(--t);width:var(--w);height:64px;border-radius:8px;
+  display:flex;align-items:center;justify-content:space-between;gap:16px;padding:8px 32px 8px 16px;
+  font-size:14px;line-height:22px;text-transform:uppercase;white-space:nowrap;
+}
+.kl-gantt__bar.is-light{
+  background:#fff;border:1px solid #e9e9e9;color:#130000;
+  box-shadow:0 20px 13px rgba(0,0,0,.08);
+}
+.kl-gantt__bar.is-dark{background:var(--kl-forest);color:var(--white);}
+.kl-gantt__step{display:flex;align-items:center;gap:12px;font-family:var(--font-mono);}
+.kl-gantt__step::before{content:"";width:10px;height:10px;background:var(--kl-lime);flex-shrink:0;}
+.kl-gantt__bar.is-light .kl-gantt__step{opacity:.6;}
+.kl-gantt__bar.is-dark .kl-gantt__step{font-weight:500;}
+.kl-gantt__title{font-family:var(--font-heading);font-weight:600;}
+.kl-gantt__bar.is-dark .kl-gantt__title{color:var(--kl-lime);}
 
-/* GENERIC SECTIONS */
-.kl-section{padding:60px max(24px,calc((100% - 1440px) / 2));}
-.kl-headline{font-family:var(--font-heading);font-weight:500;font-size:clamp(36px,6vw,64px);letter-spacing:-.5px;margin-bottom:24px;}
-/* four portrait sketches in a row (240×299 in the Figma frame); two by two on phones */
-.kl-sketches{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;margin-top:32px;}
-@media(min-width:768px){.kl-sketches{grid-template-columns:repeat(4,1fr);}}
-.kl-sketches img{width:100%;aspect-ratio:240/299;object-fit:cover;background:#f2f2f2;}
-.kl-caption{font-family:var(--font-body);font-size:16px;color:#999;margin-top:12px;}
-.kl-full-image{width:100%;margin-top:40px;display:block;border-radius:20px;}
-/* body copy that follows an image/media block gets breathing room above it */
-.kl-full-image + .kl-body-text{margin-top:32px;}
-/* Split composite: animated gif (left) + static grid diagram (right),
-   preserving the original 1500x900 layout with a 744/756 vertical split. */
-.kl-media-pair{display:flex;aspect-ratio:1500/900;overflow:hidden;}
-.kl-media-pair__gif{width:calc(744 / 1500 * 100%);height:100%;object-fit:cover;background:#003D12;display:block;}
-/* Fill the PNG's built-in transparent margin + pre-rounded corners with the
-   card's own grey so the panel is edge-to-edge and the parent's 20px clip
-   governs the visible corner (matching the gif half instead of the image's
-   larger baked-in radius). */
-.kl-media-pair__still{width:calc(756 / 1500 * 100%);height:100%;object-fit:cover;display:block;background:#EFF0F0;}
+/* THE STORY — one 1000px column, 80px between each beat */
+.kl-story{
+  width:var(--kl-col);margin:0 auto;padding:100px 0;
+  display:flex;flex-direction:column;gap:80px;
+}
+.kl-headline{
+  font-family:var(--font-heading);font-weight:500;text-transform:uppercase;
+  font-size:clamp(40px,5vw,64px);line-height:1;letter-spacing:-.02em;color:var(--white);
+}
+.kl-block{display:flex;flex-direction:column;gap:110px;}
+.kl-block--tight{gap:40px;}
+.kl-intro{display:flex;flex-wrap:wrap;gap:24px 47px;}
+.kl-intro .kl-headline{width:466px;max-width:100%;}
+.kl-intro__text{
+  width:487px;max-width:100%;
+  font-family:var(--font-heading);font-weight:500;font-size:16px;letter-spacing:-.02em;color:#e1e1e1;
+}
+.kl-lead{
+  font-family:var(--font-heading);font-weight:500;
+  font-size:clamp(18px,2vw,24px);line-height:1.5;letter-spacing:-.02em;color:var(--white);
+}
+.kl-lead em{font-style:normal;color:#1ADF3D;}
 
+/* four sketches, two by two; each pair shares its row by its own proportions */
+.kl-sketches{display:grid;grid-template-columns:1fr 1fr;gap:14px 8px;}
+.kl-sketches img{width:100%;aspect-ratio:500/625;object-fit:cover;display:block;}
+@media(max-width:700px){.kl-block{gap:48px;}}
+
+.kl-explore{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-start;gap:40px;}
+.kl-explore__text{
+  width:382px;max-width:100%;
+  font-family:var(--font-heading);font-weight:500;font-size:24px;line-height:36px;
+  letter-spacing:-.02em;color:#d4d4d4;
+}
+.kl-explore__text em{font-style:normal;color:#4F9E5D;}
+/* the card column already fades into the page colour top and bottom */
+.kl-explore__img{width:484px;max-width:100%;display:block;margin-top:-52px;}
+@media(max-width:1000px){.kl-explore__img{margin:0 auto;}}
+
+.kl-ktile{display:flex;justify-content:center;}
+.kl-ktile img{width:500px;max-width:100%;aspect-ratio:1;border-radius:24px;display:block;}
+
+/* LOGO SYSTEM — cards butted 8px apart */
+.kl-cards{display:flex;flex-direction:column;gap:8px;}
+.kl-cards__pair,.kl-cards__lockups{display:flex;gap:8px;}
+.kl-card{border-radius:12px;overflow:hidden;display:block;width:100%;}
+.kl-cards__pair .kl-card{flex:1 1 0;min-width:0;aspect-ratio:496/600;}
+.kl-card img{width:100%;height:100%;object-fit:cover;display:block;}
+.kl-card--forest{background:#003D0F;}
+.kl-card--mist{background:#EFEFEF;}
+.kl-card--img{aspect-ratio:1000/600;background:#1E1E1E;}
+
+.kl-lockups{
+  flex:548 1 0;min-width:0;aspect-ratio:548/742;
+  display:flex;flex-direction:column;gap:9.7px;
+  container-type:inline-size;
+}
+.kl-lockup{
+  flex:1 1 0;border-radius:26px;
+  display:flex;align-items:center;justify-content:center;gap:3.7cqw;
+}
+.kl-lockup img{width:19.3cqw;height:19.3cqw;display:block;}
+.kl-lockup span{
+  font-family:'Chakra Petch',sans-serif;font-weight:600;text-transform:uppercase;
+  font-size:11cqw;line-height:1;letter-spacing:.02em;
+}
+.kl-lockup--lime{background:var(--kl-lime);color:#070E0C;}
+.kl-lockup--white{background:#fff;border:1px solid rgba(212,212,212,.64);color:#070E0C;}
+.kl-lockup--dark{background:#1E1E1E;border:1px solid rgba(101,101,101,.64);color:var(--white);}
+.kl-card--chrome{flex:444 1 0;min-width:0;aspect-ratio:444/742;object-fit:cover;border-radius:33px;background:#313131;}
+@media(max-width:700px){
+  .kl-cards__lockups{flex-direction:column;}
+  .kl-lockups,.kl-card--chrome{flex:none;width:100%;}
+}
+
+/* TYPOGRAPHY */
 .kl-type{display:flex;flex-direction:column;}
 .kl-type__block{
-  display:flex;justify-content:space-between;align-items:flex-start;gap:32px;
-  padding:40px 0;border-bottom:1px solid #ececec;
+  display:flex;justify-content:space-between;align-items:center;gap:32px;
+  padding:100px 0;
 }
-.kl-type__block:first-child{padding-top:0;}
-.kl-type__block:last-child{border-bottom:none;padding-bottom:0;}
-.kl-label-sm{font-family:var(--font-body);font-size:13px;color:#1FBF8F;margin-bottom:12px;}
-.kl-type__sample{font-size:clamp(40px,7vw,72px);line-height:1;}
+.kl-type__block:first-child{border-bottom:1px solid rgba(255,255,255,.2);}
+.kl-type__block:last-child{align-items:flex-start;}
+.kl-type__main{display:flex;flex-direction:column;gap:32px;min-width:0;}
+.kl-label-sm{font-family:'Geist',var(--font-body);font-size:16px;line-height:1;letter-spacing:-.02em;color:#00B031;}
+.kl-type__sample{
+  font-size:clamp(48px,7vw,100px);letter-spacing:-.02em;text-transform:uppercase;color:var(--white);
+}
+.kl-type__sample--chakra{font-family:'Chakra Petch',sans-serif;font-weight:500;line-height:.86;max-width:564px;}
+.kl-type__sample--geist{font-family:'Geist',sans-serif;font-weight:500;line-height:.72;}
 .kl-type__weights{
-  display:flex;flex-direction:column;align-items:flex-end;gap:10px;
-  font-size:16px;color:#171717;flex-shrink:0;text-align:right;
+  display:flex;flex-direction:column;align-items:flex-end;gap:24px;flex-shrink:0;
+  font-size:clamp(18px,2vw,24px);line-height:1;letter-spacing:-.02em;text-align:right;color:var(--white);
+}
+.kl-type__weights--chakra{font-family:'Chakra Petch',sans-serif;}
+.kl-type__weights--geist{font-family:'Geist',sans-serif;}
+@media(max-width:700px){
+  .kl-type__block{padding:56px 0;}
+  .kl-type__weights{gap:14px;}
 }
 
-.kl-palette{display:grid;grid-template-columns:repeat(2,1fr);gap:4px;}
+/* PALETTE — two rows of the 1000px bento, widths straight from the frame */
+.kl-palette{display:flex;flex-direction:column;border-radius:12px;overflow:hidden;}
+.kl-palette__row{display:flex;}
 .kl-swatch{
-  padding:16px;display:flex;flex-direction:column;justify-content:space-between;min-height:150px;
+  flex:var(--w) 1 0;min-width:0;height:229px;padding:20px 29px;
+  display:flex;flex-direction:column;justify-content:space-between;
   font-family:var(--font-body);font-size:14px;font-weight:500;
 }
-/* Bento layout matching the design: lime (2u) + 3 tints on top; black, white, deep-forest (2u) below */
-@media(min-width:760px){
-  .kl-palette{grid-template-columns:repeat(10,1fr);grid-auto-rows:clamp(170px,15vw,240px);}
-  .kl-swatch{min-height:0;}
-  .kl-palette .kl-swatch:nth-child(1){grid-column:span 4;}
-  .kl-palette .kl-swatch:nth-child(2){grid-column:span 2;}
-  .kl-palette .kl-swatch:nth-child(3){grid-column:span 2;}
-  .kl-palette .kl-swatch:nth-child(4){grid-column:span 2;}
-  .kl-palette .kl-swatch:nth-child(5){grid-column:span 3;}
-  .kl-palette .kl-swatch:nth-child(6){grid-column:span 3;}
-  .kl-palette .kl-swatch:nth-child(7){grid-column:span 4;}
+@media(max-width:700px){
+  .kl-swatch{height:150px;padding:14px;font-size:12px;}
 }
 
-.kl-banner-break{padding:0 max(24px,calc((100% - 1440px) / 2));}
-.kl-banner-break img{width:100%;display:block;border-radius:20px;}
+/* FINAL SHOWCASE — the cards stack 8px apart */
+.kl-showcase{display:flex;flex-direction:column;gap:8px;}
+.kl-showcase img{display:block;}
 
-.kl-showcase{display:flex;flex-direction:column;gap:4px;background:#fff;padding:0 max(24px,calc((100% - 1440px) / 2));}
-.kl-showcase img{width:100%;display:block;border-radius:20px;}
-.kl-imac{position:relative;line-height:0;}
-.kl-imac > img{width:100%;display:block;}
-/* Website screen-recording that fills the whole iMac screen, replacing the
-   static device-1 screenshot content inside the bezel. */
-.kl-imac__screen{
-  position:absolute;left:14.8%;top:19.8%;width:70.3%;height:61.6%;
+/* Studio Display on a 1000×640 card; the display stands 18.75% down and runs
+   off the bottom edge, its screen is the rect below */
+.kl-imac{
+  position:relative;aspect-ratio:1000/640;overflow:hidden;
+  background:#1F1F1F;border-radius:24px;
+}
+.kl-imac__device{position:absolute;left:13.5%;top:18.75%;width:72.92%;height:auto;}
+.kl-imac__still,.kl-imac__screen{
+  position:absolute;left:15.01%;top:21.11%;width:69.86%;height:61.59%;
   object-fit:cover;pointer-events:none;
 }
-/* Covers the static screenshot's white decorative bar that peeks out below
-   the video (the video is inset shorter than the full screen height). */
-.kl-imac__blackout{
-  position:absolute;left:13.5%;top:76%;width:72.9%;height:10%;
-  background:#000;pointer-events:none;
+
+.kl-panel{background:#1F1F1F;border-radius:24px;padding:8%;}
+.kl-panel img{width:100%;height:auto;border-radius:4px;}
+
+.kl-showcase__pair{display:flex;gap:8px;}
+.kl-showcase__pair > *{flex:1 1 0;min-width:0;aspect-ratio:496/593;border-radius:24px;overflow:hidden;}
+/* the crystal gif is narrow: it stands on its own black ground, centred */
+.kl-showcase__crystal{background:#000;border:1px solid #4F4F4F;display:flex;justify-content:center;}
+.kl-showcase__crystal img{height:100%;width:81.31%;object-fit:cover;}
+.kl-showcase__phone{width:100%;height:100%;object-fit:cover;}
+@media(max-width:600px){.kl-showcase__pair{flex-direction:column;}}
+
+.kl-showcase__home,.kl-showcase__token{width:100%;border-radius:24px;object-fit:cover;}
+.kl-showcase__home{aspect-ratio:1000/709;background:#262626;}
+.kl-showcase__token{aspect-ratio:1000/653;background:#003D0F;border:1px solid #5A5A5A;}
+
+.kl-finale{
+  position:relative;aspect-ratio:1000/600;overflow:hidden;border-radius:24px;
+  container-type:inline-size;
 }
-.kl-showcase__pair{display:flex;flex-wrap:wrap;gap:4px;}
-.kl-showcase__pair > *{flex:1 1 320px;min-width:0;aspect-ratio:756/890;}
-/* The gif is 218x890-equivalent — much narrower than this frame — so covering it
-   cut the crystal off top and bottom. It is contained instead and sits on its
-   own black ground, which is the animation's background colour, so the strips
-   left over at the sides read as part of the panel rather than as letterboxing. */
-.kl-showcase__gif{
-  width:100%;height:100%;display:block;
-  object-fit:contain;background:#000;
+.kl-finale__bg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;}
+.kl-finale__logo{
+  position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+  display:flex;align-items:center;gap:1.2cqw;
 }
-/* The phone mockup carries a transparent bleed down its left edge (12 of its
-   756px), which showed through as a black band. A small scale-up pushes that
-   bleed out of frame; the wrapper does the clipping and carries the card's
-   radius, and its light ground matches the mockup so nothing dark can show. */
-.kl-showcase__zoom{
-  overflow:hidden;border-radius:20px;line-height:0;background:#EFF0F0;
-}
-.kl-showcase__zoom img{
-  width:100%;height:100%;display:block;
-  object-fit:cover;border-radius:0;
-  transform:scale(1.05);
+.kl-finale__logo img{width:14.9cqw;height:14.9cqw;}
+.kl-finale__logo span{
+  font-family:'Chakra Petch',sans-serif;font-weight:600;text-transform:uppercase;
+  font-size:8.2cqw;line-height:1;letter-spacing:.02em;color:var(--white);
 }
 
-/* DISCOVER MORE PROJECTS (Figma 1300:6762) — the card is the same component the
-   home grid uses, so .project__head / __img / __tags carry the header bar, the
-   655/483 still and the colour-cycled chips. Only the card box is redeclared:
-   .project itself owns the works grid's reveal state (opacity:0 until JS marks
-   it revealed) and its crop-mark pseudo-elements, neither of which belongs on a
-   static section. Generous vertical padding keeps the band clear of the
-   showcase above and the footer below. */
+/* RELATED WORK (Figma 1392:10444) — the card is the same component the home
+   grid uses, so .project__head / __img / __tags carry the header bar, the
+   still and the colour-cycled chips. Only the card box is redeclared: .project
+   itself owns the works grid's reveal state and crop marks. */
 .kl-more{
-  display:flex;flex-direction:column;gap:68px;
-  padding:120px max(24px,calc((100% - 1440px) / 2));
-  background:#fff;
+  display:flex;flex-direction:column;gap:40px;
+  padding:80px max(24px,4.17vw);
 }
 .kl-more h2{
   font-family:var(--font-heading);font-weight:500;
-  font-size:40px;line-height:1.1;
-  letter-spacing:-.02em;text-transform:uppercase;color:#130000;
+  font-size:clamp(32px,2.5vw,48px);line-height:1;
+  letter-spacing:-.02em;text-transform:uppercase;color:var(--white);
 }
 .kl-more__grid{
   display:grid;gap:16px;
   grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
 }
 .kl-more__card{
-  /* the default chip accent; this section paints every card orange rather than
-     each product's own colour, as the design does */
+  /* this section paints every card orange rather than each product's own colour */
   --accent:#ff723b;--accent-ink:var(--white);
   display:flex;flex-direction:column;
   border:1px solid #525252;background:#1a1a1a;overflow:hidden;
   color:inherit;text-decoration:none;
   transition:border-color .3s ease;
 }
-/* the card is a link, so it needs to say so: the border lifts and the still
-   pushes in slightly. .project__img already declares the transform transition. */
 .kl-more__card:hover{border-color:var(--red);}
 .kl-more__card:hover .project__img img{transform:scale(1.04);}
 .kl-more__card:focus-visible{outline:2px solid var(--red);outline-offset:2px;}
 @media(prefers-reduced-motion:reduce){
   .kl-more__card:hover .project__img img{transform:none;}
 }
-/* the page is light, so the header bar has to state its own ink */
 .kl-more__card .project__head{color:var(--white);}
+.kl-more__all{
+  display:block;padding:48px 0;text-align:center;
+  font-family:var(--font-heading);font-weight:500;
+  font-size:clamp(48px,6.67vw,128px);line-height:1;letter-spacing:-.02em;
+  color:var(--white);opacity:.4;transition:opacity .3s ease;
+}
+.kl-more__all:hover{opacity:1;}
 
 @media(max-width:700px){
-  .kl-more{gap:40px;padding-top:72px;padding-bottom:72px;}
+  .kl-story{padding:64px 0;gap:56px;}
+  .kl-more{padding-top:56px;padding-bottom:56px;}
 }

@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=Roboto:wght@500;700&family=Roboto+Mono:wght@400;500&family=Inter:wght@400;500;600&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=82">
+<link rel="stylesheet" href="styles.css?v=85">
 <script>try{if(!matchMedia('(prefers-reduced-motion: reduce)').matches)document.documentElement.classList.add('is-loading');}catch(e){}</script>
 </head>
 <body class="home">
@@ -443,22 +443,14 @@
   <div class="sfooter__reveal" aria-hidden="true"></div>
 
   <footer class="sfooter" id="contact" data-theme="dark">
-    <div class="sfooter__bg" aria-hidden="true">
-      <picture>
-        <!-- past 2500px the wide composition takes over so the figures keep their
-             place instead of being cropped out of frame -->
-        <source media="(min-width:2500px)" srcset="assets/footer/footer-bg-2500.jpg">
-        <img src="assets/footer/footer-bg.jpg" alt="">
-      </picture>
-    </div>
 
     <div class="sfooter__top">
       <div class="sfooter__col">
         <p class="sfooter__label" data-cms="footer.servicesLabel" data-cms-label="Tiêu đề cột dịch vụ" data-cms-group="Footer">Services</p>
         <ul class="sfooter__services">
           <li data-cms="footer.service1" data-cms-type="text" data-cms-label="Dịch vụ 1" data-cms-group="Footer"><span>[01]</span>Product design</li>
-          <li data-cms="footer.service2" data-cms-type="text" data-cms-label="Dịch vụ 2" data-cms-group="Footer"><span>[02]</span>Brand design</li>
-          <li data-cms="footer.service3" data-cms-type="text" data-cms-label="Dịch vụ 3" data-cms-group="Footer"><span>[03]</span>Websites</li>
+          <li data-cms="footer.service2" data-cms-type="text" data-cms-label="Dịch vụ 2" data-cms-group="Footer"><span>[02]</span>Websites</li>
+          <li data-cms="footer.service3" data-cms-type="text" data-cms-label="Dịch vụ 3" data-cms-group="Footer"><span>[03]</span>Brand design</li>
           <li data-cms="footer.service4" data-cms-type="text" data-cms-label="Dịch vụ 4" data-cms-group="Footer"><span>[04]</span>Game design</li>
           <li data-cms="footer.service5" data-cms-type="text" data-cms-label="Dịch vụ 5" data-cms-group="Footer"><span>[05]</span>Motion video</li>
         </ul>
@@ -476,22 +468,20 @@
     </div>
 
     <div class="sfooter__bottom">
-      <div class="sfooter__main">
-        <p class="sfooter__tagline" data-cms="footer.tagline" data-cms-label="Câu tagline lớn" data-cms-group="Footer">Designing a vision of big thinking founders</p>
+      <div class="sfooter__name">
+        <img src="assets/hero/wordmark-ninefive.svg" alt="NINEFIVESEVEN">
+        <img src="assets/hero/wordmark-seven.svg" alt="">
+      </div>
 
-        <div class="sfooter__name">
-          <img src="assets/hero/wordmark-ninefive.svg" alt="NINEFIVESEVEN">
-          <img src="assets/hero/wordmark-seven.svg" alt="">
-        </div>
-
+      <div class="sfooter__base">
         <div class="sfooter__legal">
           <a href="#" data-cms="footer.legal1" data-cms-href="footer.legal1.url" data-cms-label="Link pháp lý 1" data-cms-group="Footer">Privacy policy</a>
           <a href="#" data-cms="footer.legal2" data-cms-href="footer.legal2.url" data-cms-label="Link pháp lý 2" data-cms-group="Footer">Cookie policy</a>
           <p><span data-cms="footer.copyright" data-cms-label="Dòng bản quyền" data-cms-group="Footer">957Studio @2026.</span><span data-cms="footer.rights" data-cms-label="Dòng quyền" data-cms-group="Footer">All rights reserved.</span></p>
         </div>
-      </div>
 
-      <p class="sfooter__motto"><span data-cms="footer.motto1" data-cms-label="Từ 1" data-cms-group="Footer">Align</span><span data-cms="footer.motto2" data-cms-label="Từ 2" data-cms-group="Footer">Drive</span><span data-cms="footer.motto3" data-cms-label="Từ 3" data-cms-group="Footer">Vision</span></p>
+        <p class="sfooter__motto"><span data-cms="footer.motto1" data-cms-label="Từ 1" data-cms-group="Footer">Align</span><span data-cms="footer.motto2" data-cms-label="Từ 2" data-cms-group="Footer">Drive</span><span data-cms="footer.motto3" data-cms-label="Từ 3" data-cms-group="Footer">Vision</span></p>
+      </div>
     </div>
   </footer>
 

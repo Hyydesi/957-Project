@@ -32,7 +32,7 @@ button{font:inherit;background:none;border:none;color:inherit;cursor:pointer;}
   color:var(--white);
   transition:color .35s ease,transform .45s cubic-bezier(.22,1,.36,1);
 }
-/* works page: the nav slides away while scrolling down, back on the way up */
+/* works + project pages: the nav slides away while scrolling down, back on the way up */
 .nav.is-hidden{transform:translateY(-100%);}
 .nav__inner{
   position:relative;
@@ -747,23 +747,16 @@ button{font:inherit;background:none;border:none;color:inherit;cursor:pointer;}
 }
 
 /* ---------- SITE FOOTER ---------- */
-/* Full-bleed photo with the copy sitting on top: services and socials at the
-   shoulders, the wordmark filling the floor. */
+/* Flat dark floor (Figma 1275:5604): services and socials at the shoulders,
+   the wordmark filling the bottom. */
 .sfooter{
   position:relative;overflow:hidden;
   background:var(--bg-dark);color:var(--white);
-  padding:80px 24px 40px;
+  padding:40px 24px;
   display:flex;flex-direction:column;justify-content:space-between;gap:64px;
 }
-@media(min-width:1024px){.sfooter{padding:80px 40px 40px;min-height:906px;}}
+@media(min-width:1024px){.sfooter{padding:40px;min-height:878px;}}
 
-.sfooter__bg{position:absolute;inset:0;}
-.sfooter__bg img{width:100%;height:100%;object-fit:cover;object-position:center;}
-/* the photo dissolves into the page above rather than starting on a hard edge */
-.sfooter__bg::after{
-  content:'';position:absolute;inset:0;
-  background:linear-gradient(to bottom,#0e0e0e 0%,#0b0604 16.276%,rgba(10,5,2,0) 31.566%);
-}
 .sfooter__top,.sfooter__bottom{position:relative;z-index:1;}
 
 .sfooter__label{
@@ -785,11 +778,10 @@ button{font:inherit;background:none;border:none;color:inherit;cursor:pointer;}
 /* the index reads as an aside to the service it numbers */
 .sfooter__services span{opacity:.5;}
 
-.sfooter__col--socials{width:100%;max-width:753px;}
-@media(min-width:900px){.sfooter__col--socials .sfooter__label{text-align:right;}}
-.sfooter__socials{display:flex;flex-wrap:wrap;gap:8px;margin-top:24px;}
+.sfooter__col--socials{width:100%;max-width:400px;}
+.sfooter__socials{display:flex;flex-direction:column;gap:8px;margin-top:12px;}
 .sfooter__social{
-  flex:1 1 168px;min-width:0;
+  min-width:0;
   display:flex;align-items:center;justify-content:space-between;gap:16px;
   background:rgba(255,255,255,.2);padding:12px 16px;
   font-family:var(--font-mono);font-size:16px;line-height:20px;
@@ -799,20 +791,17 @@ button{font:inherit;background:none;border:none;color:inherit;cursor:pointer;}
 .sfooter__social:hover{background:rgba(255,255,255,.34);}
 .sfooter__social img{width:24px;height:24px;flex-shrink:0;}
 
-.sfooter__bottom{display:flex;flex-direction:column;gap:32px;}
+/* the wordmark runs the full width of the footer; legal and motto share the floor */
+.sfooter__bottom{display:flex;flex-direction:column;gap:17px;}
+
+/* the two marks push to the edges — 884 of 1840 each at the design's width */
+.sfooter__name{display:flex;align-items:center;justify-content:space-between;gap:20px;padding:1.7% 0;}
+.sfooter__name img{width:48.04%;height:auto;}
+
+.sfooter__base{display:flex;flex-direction:column;gap:32px;}
 @media(min-width:900px){
-  .sfooter__bottom{flex-direction:row;align-items:flex-end;justify-content:space-between;gap:40px;}
+  .sfooter__base{flex-direction:row;align-items:flex-end;justify-content:space-between;gap:40px;}
 }
-.sfooter__main{display:flex;flex-direction:column;gap:17px;flex:1;min-width:0;max-width:1055px;}
-
-.sfooter__tagline{
-  font-family:var(--font-body);font-weight:500;
-  font-size:clamp(15px,1.5vw,24px);text-transform:uppercase;
-}
-
-/* the two marks push to the column's edges — together they set its width */
-.sfooter__name{display:flex;align-items:center;justify-content:space-between;gap:20px;padding:18px 0;}
-.sfooter__name img{width:48%;height:auto;}
 
 .sfooter__legal{
   display:flex;flex-direction:column;gap:6px;
@@ -842,6 +831,7 @@ button{font:inherit;background:none;border:none;color:inherit;cursor:pointer;}
   .home .sfooter{
     position:fixed; inset:auto 0 0 0; z-index:0;   /* full width, pinned to bottom */
     min-height:100vh; min-height:100dvh;           /* full height on every screen */
+    padding-top:80px;                              /* clear of the fixed nav */
     visibility:hidden;
   }
   .home .sfooter.is-revealing{visibility:visible;}
