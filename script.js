@@ -171,6 +171,12 @@ if (heroStage && heroMedia) {
   const copy = heroStage.querySelector('.hero__about');
   const copyText = heroStage.querySelector('.hero__about-text');
   const anchor = document.getElementById('about');
+  const fxBox = heroMedia.querySelector('.hero__fx');
+  const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const fx = fxBox && !reduceMotion && typeof TrackingFX !== 'undefined'
+    ? new TrackingFX(fxBox.querySelector('video'), fxBox.querySelector('canvas'),
+      { cell: 5, zoom: 1.8, trackers: 4, squareScale: 0.8 })
+    : null;
 
   // scroll distance of each beat, as a share of the viewport height
   const GROW_H = 0.9;
@@ -179,6 +185,7 @@ if (heroStage && heroMedia) {
   const START_RADIUS = 16 / 1920; // corner radius in the slot, per px of width
   const MID_RADIUS = 60 / 1920;   // …and once it's a full-height column
   const INTRO_DRIFT = 183 / 977;  // how far the block has risen by the end of beat 1, per px of height
+  const FX_FADE = 0.35;           // share of beat 1 over which the FX clip fades off
   const VEIL = 0.35;
   const VEIL_OPACITY = 0.55;
   const COPY_END = 0.55;     // the copy stops once its last line sits this far down
@@ -232,6 +239,13 @@ if (heroStage && heroMedia) {
     // far enough that the buttons have cleared the top edge by the end of beat 2
     introExit = intro.lastElementChild.getBoundingClientRect().bottom - box.top + 40;
 
+    // the ASCII clip stays the size of the slot while the image opens around it
+    if (fxBox) {
+      fxBox.style.setProperty('--fx-w', `${start.w}px`);
+      fxBox.style.setProperty('--fx-h', `${start.h}px`);
+      if (fx) fx.resize();
+    }
+
     growH = GROW_H * vh;
     growW = GROW_W * vh;
     veil = VEIL * vh;
@@ -277,6 +291,13 @@ if (heroStage && heroMedia) {
     heroMedia.style.transform = `translate3d(${(vw - w) / 2}px,${top}px,0)`;
     heroMedia.style.borderRadius = `${b > 0 ? lerp(r1, 0, b) : lerp(r0, r1, a)}px`;
 
+    // the FX clip gives way to the clip behind it early in the first beat
+    if (fxBox) {
+      const fxOpacity = 1 - clamp01(y / (growH * FX_FADE));
+      fxBox.style.opacity = fxOpacity;
+      if (fx) fx.setEnabled(fxOpacity > 0);
+    }
+
     shade.style.opacity = VEIL_OPACITY * clamp01((y - growH - growW) / veil);
 
     const copyTop = vh - Math.min(travel, Math.max(0, y - growH - growW - veil));
@@ -301,7 +322,7 @@ if (heroStage && heroMedia) {
   refresh();
 
   // no point decoding the clip once the stage has scrolled away
-  const video = heroMedia.querySelector('video');
+  const video = heroMedia.querySelector('.hero__video');
   if (video && 'IntersectionObserver' in window) {
     new IntersectionObserver(([entry]) => {
       if (entry.isIntersecting) video.play().catch(() => {});

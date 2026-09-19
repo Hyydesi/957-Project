@@ -212,6 +212,18 @@ button{font:inherit;background:none;border:none;color:inherit;cursor:pointer;}
 }
 .hero__video{display:block;width:100%;height:100%;object-fit:cover;}
 .hero__shade{position:absolute;inset:0;background:#000;opacity:0;}
+/* the ASCII tracking clip, held at the slot's size in the middle of the image;
+   JS sizes it and fades it off as the stage opens */
+.hero__fx{
+  position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+  width:var(--fx-w,100%);height:var(--fx-h,100%);
+  overflow:hidden;background:#000;
+}
+.hero__fx-video,.hero__fx-canvas{position:absolute;inset:0;width:100%;height:100%;}
+/* scaled up so the butterfly fills the slot; TrackingFX samples with the same zoom */
+.hero__fx-video{object-fit:cover;transform:scale(1.8);}
+.hero__fx-canvas{pointer-events:none;}
+@media(prefers-reduced-motion:reduce){.hero__fx{display:none;}}
 
 .hero__about{
   position:absolute;left:0;right:0;top:0;z-index:4;

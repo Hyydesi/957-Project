@@ -116,6 +116,12 @@
       <div class="hero__media" aria-hidden="true">
         <video class="hero__video" src="assets/hero/stage.mp4" poster="assets/hero/stage.jpg" autoplay muted loop playsinline preload="auto" data-cms-src="hero.video" data-cms-label="Video nền" data-cms-group="Hero"></video>
         <span class="hero__shade"></span>
+        <!-- the resting clip: a butterfly redrawn in ASCII under square trackers;
+             it fades off as the stage opens up onto the clip above -->
+        <div class="hero__fx">
+          <video class="hero__fx-video" src="assets/hero/fx-butterfly.mp4" muted loop playsinline preload="auto"></video>
+          <canvas class="hero__fx-canvas"></canvas>
+        </div>
       </div>
 
       <div class="hero__about">
@@ -493,7 +499,8 @@
 
 <script src="https://cdn.jsdelivr.net/npm/lenis@1.1.13/dist/lenis.min.js"></script>
 <script src="projects.js?v=24"></script>
-<script src="script.js?v=37"></script>
+<script src="fx-tracking.js?v=2"></script>
+<script src="script.js?v=40"></script>
 <script src="contact.js?v=6"></script>
 </body>
 </html>
