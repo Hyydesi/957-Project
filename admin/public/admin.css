@@ -8,7 +8,7 @@
   --dim:#807676;
   --muted:#a8a1a1;
   --mono:'Roboto Mono',monospace;
-  --body:'Inter',sans-serif;
+  --body:'Roboto',sans-serif;
 }
 *{margin:0;padding:0;box-sizing:border-box;}
 body{background:var(--bg);color:var(--white);font-family:var(--body);font-size:14px;-webkit-font-smoothing:antialiased;}

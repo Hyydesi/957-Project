@@ -178,7 +178,7 @@ if (menuToggle && menuOverlay && menuClose) {
 // ---------- Hero stage: the image grows to fill the screen, then the about copy rises over it ----------
 // One pinned stage, three beats driven by how far the page has scrolled into it
 // (frames 1 → 4 of the Figma storyboard):
-//   1. the image grows from its slot under the heading to the full viewport
+//   1. the image grows from its slot in the middle of the frame to the full viewport
 //      height and a third of the width, while the heading block drifts up over it
 //   2. then to the full width, its corners squaring off, as the block scrolls out
 //   3. a black veil settles over it and the about copy scrolls up through the
@@ -196,21 +196,13 @@ if (heroStage && heroMedia) {
   const copy = heroStage.querySelector('.hero__about');
   const copyText = heroStage.querySelector('.hero__about-text');
   const anchor = document.getElementById('about');
-  const fxBox = heroMedia.querySelector('.hero__fx');
-  const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const fx = fxBox && !reduceMotion && typeof TrackingFX !== 'undefined'
-    ? new TrackingFX(fxBox.querySelector('video'), fxBox.querySelector('canvas'),
-      { cell: 5, zoom: 1.8, trackers: 4, squareScale: 0.8 })
-    : null;
 
   // scroll distance of each beat, as a share of the viewport height
   const GROW_H = 0.9;
   const GROW_W = 0.9;
   const MID_WIDTH = 1 / 3;        // beat 1 ends 640 wide in the 1920 frame
-  const START_RADIUS = 16 / 1920; // corner radius in the slot, per px of width
-  const MID_RADIUS = 60 / 1920;   // …and once it's a full-height column
+  const MID_RADIUS = 32 / 1920;   // corner radius once it's a full-height column, per px of width
   const INTRO_DRIFT = 183 / 977;  // how far the block has risen by the end of beat 1, per px of height
-  const FX_FADE = 0.35;           // share of beat 1 over which the FX clip fades off
   const VEIL = 0.35;
   const VEIL_OPACITY = 0.55;
   const COPY_END = 0.55;     // the copy stops once its last line sits this far down
@@ -243,7 +235,7 @@ if (heroStage && heroMedia) {
 
   let vw = 0;
   let vh = 0;
-  let start = { w: 0, h: 0, top: 0 };
+  let start = { w: 0, h: 0, top: 0, r: 0 };
   let growH = 0;
   let growW = 0;
   let veil = 0;
@@ -259,17 +251,13 @@ if (heroStage && heroMedia) {
     intro.style.setProperty('--intro-y', '0px');
     const box = sticky.getBoundingClientRect();
     const s = slot.getBoundingClientRect();
-    start = { w: s.width, h: s.height, top: s.top - box.top };
+    // the slot carries the resting corner radius, so the image starts out as it
+    start = { w: s.width, h: s.height, top: s.top - box.top, r: parseFloat(getComputedStyle(slot).borderTopLeftRadius) || 0 };
     drift = INTRO_DRIFT * vh;
-    // far enough that the buttons have cleared the top edge by the end of beat 2
-    introExit = intro.lastElementChild.getBoundingClientRect().bottom - box.top + 40;
-
-    // the ASCII clip stays the size of the slot while the image opens around it
-    if (fxBox) {
-      fxBox.style.setProperty('--fx-w', `${start.w}px`);
-      fxBox.style.setProperty('--fx-h', `${start.h}px`);
-      if (fx) fx.resize();
-    }
+    // far enough that the lowest of the block's pieces (the buttons or the media
+    // links) has cleared the top edge by the end of beat 2
+    const lowest = Math.max(...Array.from(intro.children, (el) => el.getBoundingClientRect().bottom));
+    introExit = lowest - box.top + 40;
 
     growH = GROW_H * vh;
     growW = GROW_W * vh;
@@ -309,19 +297,12 @@ if (heroStage && heroMedia) {
     const h = lerp(start.h, vh, a);
     // the image leaves the slot as it rose with the block, then meets the top edge
     const top = lerp(start.top - drift * aRaw, 0, a);
-    const r0 = Math.max(8, vw * START_RADIUS);
+    const r0 = start.r;
     const r1 = Math.max(20, vw * MID_RADIUS);
     heroMedia.style.width = `${w}px`;
     heroMedia.style.height = `${h}px`;
     heroMedia.style.transform = `translate3d(${(vw - w) / 2}px,${top}px,0)`;
     heroMedia.style.borderRadius = `${b > 0 ? lerp(r1, 0, b) : lerp(r0, r1, a)}px`;
-
-    // the FX clip gives way to the clip behind it early in the first beat
-    if (fxBox) {
-      const fxOpacity = 1 - clamp01(y / (growH * FX_FADE));
-      fxBox.style.opacity = fxOpacity;
-      if (fx) fx.setEnabled(fxOpacity > 0);
-    }
 
     shade.style.opacity = VEIL_OPACITY * clamp01((y - growH - growW) / veil);
 
@@ -353,6 +334,95 @@ if (heroStage && heroMedia) {
       if (entry.isIntersecting) video.play().catch(() => {});
       else video.pause();
     }).observe(heroStage);
+  }
+}
+
+// ---------- Hero side column: project stills + services ----------
+// One beat drives both. On each beat the stills step one slot to the left, so
+// the next project slides in from the right and the one landing in slot 1
+// turns to colour, and the services highlight moves one row down, wrapping
+// back to the top. Hovering either list holds the beat; so does the hero
+// being off screen or the tab being in the background.
+const heroThumbs = document.getElementById('heroThumbs');
+const heroServices = document.getElementById('heroServices');
+
+if (heroThumbs && typeof PROJECTS !== 'undefined') {
+  const BEAT_MS = 2400;
+  const SLOTS = 4;
+  const track = heroThumbs.querySelector('.hero__thumbs-track');
+  const stills = PROJECTS.filter((p) => p.image);
+
+  // enough copies that a fifth still is always waiting just off the right edge
+  const run = [];
+  while (stills.length && run.length < SLOTS + 1) run.push(...stills);
+  run.forEach((p) => {
+    const a = document.createElement('a');
+    a.className = 'hero__thumb';
+    a.href = p.href || 'works.html';
+    a.setAttribute('aria-label', p.name);
+    const img = document.createElement('img');
+    img.src = p.image;
+    img.alt = '';
+    a.appendChild(img);
+    track.appendChild(a);
+  });
+
+  const services = heroServices ? Array.from(heroServices.children) : [];
+  let serviceIndex = Math.max(0, services.findIndex((li) => li.classList.contains('is-active')));
+
+  const markLead = () => {
+    Array.from(track.children).forEach((el, i) => el.classList.toggle('is-lead', i === 0));
+  };
+  markLead();
+
+  let busy = false;
+  const beat = () => {
+    // stills: slide the track one slot, then recycle the first still to the end
+    // and snap the track back, so the loop never runs out
+    if (!busy && track.children.length > SLOTS) {
+      busy = true;
+      const step = track.children[1].offsetLeft - track.children[0].offsetLeft;
+      // the incoming lead takes its colour as it slides into the slot
+      track.children[0].classList.remove('is-lead');
+      track.children[1].classList.add('is-lead');
+      track.classList.add('is-sliding');
+      track.style.transform = `translate3d(${-step}px,0,0)`;
+      // the stills' own colour fades bubble up here too; wait for the track
+      const settle = (e) => {
+        if (e.target !== track || e.propertyName !== 'transform') return;
+        track.removeEventListener('transitionend', settle);
+        track.classList.remove('is-sliding');
+        track.appendChild(track.firstElementChild);
+        track.style.transform = 'none';
+        busy = false;
+      };
+      track.addEventListener('transitionend', settle);
+    }
+
+    if (services.length) {
+      services[serviceIndex].classList.remove('is-active');
+      serviceIndex = (serviceIndex + 1) % services.length;
+      services[serviceIndex].classList.add('is-active');
+    }
+  };
+
+  if (!matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    let timer = null;
+    let onScreen = true;
+    let hovered = false;
+    const sync = () => {
+      const go = onScreen && !hovered && !document.hidden;
+      if (go && !timer) timer = setInterval(beat, BEAT_MS);
+      if (!go && timer) { clearInterval(timer); timer = null; }
+    };
+    [heroThumbs, heroServices].forEach((el) => {
+      if (!el) return;
+      el.addEventListener('mouseenter', () => { hovered = true; sync(); });
+      el.addEventListener('mouseleave', () => { hovered = false; sync(); });
+    });
+    document.addEventListener('visibilitychange', sync);
+    new IntersectionObserver(([entry]) => { onScreen = entry.isIntersecting; sync(); }).observe(heroThumbs);
+    sync();
   }
 }
 
@@ -392,6 +462,21 @@ if (cfField) {
 
   let ranges = { l: 0, r: 0 };
   let fieldH = 0;
+  // where the centre slot sits inside the section, before any transform, so the
+  // slot can re-project the section's vignette onto itself each frame without
+  // reading a rect back (see .cf__panel in the stylesheet)
+  const panelEl = cfField.querySelector('.cf__panel');
+  let panelBase = { x: 0, y: 0 };
+  // slide the slot's copy of the vignette to wherever the slot has drifted to,
+  // so the ground the clip screens against stays the section's own
+  let lastVy = null;
+  const setVignette = (y) => {
+    if (!panelEl) return;
+    const vy = y.toFixed(1);
+    if (vy === lastVy) return;
+    panelEl.style.setProperty('--cf-vy', `${-vy}px`);
+    lastVy = vy;
+  };
   const measure = () => {
     const maxW = (c) => Math.max(...c.words.map((w) => w.offsetWidth));
     ranges = {
@@ -400,6 +485,24 @@ if (cfField) {
     };
     const ul = L.col.querySelector('ul');
     fieldH = ul ? ul.offsetHeight : 0;
+    if (panelEl) {
+      // read the slot's seat with the per-frame translates lifted off, so the
+      // number is pure layout (offsetTop lies here: the centre is its own
+      // offset parent once it carries a transform)
+      const held = { field: cfField.style.transform, center: cfCenter ? cfCenter.style.transform : '' };
+      cfField.style.transform = 'none';
+      if (cfCenter) cfCenter.style.transform = 'none';
+      const pr = panelEl.getBoundingClientRect();
+      const cr = corefieldEl.getBoundingClientRect();
+      panelBase = { x: pr.left - cr.left, y: pr.top - cr.top };
+      cfField.style.transform = held.field;
+      if (cfCenter) cfCenter.style.transform = held.center;
+      panelEl.style.setProperty('--cf-vw', `${corefieldEl.offsetWidth}px`);
+      panelEl.style.setProperty('--cf-vh', `${corefieldEl.offsetHeight}px`);
+      panelEl.style.setProperty('--cf-vx', `${(-panelBase.x).toFixed(1)}px`);
+      lastVy = null;
+      setVignette(panelBase.y);
+    }
   };
   measure();
   window.addEventListener('resize', measure);
@@ -408,14 +511,87 @@ if (cfField) {
   L.words.forEach((w, i) => { L.cur[i] = waveX(i, 0, ranges.l); w.style.transform = `translateX(${L.cur[i]}px)`; });
   R.words.forEach((w, i) => { R.cur[i] = -waveX(i, 0, ranges.r); w.style.transform = `translateX(${R.cur[i]}px)`; });
 
-  // centre image follows the focused row (nudot: thumb.src = focused data-image)
-  const panelImg = document.getElementById('cfPanelImg');
-  let currentSrc = panelImg ? panelImg.getAttribute('src') : '';
-  L.words.forEach((w) => { if (w.dataset.image) { const im = new Image(); im.src = w.dataset.image; } });
-  const setPanelImage = (word) => {
-    const src = word && word.dataset.image;
-    if (panelImg && src && src !== currentSrc) { currentSrc = src; panelImg.src = src; }
+  // ---- centre panel: the ASCII butterfly ------------------------------
+  // The stills that used to swap per focused row are gone; the slot now holds
+  // one looping clip. The wings only beat while the page is moving — harder the
+  // faster it goes — and hold still the moment it stops. The butterfly starts
+  // low in its (tall, invisible) slot and flies up through it as the section is
+  // scrolled, on top of the slot's own drift.
+  const panelVideo = document.getElementById('cfPanelVideo');
+  const FLAP_MIN = 0.6;    // playback rate at the slowest scroll that still counts
+  const FLAP_MAX = 4;      // playback rate at full scroll speed
+  const STILL_BELOW = 0.02; // scroll speed (0–1) under which the wings stop
+  const FULL_SPEED = 45;   // px of scroll per frame that counts as flat out
+  const LAG_MAX = 45;      // px the scroll speed can throw it up or down the frame
+  const TILT_MAX = 10;     // degrees it banks into the direction of travel
+  let flapRate = 0;
+  let lastScrollY = window.scrollY;
+  let velocity = 0;        // smoothed px per frame, signed (down is positive)
+
+  // How far it can climb each way without a wingtip leaving the slot: half the
+  // slot, less half the butterfly (0.26 of the clip's square at its 1.9×
+  // scale), less the speed kick, less what a full bank swings a corner out by.
+  let riseRoom = 0;
+  const measureRise = () => {
+    if (!panelEl || !panelVideo) return;
+    const clip = panelVideo.offsetHeight;
+    riseRoom = Math.max(0, panelEl.offsetHeight / 2 - clip * 0.26 - LAG_MAX - clip * 0.06 - 12);
   };
+  measureRise();
+  window.addEventListener('resize', measureRise);
+
+  // The wings are held by dropping the rate to zero rather than pausing: a
+  // paused <video> is an unreliable thing to blend (see the reduced-motion
+  // branch below), a frozen playing one is not.
+  const setFlap = (rate) => {
+    try {
+      panelVideo.playbackRate = rate;
+    } catch (e) {
+      // an engine that refuses a zero rate gets a real pause instead
+      if (rate === 0) panelVideo.pause();
+    }
+    if (rate > 0 && panelVideo.paused && clipStarted) startClip();
+  };
+  let clipStarted = false;
+  const startClip = () => {
+    clipStarted = true;
+    const play = panelVideo.play();
+    if (play && play.catch) play.catch(() => {});
+  };
+
+  const stillWanted = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  if (panelVideo && stillWanted) {
+    // reduced motion: keep the butterfly, drop the flight. A paused <video> is
+    // an unreliable thing to blend, so the first frame is copied onto a canvas
+    // and the clip itself is thrown away.
+    panelVideo.addEventListener('loadeddata', () => {
+      const frame = document.createElement('canvas');
+      frame.width = panelVideo.videoWidth;
+      frame.height = panelVideo.videoHeight;
+      frame.getContext('2d').drawImage(panelVideo, 0, 0);
+      frame.className = panelVideo.className;
+      frame.setAttribute('aria-hidden', 'true');
+      panelVideo.replaceWith(frame);
+    }, { once: true });
+    panelVideo.load();
+  }
+
+  if (panelVideo && !stillWanted) {
+    // start it frozen: the first scroll is what sets the wings going
+    setFlap(0);
+    // hold the 4MB download until the section is within a screen or two
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach((e) => {
+        if (e.isIntersecting) { startClip(); io.disconnect(); }
+      });
+    }, { rootMargin: '150% 0px' });
+    io.observe(panelVideo);
+    // a backgrounded tab suspends the element; pick it back up on return
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden && panelVideo.paused) startClip();
+    });
+  }
 
   // ---- nudot-style pinned entrance -------------------------------------
   // The section is sticky inside a tall .cf-stage. The first P_WIPE of the
@@ -431,11 +607,16 @@ if (cfField) {
   const stageActive = () => stage && window.innerWidth >= 720;
 
   let scrollProgress = 0;
+  // the butterfly's climb spans the whole time the section is on screen —
+  // curtain, wave and most of the dissolve — not just the wave
+  const FLIGHT_END = 0.85;
+  let flightProgress = 0;
   const updateProgress = () => {
     if (stageActive()) {
       const r = stage.getBoundingClientRect();
       const total = Math.max(1, r.height - window.innerHeight);
       const p = clamp01(-r.top / total);
+      flightProgress = clamp01(p / FLIGHT_END);
       const wipe = easeInOutCubic(clamp01(p / P_WIPE));
       corefieldEl.style.clipPath = `inset(${((1 - wipe) * 100).toFixed(2)}% 0 0 0)`;
       corefieldEl.classList.toggle('is-revealed', wipe > 0.45);
@@ -451,6 +632,7 @@ if (cfField) {
       const rect = corefieldEl.getBoundingClientRect();
       const vh = window.innerHeight;
       scrollProgress = clamp01((vh - rect.top) / (vh + rect.height));
+      flightProgress = scrollProgress;
       const inView = rect.top < vh * 0.65 && rect.bottom > vh * 0.35;
       corefieldEl.classList.toggle('is-revealed', inView);
     }
@@ -461,10 +643,43 @@ if (cfField) {
 
   // ---- per-frame update (nudot's _ipWave.update) ------------------------
   let smoothP = 0;
+  let smoothFlight = 0;
   let lastFocused = -1;
+  let lastRise = null;
   const tick = () => {
     smoothP += (scrollProgress - smoothP) * SMOOTH;
     const p = smoothP;
+
+    // The butterfly answers the scroll speed itself, read straight off the
+    // window each frame (Lenis glides scrollY, so the reading is already
+    // smooth). While the page moves the wings beat — harder the faster the
+    // wheel — it is flung up the frame (down when scrolling back) and banks;
+    // when the page stops the wings freeze and it settles back to its line.
+    // That line runs from low in the slot up to high as the section is passed,
+    // so scrolling on reads as the butterfly flapping its way up.
+    if (panelVideo && !stillWanted) {
+      const y = window.scrollY;
+      const raw = y - lastScrollY;
+      lastScrollY = y;
+      // quick to pick up a flick or a change of direction, slower to let go
+      const picking = Math.abs(raw) > Math.abs(velocity) || Math.sign(raw) === -Math.sign(velocity);
+      velocity += (raw - velocity) * (picking ? 0.35 : 0.08);
+      const speed = Math.min(1, Math.abs(velocity) / FULL_SPEED);
+      const dir = Math.sign(velocity);
+      const eased = 1 - (1 - speed) * (1 - speed);
+
+      const target = speed < STILL_BELOW ? 0 : FLAP_MIN + (FLAP_MAX - FLAP_MIN) * eased;
+      flapRate += (target - flapRate) * 0.15;
+      // snap the last of the ease-out to a dead stop rather than crawl
+      const rate = flapRate < FLAP_MIN * 0.5 && target === 0 ? 0 : Math.max(flapRate, FLAP_MIN * 0.5);
+      if (rate === 0 ? panelVideo.playbackRate !== 0 : Math.abs(panelVideo.playbackRate - rate) > 0.02) setFlap(rate);
+
+      smoothFlight += (flightProgress - smoothFlight) * SMOOTH;
+      const rise = (riseRoom * (1 - 2 * smoothFlight)).toFixed(1);
+      if (rise !== lastRise) { panelVideo.style.setProperty('--cf-rise', `${rise}px`); lastRise = rise; }
+      panelVideo.style.setProperty('--cf-lag', `${(-dir * eased * LAG_MAX).toFixed(1)}px`);
+      panelVideo.style.setProperty('--cf-tilt', `${(dir * eased * TILT_MAX).toFixed(2)}deg`);
+    }
 
     // whole field slides up through the section (nudot: y = H · (0.5 − p))
     if (stageActive()) {
@@ -476,9 +691,13 @@ if (cfField) {
       // the base offset holds it below the centreline for most of the pass.
       const drift = CENTER_BASE + fy * CENTER_DRIFT;
       if (cfCenter) cfCenter.style.transform = `translateY(${(drift - fy).toFixed(2)}px)`;
+      // the field translates by fy and the centre by (drift - fy), so the slot
+      // ends up `drift` below its layout seat: slide its vignette copy to match
+      setVignette(panelBase.y + drift);
     } else {
       cfField.style.transform = 'none';
       if (cfCenter) cfCenter.style.transform = 'none';
+      setVignette(panelBase.y);
     }
 
     L.words.forEach((w, i) => {
@@ -496,7 +715,6 @@ if (cfField) {
     if (focused !== lastFocused) {
       L.words.forEach((w, i) => w.classList.toggle('focused', i === focused));
       R.words.forEach((w, i) => w.classList.toggle('focused', i === focused));
-      setPanelImage(L.words[focused]);
       lastFocused = focused;
     }
     requestAnimationFrame(tick);
