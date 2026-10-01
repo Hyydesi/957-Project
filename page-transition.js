@@ -15,7 +15,27 @@
   const native = 'PageRevealEvent' in window && /^https?:$/.test(location.protocol);
   let reduce = false;
   try { reduce = matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) {}
-  if (native || reduce || typeof document.startViewTransition !== 'function') return;
+
+  // window.pageReady resolves once this page fills the screen: when the
+  // arriving transition (either kind) has finished, or on load when there is
+  // none. Entrance effects on the page wait for it.
+  let ready;
+  window.pageReady = new Promise((resolve) => { ready = resolve; });
+  const readyOnLoad = () => {
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', ready, { once: true });
+    else ready();
+  };
+  if (native) {
+    window.addEventListener('pagereveal', (e) => {
+      if (e.viewTransition) e.viewTransition.finished.then(ready, ready);
+      else ready();
+    }, { once: true });
+  }
+
+  if (native || reduce || typeof document.startViewTransition !== 'function') {
+    if (!native) readyOnLoad();
+    return;
+  }
 
   // ---- arriving: cover the page in red, then let it rise in -------------
   let entering = false;
@@ -33,14 +53,17 @@
       root.classList.add('pt-in');
       try {
         const vt = document.startViewTransition(() => root.classList.remove('pt-cover'));
-        vt.finished.finally(() => root.classList.remove('pt-in'));
+        vt.finished.finally(() => { root.classList.remove('pt-in'); ready(); });
       } catch (e) {
         root.classList.remove('pt-cover', 'pt-in');
+        ready();
       }
     };
     const start = () => requestAnimationFrame(() => requestAnimationFrame(reveal));
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start, { once: true });
     else start();
+  } else {
+    readyOnLoad();
   }
 
   // ---- leaving: play the way out, then follow the link ------------------

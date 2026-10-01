@@ -3,10 +3,10 @@
   --bg-darker:#0b0704;
   --red:#d80000;
   --white:#ffffff;
-  --dim:#807676;
-  --muted-1:#555454;
-  --muted-3:#a8a1a1;
-  --muted-4:#ececeb;
+  --dim:#7b7b7b;
+  --muted-1:#555555;
+  --muted-3:#a6a6a6;
+  --muted-4:#ececec;
   --font-display:'Anton', sans-serif;
   --font-mono:'Roboto Mono', monospace;
   --font-body:'Roboto', sans-serif;
@@ -202,18 +202,18 @@ button{font:inherit;background:none;border:none;color:inherit;cursor:pointer;}
 .hero__social-list a{transition:color .25s ease;}
 .hero__social-list a:hover{color:var(--red);}
 .hero__scroll{font-size:14px;line-height:15px;color:#c1c1c1;}
-/* the right column, 592 wide: lead + stills pinned to the top, services +
-   buttons to the foot. The top pair sits 15px in from the column's edge. */
+/* the right column, 592 wide: services pinned to the top, lead + stills at
+   the foot, the stills ending on the same line as (Scroll) on the left.
+   The lead pair sits 15px in from the column's edge. */
 .hero__side{
   grid-area:side;justify-self:end;
   width:calc(592 * var(--u));
   display:flex;flex-direction:column;justify-content:space-between;
 }
-.hero__side-top{
+.hero__side-foot{
   display:flex;flex-direction:column;align-items:flex-start;gap:calc(44 * var(--u));
   padding-left:calc(15 * var(--u));
 }
-.hero__side-bottom{display:flex;flex-direction:column;gap:calc(61 * var(--u));}
 .hero__lead{
   max-width:15.25em; /* 366px at 24px */
   font-family:'Roboto',var(--font-body);font-weight:400;
@@ -248,20 +248,8 @@ button{font:inherit;background:none;border:none;color:inherit;cursor:pointer;}
 .hero__services-list li.is-active,
 .hero__services-list li:hover{background:#494949;color:var(--white);}
 .hero__services-list:hover li.is-active:not(:hover){background:transparent;color:#c1c1c1;}
-.hero__actions{display:flex;gap:calc(12 * var(--u));}
-.hero__btn{
-  flex:1 1 0;
-  display:inline-flex;align-items:center;justify-content:center;gap:10px;
-  height:max(44px, 65 * var(--u));padding:0 max(16px, 24 * var(--u));
-  font-family:'Roboto', var(--font-body);font-weight:500;font-size:max(15px, 24 * var(--u));
-  white-space:nowrap;transition:opacity .25s ease;
-}
-.hero__btn:hover{opacity:.85;}
-.hero__btn img{flex-shrink:0;width:8px;height:8px;}
-.hero__btn--red{background:var(--red);color:var(--white);}
-.hero__btn--white{background:var(--white);color:#101010;}
 
-/* phones and small tablets: one column — heading, slot, lead, buttons — with
+/* phones and small tablets: one column — heading, slot, lead — with
    the tagline and media links left out; the block sits clear of the nav */
 @media(max-width:899px){
   .hero__intro{
@@ -274,11 +262,8 @@ button{font:inherit;background:none;border:none;color:inherit;cursor:pointer;}
   .hero__media-slot{align-self:center;margin-top:0;height:min(34vh, 110vw);border-radius:16px;}
   .hero__social,.hero__thumbs,.hero__services{display:none;}
   .hero__side{align-self:stretch;width:auto;gap:24px;justify-content:flex-start;}
-  .hero__side-top{padding-left:0;}
-  .hero__side-bottom{gap:0;}
+  .hero__side-foot{padding-left:0;}
   .hero__lead{max-width:24em;}
-  .hero__actions{flex-wrap:wrap;gap:12px;}
-  .hero__btn{flex:0 0 auto;}
 }
 
 /* sized, placed and rounded every frame by JS */
@@ -569,7 +554,7 @@ button{font:inherit;background:none;border:none;color:inherit;cursor:pointer;}
 .works__filter,.works__view{display:flex;gap:24px;}
 .works__filter button,.works__view button{
   font-family:var(--font-display);font-size:clamp(28px,5vw,48px);letter-spacing:-.5px;
-  color:#555454;transition:color .2s ease;
+  color:var(--muted-1);transition:color .2s ease;
 }
 .works__filter button.is-active,.works__view button.is-active,
 .works__filter button:hover,.works__view button:hover{color:var(--white);}
@@ -973,12 +958,12 @@ button{font:inherit;background:none;border:none;color:inherit;cursor:pointer;}
 }
 
 /* ---------- SITE FOOTER ---------- */
-/* Red floor (Figma 1391:10165): the wordmark across the top with the line and
-   the motto under it; services over the legal line at the bottom left, the
-   socials at the bottom right. */
+/* Dark floor (layout from Figma 1391:10165): the wordmark across the top with
+   the line and the motto under it; services over the legal line at the bottom
+   left, the socials at the bottom right. */
 .sfooter{
   position:relative;overflow:hidden;
-  background:var(--red);color:var(--white);
+  background:var(--bg-dark);color:var(--white);
   padding:40px 24px;
   display:flex;flex-direction:column;justify-content:space-between;gap:64px;
 }
@@ -997,6 +982,10 @@ button{font:inherit;background:none;border:none;color:inherit;cursor:pointer;}
    in a 351-tall band (264 of mark, 43.5 above and below) */
 .sfooter__name{display:flex;align-items:center;justify-content:space-between;gap:20px;padding:2.36% 0;}
 .sfooter__name img{width:48.04%;height:auto;}
+/* the hover heat map (footer-heat.js): a quarter-size canvas stretched over
+   the marks, so the browser's smoothing softens it */
+.sfooter__name{position:relative;}
+.sfooter__heat{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;}
 
 .sfooter__lede{display:flex;flex-direction:column;gap:32px;}
 @media(min-width:900px){
@@ -1083,121 +1072,141 @@ button{font:inherit;background:none;border:none;color:inherit;cursor:pointer;}
   .home .sfooter__reveal{display:block; height:100vh; height:100dvh; pointer-events:none;}
 }
 
-/* ---------- WORKS: project showcase hero ---------- */
-/* One full-screen slide per project (Figma 1372:9401 and its siblings): the
-   cover fills the screen, a dark fade rises from the floor, and the copy and
-   the project stills sit on it. */
-.wp-hero{
-  position:relative;height:100vh;min-height:640px;overflow:hidden;
+/* ---------- WORKS: hero ---------- */
+/* The 1920×977 Figma frame (1453:4228) scaled as a whole, like the home hero:
+   --u is one design px from whichever of width or height runs out first. */
+.whero{
+  --u:min(100vw / 1920, 100vh / 977);
+  position:relative;height:100vh;min-height:560px;overflow:hidden;
   display:flex;flex-direction:column;justify-content:flex-end;
-  color:var(--white);background:var(--bg-dark);
+  padding:0 40px calc(52 * var(--u));
+  background:#101010;color:var(--white);
 }
-.wp-hero__bg{position:absolute;inset:0;z-index:0;}
-.wp-hero__bg img{width:100%;height:100%;object-fit:cover;transition:opacity .6s ease;}
-/* some covers carry a light dim in the design; JS sets it per project */
-.wp-hero__bg::after{content:'';position:absolute;inset:0;background:#000;opacity:var(--wp-dim,0);transition:opacity .6s ease;}
-.wp-hero__fade{
-  position:absolute;left:0;right:0;bottom:0;z-index:1;height:63%; /* 680 of 1080 */
-  background:linear-gradient(180deg,rgba(14,14,14,0) 0%,#0e0e0e 77.541%);
+/* centred with auto margins rather than a transform: a transform would make
+   it its own stacking context and cut the heading's blend off from the stills */
+.whero__center{
+  position:absolute;inset:0;margin:auto;width:fit-content;height:fit-content;
+  display:flex;flex-direction:column;align-items:center;gap:calc(32 * var(--u));
 }
-/* a second fade sinking the left edge, under the copy (Figma 1386:9469: 680 of
-   1920 wide, dark from the left edge to 77.5% of its width) */
-.wp-hero__side{
-  position:absolute;top:0;bottom:0;left:0;z-index:1;width:35.42%;
-  background:linear-gradient(270deg,rgba(14,14,14,0) 0%,#0e0e0e 77.541%);
-  pointer-events:none;
+/* the flying stills sit under the copy. z-index:0 keeps the cards' own depth
+   order (works.js sets each card's z-index) inside this layer; without it they
+   would stack over the heading. The centre block and the (positioned) bottom
+   row come later in the DOM, so they paint over the layer, and the heading's
+   difference blend, like the nav's, inverts over the stills passing behind. */
+.whero__fly{position:absolute;inset:0;z-index:0;overflow:hidden;pointer-events:none;}
+.whero__card{
+  position:absolute;left:0;top:0;
+  background:#1a1a1a;overflow:hidden;opacity:0;
+  will-change:transform,opacity;
 }
-.wp-hero__top{
-  position:absolute;top:0;left:0;right:0;z-index:2;
-  display:flex;flex-direction:column;gap:16px;
-  padding:calc(var(--nav-h) + 16px) 24px 0;
+.whero__card img{width:100%;height:100%;object-fit:cover;}
+.whero__eyebrow{font-family:var(--font-nav);font-size:max(16px, 24 * var(--u));white-space:nowrap;}
+.whero__title{
+  width:8.78em;max-width:calc(100vw - 48px); /* 878px at 100px: breaks after FROM */
+  font-family:var(--font-display);font-weight:400;text-transform:uppercase;text-align:center;
+  font-size:max(48px, 100 * var(--u));line-height:1.03;letter-spacing:-.03em;
+  mix-blend-mode:difference;
 }
-@media(min-width:900px){.wp-hero__top{padding-left:64px;padding-right:64px;}}
-.wp-hero__progress{display:flex;gap:8px;}
-.wp-hero__seg{flex:1;height:4px;border-radius:999px;background:rgba(227,227,227,.35);overflow:hidden;}
-.wp-hero__seg-fill{display:block;height:100%;width:0%;background:var(--white);}
-.wp-hero__seg.is-active .wp-hero__seg-fill{transition:width linear;}
+/* letter boxes for the arrival scramble (works.js); hidden until it starts so
+   the final text doesn't flash first */
+.whero__glyph{display:inline-block;text-align:center;}
+.whero__title.is-scrambling{visibility:hidden;}
+.whero__bottom{position:relative;display:flex;justify-content:space-between;align-items:flex-end;gap:40px;}
+/* the list's rows carry 8px under their text, so the lead does too: its last
+   line then sits on the same baseline as the last project */
+.whero__lead{
+  max-width:15.8em; /* 379px at 24px */
+  padding-bottom:8px;
+  font-family:'Roboto',var(--font-body);font-size:max(15px, 24 * var(--u));line-height:1;
+}
+.whero__list{list-style:none;display:flex;flex-direction:column;gap:16px;width:min(384px,100%);flex-shrink:0;}
+.whero__list li{border-bottom:1px solid #323232;}
+.whero__list li:last-child{border-bottom:0;}
+.whero__list a{
+  display:flex;justify-content:space-between;gap:16px;padding:0 8px 8px;
+  font-family:var(--font-body);font-weight:700;text-transform:uppercase;
+  font-size:14px;line-height:17px;letter-spacing:.02em;color:#c1c1c1;
+  transition:background-color .25s ease,color .25s ease;
+}
+.whero__list a:hover{background:#494949;color:var(--white);}
 
-.wp-hero__badge{display:flex;align-items:center;gap:12px;}
-.wp-hero__badge-icon{width:40px;height:40px;border-radius:50%;overflow:hidden;flex-shrink:0;}
-.wp-hero__badge-text{display:flex;flex-direction:column;font-family:var(--font-body);}
-.wp-hero__badge-text strong{font-size:18px;font-weight:500;}
-.wp-hero__badge-text span{font-size:14px;color:var(--muted-3);}
-
-.wp-hero__bottom{
-  position:relative;z-index:2;
-  display:flex;flex-direction:column;gap:32px;
-  padding:48px 24px;
+@media(max-width:899px){
+  /* the heading joins the flow so it can't run into the stacked bottom block */
+  .whero{height:auto;min-height:100svh;padding:96px 24px 32px;}
+  .whero__center{position:relative;inset:auto;margin:0;width:auto;height:auto;flex:1;justify-content:center;padding:48px 0;}
+  .whero__lead{line-height:1.2;padding-bottom:0;}
+  .whero__bottom{flex-direction:column;align-items:stretch;gap:32px;}
+  .whero__list{width:100%;}
 }
-/* one left-hand column: the copy, then the stills 100px below it (Figma
-   1372:3610). Both 100px steps give way on shorter screens so the stack never
-   climbs into the badge. */
-@media(min-width:900px){
-  .wp-hero__bottom{
-    align-items:flex-start;gap:clamp(40px,9.26vh,100px);
-    padding:0 64px clamp(48px,9.26vh,100px);
+
+/* ---------- WORKS: project showcase ---------- */
+/* Three columns: the preview (left) and the copy (right) hold still in
+   screen-tall sticky columns, bottom-aligned; the strip of stills between them
+   is the only thing that scrolls. Its padding lets the first and last stills
+   reach the reading line (55% down, see works.js). */
+.wshow{
+  --u:min(100vw / 1920, 100vh / 977);
+  display:grid;grid-template-columns:51fr 19fr 30fr;
+  padding:0 40px;background:#101010;color:var(--white);
+}
+.wshow__preview,.wshow__info{
+  position:sticky;top:0;align-self:start;height:100vh;
+  display:flex;flex-direction:column;justify-content:flex-end;
+  padding-bottom:calc(40 * var(--u));
+}
+.wshow__frame{width:min(100%, 42vw);aspect-ratio:404/234;overflow:hidden;background:#1a1a1a;}
+.wshow__frame img{width:100%;height:100%;object-fit:cover;}
+
+.wshow__strip{display:flex;flex-direction:column;align-items:flex-start;gap:16px;padding:55vh 0 45vh;}
+.wshow__thumb{
+  display:block;width:clamp(48px,4.4vw,96px);padding:0;
+  opacity:.45;transform-origin:left center;
+  transition:transform .4s cubic-bezier(.2,.7,.2,1),opacity .4s ease;
+}
+/* a little more air where one project's stills hand over to the next */
+.wshow__thumb.is-first:not(:first-child){margin-top:calc(56 * var(--u));}
+/* capped at 6:5 so a portrait still can't grow into its neighbours */
+.wshow__thumb img{width:100%;height:auto;max-height:calc(clamp(48px,4.4vw,96px) * 1.2);object-fit:cover;}
+.wshow__thumb:hover{opacity:.8;}
+.wshow__thumb.is-active{opacity:1;transform:scale(1.35);}
+
+.wshow__desc{
+  max-width:21em;font-family:'DM Sans',var(--font-body);font-size:14px;line-height:1.35;color:var(--muted-3);
+}
+.wshow__visit{
+  align-self:flex-start;margin-top:20px;padding-bottom:4px;border-bottom:1px solid currentColor;
+  font-family:'DM Sans',var(--font-body);font-size:14px;transition:opacity .25s ease;
+}
+a.wshow__visit:hover{opacity:.7;}
+span.wshow__visit{border-bottom:0;font-family:var(--font-mono);font-size:12px;letter-spacing:.48px;text-transform:uppercase;color:var(--red);}
+.wshow__title{display:flex;align-items:flex-end;justify-content:space-between;gap:24px;margin-top:calc(48 * var(--u));}
+.wshow__name{
+  font-family:'DM Sans',var(--font-body);font-weight:500;
+  font-size:clamp(40px,6vw,128px);line-height:.85;letter-spacing:-.045em;white-space:nowrap;
+}
+.wshow__year{font-family:'DM Sans',var(--font-body);font-size:14px;}
+/* the copy steps in fresh each time the strip crosses into another project */
+@keyframes wshowIn{from{opacity:0;transform:translateY(10px);}}
+.wshow__info.is-swap > *{animation:wshowIn .5s cubic-bezier(.2,.7,.2,1) both;}
+.wshow__info.is-swap > :nth-child(2){animation-delay:.04s;}
+.wshow__info.is-swap > :nth-child(3){animation-delay:.08s;}
+
+/* phones and small tablets: no preview; the project's name, year and link
+   pin under the nav and the stills run full width beneath them */
+@media(max-width:899px){
+  .wshow{grid-template-columns:minmax(0,1fr);padding:0 24px;}
+  .wshow__preview,.wshow__desc{display:none;}
+  .wshow__info{
+    grid-row:1;top:var(--nav-h);height:auto;z-index:2;
+    flex-direction:column-reverse;padding:16px 0;background:#101010;
   }
+  .wshow__title{margin-top:0;}
+  .wshow__visit{margin-top:8px;}
+  .wshow__strip{grid-row:2;gap:12px;padding:16px 0 96px;}
+  .wshow__thumb,.wshow__thumb.is-active{width:100%;opacity:1;transform:none;}
+  .wshow__thumb.is-first:not(:first-child){margin-top:40px;}
+  .wshow__thumb img{max-height:none;aspect-ratio:16/10;}
 }
-.wp-hero__title-block{display:flex;flex-direction:column;align-items:flex-start;gap:40px;max-width:556px;}
-.wp-hero__copy{display:flex;flex-direction:column;gap:0;}
-.wp-hero__title{
-  font-family:var(--font-display);font-weight:400;
-  font-size:clamp(56px,6.67vw,128px);line-height:normal;text-transform:uppercase;
-}
-/* no word left stranded on the last line: pretty where supported, balanced
-   line lengths as the fallback */
-.wp-hero__desc{max-width:400px;font-family:'Roboto',var(--font-body);font-size:14px;line-height:20px;text-wrap:balance;text-wrap:pretty;}
-.wp-hero__cta{
-  display:inline-flex;align-items:center;justify-content:center;
-  padding:16px 32px;background:var(--white);color:#101010;
-  font-family:'Roboto',var(--font-body);font-weight:500;font-size:16px;text-transform:uppercase;
-  transition:opacity .25s ease;
-}
-.wp-hero__cta:hover{opacity:.85;}
-/* the project stills: grey until picked, the active one in colour inside a
-   white frame (6.7px on the 297px still) */
-.wp-hero__thumbs{display:flex;gap:15px;flex-shrink:0;max-width:100%;overflow-x:auto;scrollbar-width:none;}
-.wp-thumb{
-  position:relative;flex-shrink:0;padding:0;border:0;
-  width:clamp(120px,15.49vw,297px);aspect-ratio:297/200;
-  overflow:hidden;background:#141414;cursor:pointer;
-}
-.wp-thumb img{width:100%;height:100%;object-fit:cover;filter:grayscale(1);transition:filter .3s ease;}
-.wp-thumb::after{content:'';position:absolute;inset:0;border:clamp(4px,.35vw,7px) solid var(--white);opacity:0;transition:opacity .25s ease;}
-.wp-thumb.is-active img,.wp-thumb:hover img{filter:none;}
-.wp-thumb.is-active::after{opacity:1;}
-
-/* ---------- WORKS: project listing ---------- */
-.wlist{background:var(--bg-dark);color:var(--white);padding:100px max(24px,calc((100% - 1600px) / 2)) 120px;width:100%;}
-
-.wlist__grid{
-  display:grid;grid-template-columns:1fr;column-gap:40px;row-gap:56px;
-}
-@media(min-width:640px){.wlist__grid{grid-template-columns:1fr 1fr;}}
-@media(min-width:1100px){.wlist__grid{grid-template-columns:1fr 1fr 1fr;}}
-
-.wcard__link{display:block;color:inherit;}
-.wcard__img{aspect-ratio:7/5;overflow:hidden;background:#1a1a1a;position:relative;}
-.wcard__img img{width:100%;height:100%;object-fit:cover;transition:transform .5s ease;}
-.wcard__video{position:absolute;inset:0;width:100%;height:100%;border:0;pointer-events:none;}
-.wcard__video-mask{position:absolute;top:0;left:0;right:0;height:13%;background:#eee;pointer-events:none;}
-.wcard:hover .wcard__img img{transform:scale(1.04);}
-.wcard__meta{display:flex;align-items:flex-start;gap:16px;padding-top:20px;flex-wrap:wrap;}
-.wcard__logo{display:none;}
-.wcard__info{flex:1;min-width:200px;display:flex;flex-direction:column;gap:10px;}
-.wcard__title{
-  order:-1;font-family:'DM Sans',var(--font-body);font-weight:700;font-size:16px;
-  letter-spacing:.02em;text-transform:uppercase;color:var(--white);
-}
-/* no case study yet: same order group as the title, and after it in the DOM,
-   so it sits directly under the heading and above the tags */
-.wcard__soon{
-  order:-1;font-family:var(--font-mono);font-size:12px;line-height:22px;
-  letter-spacing:.48px;text-transform:uppercase;color:var(--red);
-}
-.wcard__tags{display:flex;flex-direction:column;gap:2px;font-family:'DM Sans',var(--font-body);font-size:15px;color:var(--muted-3);}
-.wcard__tags span::after{content:none;}
-.wcard__year{display:none;}
 
 /* ---------- LOADING SCREEN (home) ---------- */
 /* Sized off the 1920x963 Figma frame: --px is one design pixel, so every
@@ -1266,7 +1275,7 @@ button{font:inherit;background:none;border:none;color:inherit;cursor:pointer;}
 .load__frame{
   position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
   width:calc(455 * var(--px));height:calc(110 * var(--px));
-  border:1px solid #433f3f;
+  border:1px solid #3f3f3f;
   transition:width .9s cubic-bezier(.76,0,.24,1);
 }
 .load.is-split .load__frame{width:calc(var(--split) * 2);}
@@ -1317,7 +1326,7 @@ button{font:inherit;background:none;border:none;color:inherit;cursor:pointer;}
 .load__chip{
   position:absolute;opacity:0;
   display:flex;align-items:center;
-  border:1px solid #433f3f;color:var(--white);
+  border:1px solid #3f3f3f;color:var(--white);
   font-family:var(--font-mono);font-size:calc(14 * var(--px));
   padding:0 calc(12 * var(--px));white-space:nowrap;
   transition:opacity .6s ease .35s;

@@ -7,10 +7,10 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=Roboto:wght@400;500;600;700&family=Roboto+Mono:wght@400;500;600&family=DM+Sans:wght@400;500;700&family=Geist+Mono:wght@400&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=97">
-<script src="page-transition.js?v=1"></script>
+<link rel="stylesheet" href="styles.css?v=113">
+<script src="page-transition.js?v=2"></script>
 </head>
-<body>
+<body class="works-page">
 
 <nav class="nav" id="nav" data-theme="dark">
   <div class="nav__inner">
@@ -57,38 +57,37 @@
 
 <main>
 
-  <!-- PROJECT SHOWCASE HERO — one full-screen slide per project (Figma 1372:9401) -->
-  <section class="wp-hero" id="wpHero" data-theme="dark">
-    <div class="wp-hero__bg">
-      <img id="wpHeroImg" src="assets/covers/klever.jpg" alt="">
+  <!-- WORK HERO (Figma 1453:4228) — the heading and its label centred on the
+       screen, the intro line bottom-left and a jump list to each project bottom-right -->
+  <section class="whero" id="wHero" data-theme="dark">
+    <!-- stills flying out at the viewer from the middle (works.js) -->
+    <div class="whero__fly" id="wheroFly" aria-hidden="true"></div>
+    <div class="whero__center">
+      <h1 class="whero__title" data-cms="works.hero.title" data-cms-label="Tiêu đề" data-cms-group="Works hero">Handpicked from everything we've built</h1>
+      <p class="whero__eyebrow" data-cms="works.hero.eyebrow" data-cms-label="Nhãn dưới tiêu đề" data-cms-group="Works hero">[] featured projects</p>
     </div>
-    <div class="wp-hero__fade"></div>
-    <div class="wp-hero__side"></div>
-    <div class="wp-hero__top">
-      <div class="wp-hero__progress" id="wpProgress"></div>
-      <div class="wp-hero__badge">
-        <img id="wpBadgeIcon" alt="" class="wp-hero__badge-icon" hidden>
-        <div class="wp-hero__badge-text">
-          <strong id="wpBadgeName">Klever</strong>
-          <span id="wpBadgeYear">2025</span>
-        </div>
-      </div>
-    </div>
-    <div class="wp-hero__bottom">
-      <div class="wp-hero__title-block">
-        <div class="wp-hero__copy">
-          <h1 id="wpTitle" class="wp-hero__title">Klever</h1>
-          <p id="wpDesc" class="wp-hero__desc">Klever is a modular tool that streamlines the development of decentralized finance (DeFi) applications.</p>
-        </div>
-        <a id="wpCta" class="wp-hero__cta" href="klever.html">View project</a>
-      </div>
-      <div class="wp-hero__thumbs" id="wpThumbs"></div>
+    <div class="whero__bottom">
+      <p class="whero__lead" data-cms="works.hero.lead" data-cms-label="Mô tả" data-cms-group="Works hero">Every project here started as a rough idea. We shaped the brand, designed the product, and built it until it was ready for real users. Pick one and see how.</p>
+      <ol class="whero__list" id="wheroList"></ol>
     </div>
   </section>
 
-  <!-- PROJECT LISTING -->
-  <section class="wlist" id="projects-list" data-theme="dark">
-    <div class="wlist__grid" id="wlistGrid"></div>
+  <!-- PROJECT SHOWCASE — a strip of every project's stills scrolls up the
+       middle; the one level with the reader opens in the preview on the left,
+       and its project's copy, name and year hold on the right (works.js) -->
+  <section class="wshow" id="projects-list" data-theme="dark">
+    <div class="wshow__preview">
+      <div class="wshow__frame"><img id="wshowPreview" alt=""></div>
+    </div>
+    <div class="wshow__strip" id="wshowStrip"></div>
+    <div class="wshow__info" id="wshowInfo">
+      <p class="wshow__desc" id="wshowDesc"></p>
+      <a class="wshow__visit" id="wshowVisit"></a>
+      <div class="wshow__title">
+        <h2 class="wshow__name" id="wshowName"></h2>
+        <span class="wshow__year" id="wshowYear"></span>
+      </div>
+    </div>
   </section>
 
   <!-- FOOTER -->
@@ -141,8 +140,9 @@
 </main>
 
 <script src="projects.js?v=24"></script>
-<script src="script.js?v=46"></script>
-<script src="works.js?v=21"></script>
+<script src="script.js?v=47"></script>
+<script src="footer-heat.js?v=3"></script>
+<script src="works.js?v=32"></script>
 <script src="contact.js?v=6"></script>
 </body>
 </html>

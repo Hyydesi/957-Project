@@ -7,8 +7,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=Roboto:wght@400;500;600;700&family=Roboto+Mono:wght@400;500;600&family=DM+Sans:wght@400;500&family=Geist+Mono:wght@400&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=97">
-<script src="page-transition.js?v=1"></script>
+<link rel="stylesheet" href="styles.css?v=113">
+<script src="page-transition.js?v=2"></script>
 <!-- the loading screen plays when the site is opened or reloaded, not when
      arriving from another of its pages (the page transition covers that) -->
 <script>(function(){try{var entry=performance.getEntriesByType('navigation')[0];var inSite=document.documentElement.classList.contains('pt-cover')||document.referrer&&new URL(document.referrer).origin===location.origin&&!(entry&&entry.type==='reload');if(!inSite&&!matchMedia('(prefers-reduced-motion: reduce)').matches)document.documentElement.classList.add('is-loading');}catch(e){}})();</script>
@@ -103,8 +103,8 @@
     <span class="hero__anchor" id="about" aria-hidden="true"></span>
     <div class="hero__sticky">
       <!-- resting frame: heading top-left, the clip in a tall rounded slot in the
-           middle, media links bottom-left; down the right, the lead and a strip of
-           project stills up top, the services list and the buttons at the foot -->
+           middle, media links bottom-left; down the right, the services list up
+           top, the lead and a strip of project stills at the foot -->
       <div class="hero__intro">
         <h1 class="hero__title" data-cms="hero.title" data-cms-label="Tiêu đề" data-cms-group="Hero">Designing ideas into scalable digital experiences</h1>
         <div class="hero__media-slot" aria-hidden="true"></div>
@@ -122,28 +122,22 @@
           <p class="hero__scroll" aria-hidden="true">(Scroll)</p>
         </div>
         <div class="hero__side">
-          <div class="hero__side-top">
+          <div class="hero__services">
+            <p class="hero__label">Services</p>
+            <ul class="hero__services-list" id="heroServices">
+              <li class="is-active"><span data-cms="hero.service1" data-cms-label="Dịch vụ 1" data-cms-group="Hero">Product design</span><span>[1]</span></li>
+              <li><span data-cms="hero.service2" data-cms-label="Dịch vụ 2" data-cms-group="Hero">Logo &amp; Branding</span><span>[2]</span></li>
+              <li><span data-cms="hero.service3" data-cms-label="Dịch vụ 3" data-cms-group="Hero">Websites &amp; Landing Page</span><span>[3]</span></li>
+              <li><span data-cms="hero.service4" data-cms-label="Dịch vụ 4" data-cms-group="Hero">Game design</span><span>[4]</span></li>
+              <li><span data-cms="hero.service5" data-cms-label="Dịch vụ 5" data-cms-group="Hero">Motion design</span><span>[5]</span></li>
+            </ul>
+          </div>
+          <div class="hero__side-foot">
             <p class="hero__lead" data-cms="hero.lead" data-cms-label="Mô tả" data-cms-group="Hero">We are a design agency helping teams design, build, and scale digital products that actually work and drive real impact.</p>
             <!-- the project stills, filled from projects.js; they step in from the
                  right and the one that lands in the first slot takes its colour -->
             <div class="hero__thumbs" id="heroThumbs">
               <div class="hero__thumbs-track"></div>
-            </div>
-          </div>
-          <div class="hero__side-bottom">
-            <div class="hero__services">
-              <p class="hero__label">Services</p>
-              <ul class="hero__services-list" id="heroServices">
-                <li class="is-active"><span data-cms="hero.service1" data-cms-label="Dịch vụ 1" data-cms-group="Hero">Product design</span><span>[1]</span></li>
-                <li><span data-cms="hero.service2" data-cms-label="Dịch vụ 2" data-cms-group="Hero">Logo &amp; Branding</span><span>[2]</span></li>
-                <li><span data-cms="hero.service3" data-cms-label="Dịch vụ 3" data-cms-group="Hero">Websites &amp; Landing Page</span><span>[3]</span></li>
-                <li><span data-cms="hero.service4" data-cms-label="Dịch vụ 4" data-cms-group="Hero">Game design</span><span>[4]</span></li>
-                <li><span data-cms="hero.service5" data-cms-label="Dịch vụ 5" data-cms-group="Hero">Motion design</span><span>[5]</span></li>
-              </ul>
-            </div>
-            <div class="hero__actions">
-              <a href="#contact" class="hero__btn hero__btn--red" data-contact-open><img src="assets/hero/dot-white.svg" alt=""><span data-cms="hero.cta1" data-cms-label="Nút 1" data-cms-group="Hero">Book a 15min call</span></a>
-              <a href="works.html" class="hero__btn hero__btn--white"><img src="assets/hero/dot-red.svg" alt=""><span data-cms="hero.cta2" data-cms-label="Nút 2" data-cms-group="Hero">View Projects</span></a>
             </div>
           </div>
         </div>
@@ -657,7 +651,8 @@
 
 <script src="https://cdn.jsdelivr.net/npm/lenis@1.1.13/dist/lenis.min.js"></script>
 <script src="projects.js?v=24"></script>
-<script src="script.js?v=46"></script>
+<script src="script.js?v=47"></script>
+<script src="footer-heat.js?v=3"></script>
 <script src="process.js?v=2"></script>
 <script src="contact.js?v=6"></script>
 </body>

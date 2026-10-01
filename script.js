@@ -111,11 +111,12 @@ if (nav && themedSections.length) {
   updateBottomTheme();
 }
 
-// ---------- Nav (works + project pages): hide while scrolling down, show again on the way up ----------
+// ---------- Nav (project pages): hide while scrolling down, show again on the way up ----------
+// Home and Works keep the nav on screen the whole way down.
 (function autoHideNav() {
   const nav = document.getElementById('nav');
   const menu = document.getElementById('menuOverlay');
-  if (!nav || document.body.classList.contains('home')) return;
+  if (!nav || document.body.classList.contains('home') || document.body.classList.contains('works-page')) return;
   const DELTA = 6; // ignore the tiny jitter of trackpads and smooth scroll
   let lastY = window.scrollY;
   let ticking = false;
