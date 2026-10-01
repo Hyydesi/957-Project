@@ -152,6 +152,84 @@ if (revealFooterEl && revealFooterSpacer && 'IntersectionObserver' in window) {
   footerObserver.observe(revealFooterSpacer);
 }
 
+// ---------- Custom scrollbar (desktop) ----------
+// A short rail on the right edge in place of the browser's bar: a 48px thumb
+// on a 176px track, blended (exclusion) so it reads over any section. It only
+// shows while the page moves, is hovered or is being dragged, and fades once
+// the page has been still for half a second. Dragging the thumb scrolls the
+// page (through Lenis when it's running, so the glide stays the same).
+(function customScrollbar() {
+  const desktop = matchMedia('(min-width: 768px) and (pointer: fine)');
+  const bar = document.createElement('div');
+  bar.className = 'sbar';
+  bar.setAttribute('aria-hidden', 'true');
+  bar.innerHTML = '<span class="sbar__track"></span><span class="sbar__thumb"></span>';
+  document.body.appendChild(bar);
+  const thumb = bar.querySelector('.sbar__thumb');
+  document.documentElement.classList.add('has-sbar');
+
+  const IDLE_MS = 500;
+  let idleTimer = null;
+  let hovering = false;
+  let dragging = false;
+  let queued = false;
+
+  const maxScroll = () => Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
+  const travel = () => bar.clientHeight - thumb.offsetHeight;
+
+  const place = () => {
+    queued = false;
+    const max = maxScroll();
+    bar.classList.toggle('is-empty', max < 1);
+    const p = max ? Math.min(1, Math.max(0, window.scrollY / max)) : 0;
+    thumb.style.transform = `translate3d(0,${(p * travel()).toFixed(1)}px,0)`;
+  };
+  const queuePlace = () => {
+    if (!queued) { queued = true; requestAnimationFrame(place); }
+  };
+
+  const show = () => {
+    bar.classList.add('is-on');
+    clearTimeout(idleTimer);
+    if (!hovering && !dragging) idleTimer = setTimeout(() => bar.classList.remove('is-on'), IDLE_MS);
+  };
+
+  window.addEventListener('scroll', () => { queuePlace(); if (desktop.matches) show(); }, { passive: true });
+  window.addEventListener('resize', queuePlace);
+  bar.addEventListener('pointerenter', () => { hovering = true; show(); });
+  bar.addEventListener('pointerleave', () => { hovering = false; show(); });
+
+  // drag: the thumb's travel maps onto the whole scroll range
+  let startY = 0;
+  let startScroll = 0;
+  thumb.addEventListener('pointerdown', (e) => {
+    if (e.button !== 0) return;
+    e.preventDefault();
+    dragging = true;
+    startY = e.clientY;
+    startScroll = window.scrollY;
+    thumb.setPointerCapture(e.pointerId);
+    bar.classList.add('is-dragging');
+    show();
+  });
+  thumb.addEventListener('pointermove', (e) => {
+    if (!dragging) return;
+    const y = startScroll + ((e.clientY - startY) / Math.max(1, travel())) * maxScroll();
+    if (lenis) lenis.scrollTo(y, { immediate: true });
+    else window.scrollTo(0, y);
+  });
+  const endDrag = () => {
+    if (!dragging) return;
+    dragging = false;
+    bar.classList.remove('is-dragging');
+    show();
+  };
+  thumb.addEventListener('pointerup', endDrag);
+  thumb.addEventListener('pointercancel', endDrag);
+
+  place();
+})();
+
 // ---------- Menu overlay ----------
 const menuToggle = document.getElementById('menuToggle');
 const menuOverlay = document.getElementById('menuOverlay');

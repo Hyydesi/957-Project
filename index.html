@@ -7,8 +7,11 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=Roboto:wght@400;500;600;700&family=Roboto+Mono:wght@400;500;600&family=DM+Sans:wght@400;500&family=Geist+Mono:wght@400&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=91">
-<script>try{if(!matchMedia('(prefers-reduced-motion: reduce)').matches)document.documentElement.classList.add('is-loading');}catch(e){}</script>
+<link rel="stylesheet" href="styles.css?v=97">
+<script src="page-transition.js?v=1"></script>
+<!-- the loading screen plays when the site is opened or reloaded, not when
+     arriving from another of its pages (the page transition covers that) -->
+<script>(function(){try{var entry=performance.getEntriesByType('navigation')[0];var inSite=document.documentElement.classList.contains('pt-cover')||document.referrer&&new URL(document.referrer).origin===location.origin&&!(entry&&entry.type==='reload');if(!inSite&&!matchMedia('(prefers-reduced-motion: reduce)').matches)document.documentElement.classList.add('is-loading');}catch(e){}})();</script>
 </head>
 <body class="home">
 
@@ -211,6 +214,142 @@
     </div>
   </section>
   </div>
+
+  <!-- PROCESS — what happens after someone gets in touch. The steps are one
+       pinned stack: the open step fills the frame while the rest wait as rows
+       along the bottom, and each rises over the last as the page scrolls. A
+       printed poster for the open step floats over it as a cloth
+       (see process.js). data-word is the word printed on that step's poster;
+       data-poster="path/to/image.jpg" swaps the printed poster for an image. -->
+  <section class="process" id="process" data-theme="dark">
+    <header class="process__intro">
+      <p class="process__label"><span>(Process)</span><span data-cms="process.count" data-cms-label="Số bước" data-cms-group="Process">5 steps</span></p>
+      <h2 class="process__heading" data-cms="process.heading" data-cms-label="Tiêu đề" data-cms-group="Process">From first hello to launch day</h2>
+      <p class="process__lede" data-cms="process.lede" data-cms-label="Mô tả" data-cms-group="Process">The same five steps, every project. One small team from the first message to the last file, with a founder at the table the whole way through.</p>
+    </header>
+
+    <div class="process__stage" id="processStage" data-status-queued="Queued" data-status-active="In progress" data-status-done="Done">
+      <div class="process__sticky">
+        <ol class="process__stack">
+          <li class="pstep" data-word="HELLO">
+            <div class="pstep__head">
+              <span class="pstep__index">[01]</span>
+              <span class="pstep__name" data-cms="process.step1.name" data-cms-label="Bước 1 · Tên" data-cms-group="Process">Say hello</span>
+              <span class="pstep__when" data-cms="process.step1.when" data-cms-label="Bước 1 · Thời gian" data-cms-group="Process">Day 0</span>
+            </div>
+            <div class="pstep__body">
+              <div class="pstep__num" aria-hidden="true"><span class="pstep__num-line">1</span><span class="pstep__num-fill">1</span></div>
+              <div class="pstep__main">
+                <h3 class="pstep__title" data-cms="process.step1.title" data-cms-label="Bước 1 · Tiêu đề" data-cms-group="Process">Tell us what you're building</h3>
+                <div class="pstep__cols">
+                  <p data-cms="process.step1.text1" data-cms-label="Bước 1 · Đoạn 1" data-cms-group="Process">Send a note through the form, book a 15-minute call, or write to ninefiveseven@vn.com. A few lines on the product, the people it's for and the deadline are enough to start.</p>
+                  <p data-cms="process.step1.text2" data-cms-label="Bước 1 · Đoạn 2" data-cms-group="Process">A founder reads every message and replies within one working day. If we're not the right studio for it, we'll say so, and point you to someone who is.</p>
+                </div>
+                <dl class="pstep__meta">
+                  <div><dt data-cms="process.step1.meta1.label" data-cms-label="Bước 1 · Nhãn 1" data-cms-group="Process">You bring</dt><dd data-cms="process.step1.meta1.value" data-cms-label="Bước 1 · Giá trị 1" data-cms-group="Process">An idea, a brief or a problem</dd></div>
+                  <div><dt data-cms="process.step1.meta2.label" data-cms-label="Bước 1 · Nhãn 2" data-cms-group="Process">We reply</dt><dd data-cms="process.step1.meta2.value" data-cms-label="Bước 1 · Giá trị 2" data-cms-group="Process">Within 24 hours</dd></div>
+                </dl>
+              </div>
+              <p class="pstep__status"><span class="pstep__status-text">Queued</span><i></i></p>
+            </div>
+          </li>
+
+          <li class="pstep" data-word="ALIGN">
+            <div class="pstep__head">
+              <span class="pstep__index">[02]</span>
+              <span class="pstep__name" data-cms="process.step2.name" data-cms-label="Bước 2 · Tên" data-cms-group="Process">Align</span>
+              <span class="pstep__when" data-cms="process.step2.when" data-cms-label="Bước 2 · Thời gian" data-cms-group="Process">Days 1–3</span>
+            </div>
+            <div class="pstep__body">
+              <div class="pstep__num" aria-hidden="true"><span class="pstep__num-line">2</span><span class="pstep__num-fill">2</span></div>
+              <div class="pstep__main">
+                <h3 class="pstep__title" data-cms="process.step2.title" data-cms-label="Bước 2 · Tiêu đề" data-cms-group="Process">Find the real problem</h3>
+                <div class="pstep__cols">
+                  <p data-cms="process.step2.text1" data-cms-label="Bước 2 · Đoạn 1" data-cms-group="Process">A 45-minute call with the founders. We ask about goals, users, competitors and constraints, and we listen far more than we pitch.</p>
+                  <p data-cms="process.step2.text2" data-cms-label="Bước 2 · Đoạn 2" data-cms-group="Process">Afterwards you get a short discovery note: what we heard, what we think the real problem is, and the questions still open. Everything after is built on it.</p>
+                </div>
+                <dl class="pstep__meta">
+                  <div><dt data-cms="process.step2.meta1.label" data-cms-label="Bước 2 · Nhãn 1" data-cms-group="Process">Format</dt><dd data-cms="process.step2.meta1.value" data-cms-label="Bước 2 · Giá trị 1" data-cms-group="Process">Video call, 45 min</dd></div>
+                  <div><dt data-cms="process.step2.meta2.label" data-cms-label="Bước 2 · Nhãn 2" data-cms-group="Process">You get</dt><dd data-cms="process.step2.meta2.value" data-cms-label="Bước 2 · Giá trị 2" data-cms-group="Process">A discovery note</dd></div>
+                </dl>
+              </div>
+              <p class="pstep__status"><span class="pstep__status-text">Queued</span><i></i></p>
+            </div>
+          </li>
+
+          <li class="pstep" data-word="SCOPE">
+            <div class="pstep__head">
+              <span class="pstep__index">[03]</span>
+              <span class="pstep__name" data-cms="process.step3.name" data-cms-label="Bước 3 · Tên" data-cms-group="Process">Scope</span>
+              <span class="pstep__when" data-cms="process.step3.when" data-cms-label="Bước 3 · Thời gian" data-cms-group="Process">Days 3–5</span>
+            </div>
+            <div class="pstep__body">
+              <div class="pstep__num" aria-hidden="true"><span class="pstep__num-line">3</span><span class="pstep__num-fill">3</span></div>
+              <div class="pstep__main">
+                <h3 class="pstep__title" data-cms="process.step3.title" data-cms-label="Bước 3 · Tiêu đề" data-cms-group="Process">One fixed scope, in writing</h3>
+                <div class="pstep__cols">
+                  <p data-cms="process.step3.text1" data-cms-label="Bước 3 · Đoạn 1" data-cms-group="Process">We turn the note into a proposal: deliverables, milestones, a timeline and one fixed price. No hourly surprises, no vague phases.</p>
+                  <p data-cms="process.step3.text2" data-cms-label="Bước 3 · Đoạn 2" data-cms-group="Process">Once it's signed and the deposit lands, your slot is booked in the studio calendar and a kickoff pack lists everything we need from your side.</p>
+                </div>
+                <dl class="pstep__meta">
+                  <div><dt data-cms="process.step3.meta1.label" data-cms-label="Bước 3 · Nhãn 1" data-cms-group="Process">You get</dt><dd data-cms="process.step3.meta1.value" data-cms-label="Bước 3 · Giá trị 1" data-cms-group="Process">Proposal and timeline</dd></div>
+                  <div><dt data-cms="process.step3.meta2.label" data-cms-label="Bước 3 · Nhãn 2" data-cms-group="Process">To start</dt><dd data-cms="process.step3.meta2.value" data-cms-label="Bước 3 · Giá trị 2" data-cms-group="Process">50% deposit</dd></div>
+                </dl>
+              </div>
+              <p class="pstep__status"><span class="pstep__status-text">Queued</span><i></i></p>
+            </div>
+          </li>
+
+          <li class="pstep" data-word="DRIVE">
+            <div class="pstep__head">
+              <span class="pstep__index">[04]</span>
+              <span class="pstep__name" data-cms="process.step4.name" data-cms-label="Bước 4 · Tên" data-cms-group="Process">Design</span>
+              <span class="pstep__when" data-cms="process.step4.when" data-cms-label="Bước 4 · Thời gian" data-cms-group="Process">Weeks 2–6</span>
+            </div>
+            <div class="pstep__body">
+              <div class="pstep__num" aria-hidden="true"><span class="pstep__num-line">4</span><span class="pstep__num-fill">4</span></div>
+              <div class="pstep__main">
+                <h3 class="pstep__title" data-cms="process.step4.title" data-cms-label="Bước 4 · Tiêu đề" data-cms-group="Process">Concept first, then craft</h3>
+                <div class="pstep__cols">
+                  <p data-cms="process.step4.text1" data-cms-label="Bước 4 · Đoạn 1" data-cms-group="Process">We open with two or three concept directions, each with its own idea, type and grid. You choose one, and we push it all the way through.</p>
+                  <p data-cms="process.step4.text2" data-cms-label="Bước 4 · Đoạn 2" data-cms-group="Process">Weekly check-ins, one shared Figma file and two rounds of revisions per milestone. You see the work as it grows, never only at the reveal.</p>
+                </div>
+                <dl class="pstep__meta">
+                  <div><dt data-cms="process.step4.meta1.label" data-cms-label="Bước 4 · Nhãn 1" data-cms-group="Process">Check-ins</dt><dd data-cms="process.step4.meta1.value" data-cms-label="Bước 4 · Giá trị 1" data-cms-group="Process">Every week</dd></div>
+                  <div><dt data-cms="process.step4.meta2.label" data-cms-label="Bước 4 · Nhãn 2" data-cms-group="Process">Revisions</dt><dd data-cms="process.step4.meta2.value" data-cms-label="Bước 4 · Giá trị 2" data-cms-group="Process">2 rounds per milestone</dd></div>
+                </dl>
+              </div>
+              <p class="pstep__status"><span class="pstep__status-text">Queued</span><i></i></p>
+            </div>
+          </li>
+
+          <li class="pstep" data-word="LAUNCH">
+            <div class="pstep__head">
+              <span class="pstep__index">[05]</span>
+              <span class="pstep__name" data-cms="process.step5.name" data-cms-label="Bước 5 · Tên" data-cms-group="Process">Launch</span>
+              <span class="pstep__when" data-cms="process.step5.when" data-cms-label="Bước 5 · Thời gian" data-cms-group="Process">Week 6+</span>
+            </div>
+            <div class="pstep__body">
+              <div class="pstep__num" aria-hidden="true"><span class="pstep__num-line">5</span><span class="pstep__num-fill">5</span></div>
+              <div class="pstep__main">
+                <h3 class="pstep__title" data-cms="process.step5.title" data-cms-label="Bước 5 · Tiêu đề" data-cms-group="Process">Ship it, hand it over, stay close</h3>
+                <div class="pstep__cols">
+                  <p data-cms="process.step5.text1" data-cms-label="Bước 5 · Đoạn 1" data-cms-group="Process">Final files, guidelines and motion specs, or a live site built with our dev partners. Clean, named and ready for your team to run.</p>
+                  <p data-cms="process.step5.text2" data-cms-label="Bước 5 · Đoạn 2" data-cms-group="Process">After launch we stay on for 30 days to fix, tune and answer questions. Most clients come back for the next chapter.</p>
+                </div>
+                <dl class="pstep__meta">
+                  <div><dt data-cms="process.step5.meta1.label" data-cms-label="Bước 5 · Nhãn 1" data-cms-group="Process">Handover</dt><dd data-cms="process.step5.meta1.value" data-cms-label="Bước 5 · Giá trị 1" data-cms-group="Process">Files, guidelines, code</dd></div>
+                  <div><dt data-cms="process.step5.meta2.label" data-cms-label="Bước 5 · Nhãn 2" data-cms-group="Process">Support</dt><dd data-cms="process.step5.meta2.value" data-cms-label="Bước 5 · Giá trị 2" data-cms-group="Process">30 days after launch</dd></div>
+                </dl>
+              </div>
+              <p class="pstep__status"><span class="pstep__status-text">Queued</span><i></i></p>
+            </div>
+          </li>
+        </ol>
+        <canvas class="process__cloth" aria-hidden="true"></canvas>
+      </div>
+    </div>
+  </section>
 
   <!-- WORKS -->
   <section class="works" id="works" data-theme="dark">
@@ -518,7 +657,8 @@
 
 <script src="https://cdn.jsdelivr.net/npm/lenis@1.1.13/dist/lenis.min.js"></script>
 <script src="projects.js?v=24"></script>
-<script src="script.js?v=45"></script>
+<script src="script.js?v=46"></script>
+<script src="process.js?v=2"></script>
 <script src="contact.js?v=6"></script>
 </body>
 </html>
