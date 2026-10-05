@@ -92,7 +92,7 @@ button{font:inherit;background:none;border:none;color:inherit;cursor:pointer;}
 .menu-overlay.is-open{pointer-events:auto;}
 .menu-overlay__panel{
   width:100%;height:100%;
-  background:#ff0000;color:var(--white);
+  background:var(--red);color:var(--white);
   padding:24px 24px 40px;
   display:flex;flex-direction:column;justify-content:space-between;
   position:relative;overflow:hidden;
@@ -289,7 +289,9 @@ button{font:inherit;background:none;border:none;color:inherit;cursor:pointer;}
 /* ---------- THE CORE (keyword field) ---------- */
 /* nudot-style entrance: the section is pinned inside a tall stage and revealed
    with a bottom-up clip-path curtain that wipes over the previous section */
-.cf-stage{position:relative;z-index:4;height:210vh;margin-top:-60vh;}
+/* 277vh = the screen + 33vh of curtain + 44vh of wave + 100vh for Our Service
+   to slide up over it (script.js's WIPE_VH / WAVE_VH / COVER_VH) */
+.cf-stage{position:relative;z-index:4;height:277vh;margin-top:-60vh;}
 .corefield{
   position:sticky;top:0;height:100vh;min-height:0;overflow:hidden;
   background:var(--bg-dark);color:var(--white);
@@ -412,13 +414,176 @@ button{font:inherit;background:none;border:none;color:inherit;cursor:pointer;}
   .cf__word{font-size:26px;}
 }
 
+/* ---------- OUR SERVICE ---------- */
+/* A room seen down its length (Figma "Service-new opt", 1920×1295): the open
+   service is the back wall, the red edges run from the screen's corners to its
+   corners (drawn by services.js into .svc__room) and its keywords hang on the
+   side walls. The stage is pinned like the Process stack; services.js turns
+   the room from one service to the next and settles on the nearest one.
+   It slides up over the pinned Core as a new screen, solid edge and all: it
+   starts a full screen early, inside the Core stage's last 100vh. Its grey
+   edges only flicker on once it has landed, so none of them is ever cut
+   off at that edge. After the last service it holds one more screen (the
+   tail), which is the scroll Process takes to slide up over it the same way.
+   Just after it lands the first service holds still for a little (the lead),
+   so it can be read before the room turns. */
+.svc-stage{
+  --n:5;--lead:30vh;--step:90vh;--tail:100vh;
+  position:relative;z-index:5;margin-top:-100vh;
+  height:calc(100vh + var(--lead) + (var(--n) - 1) * var(--step) + var(--tail));
+}
+/* below 720px the Core isn't pinned, so there is nothing to slide over */
+@media(max-width:719px){.svc-stage{margin-top:0;}}
+/* touch scrolls natively (Lenis only glides the wheel), so there the settling
+   is CSS scroll-snap onto one marker per service, a swipe never flinging past
+   one; services.js adds the class */
+html.svc-snap-native{scroll-snap-type:y proximity;}
+/* the first service rests where the section lands; the rest come after the lead */
+.svc__snap{position:absolute;left:0;width:1px;height:1px;top:calc(min(var(--i), 1) * var(--lead) + var(--i) * var(--step));scroll-snap-align:start;scroll-snap-stop:always;pointer-events:none;}
+/* the last marker: Process all the way up */
+.svc__snap--end{top:calc(var(--lead) + (var(--n) - 1) * var(--step) + var(--tail));}
+
+.svc{
+  /* the back wall, sized off the height like the frame (632×799 at 1295 tall)
+     and never wider than 40% of the screen */
+  --ch:min(61.7vh, 40vw / .7913);
+  --cw:calc(var(--ch) * .7913);
+  --ct:20.3vh;
+  position:sticky;top:0;height:100vh;overflow:hidden;
+  background:var(--bg-dark);color:var(--white);
+}
+/* darkens under Process as it slides over (services.js sets --svc-cover) */
+.svc::after{
+  content:'';position:absolute;inset:0;z-index:6;pointer-events:none;
+  background:#000;opacity:calc(var(--svc-cover,0) * .6);
+}
+.svc__sticky{position:absolute;inset:0;}
+/* the edges stay dark while the section slides in — they run off to the
+   screen's corners, so its top edge would cut them short — and flicker on
+   once it has landed (services.js sets .is-on) */
+.svc__room{position:absolute;inset:0;z-index:1;width:100%;height:100%;overflow:visible;pointer-events:none;opacity:0;}
+.svc__room.is-on{opacity:1;animation:fxFlicker .45s linear both;}
+/* the ceiling and floor edges: the grey the Works cards are outlined in */
+.svc__room line{stroke:#525252;stroke-width:1.4;vector-effect:non-scaling-stroke;}
+/* set like the Process label, centred over the room */
+.svc__heading{
+  position:absolute;z-index:5;left:0;right:0;top:calc(var(--nav-h) + 3vh);
+  font-family:var(--font-nav);font-weight:400;font-size:14px;line-height:1.3;color:rgba(255,255,255,.6);
+  text-align:center;text-transform:uppercase;
+}
+@media(min-width:900px){.svc__heading{top:14.4vh;}}
+/* one tick per service along the foot of the screen, the open one red */
+.svc__ticks{
+  position:absolute;z-index:5;left:50%;bottom:clamp(20px,4vh,40px);transform:translateX(-50%);
+  display:flex;gap:8px;list-style:none;
+}
+.svc__ticks li{width:24px;height:2px;background:#525252;transition:background-color .3s ease;}
+.svc__ticks li.is-on{background:var(--red);}
+.svc__list{list-style:none;}
+
+/* the card: services.js slides each one along with translate3d */
+.svc-card{
+  position:absolute;z-index:4;top:var(--ct);left:calc(50% - var(--cw) / 2);
+  width:var(--cw);height:var(--ch);
+  container-type:size;
+  background:var(--bg-dark);border:1.4px solid var(--red);
+  will-change:transform;
+}
+.svc-card__bar{
+  position:absolute;left:0;right:0;top:0;height:7.9cqh;
+  display:flex;align-items:center;padding-left:3.8cqw;
+  background:var(--red);
+  font-family:var(--font-nav);font-size:3cqh;line-height:1;
+}
+/* titles break where the Figma frames do: 510 of the card's 632 wide, 442 for
+   Branding (set on its card as --svc-title-w) */
+.svc-card__title{
+  position:absolute;left:5.9cqw;top:14.3cqh;width:var(--svc-title-w,81cqw);
+  font-family:var(--font-display);font-weight:400;text-transform:uppercase;
+  font-size:12.52cqh;line-height:1.12;letter-spacing:-.03em;
+}
+.svc-card__desc{
+  position:absolute;right:9.2cqw;bottom:8.5cqh;width:78cqw;
+  font-family:var(--font-nav);font-size:3cqh;line-height:1.3;text-align:right;
+}
+
+/* the keywords: three on each side wall. These places (the Figma frame's, as
+   shares of 1920×1295) only hold until services.js runs; it sets the two
+   sides mirroring each other across the card, turns them with their wall and
+   flickers them on and off. */
+.svc-kws{list-style:none;}
+.svc-kw{
+  position:absolute;z-index:3;left:var(--x);top:var(--y);
+  display:flex;gap:.5em;align-items:center;padding:.25em .5em;
+  background:#262626;white-space:nowrap;
+  font-family:var(--font-nav);font-weight:500;font-size:clamp(11px,min(.833vw,1.24vh),16px);
+  line-height:1.3;letter-spacing:.02em;text-transform:uppercase;
+  opacity:0;will-change:transform,opacity;
+}
+.svc-kw::before{content:'[';opacity:.5;}
+.svc-kw::after{content:']';opacity:.5;}
+.svc-kw[data-slot="1"]{--x:16.56%;--y:34.75vh;}
+.svc-kw[data-slot="2"]{--x:6.72%;--y:49.5vh;}
+.svc-kw[data-slot="3"]{--x:72.86%;--y:38.07vh;}
+.svc-kw[data-slot="4"]{--x:78.8%;--y:53.28vh;}
+.svc-kw[data-slot="5"]{--x:17.19%;--y:68.34vh;}
+.svc-kw[data-slot="6"]{--x:69.69%;--y:66.72vh;}
+
+/* flicker states, set by services.js: in → lit (an occasional glitch) → out */
+.svc-kw.is-in{animation:fxFlicker .45s linear both;animation-delay:var(--d,0s);}
+.svc-kw.is-lit{opacity:1;}
+.svc-kw.is-lit.is-glitch{animation:svcGlitch .4s linear both;}
+.svc-kw.is-out{animation:svcOut .35s linear both;animation-delay:var(--d,0s);}
+@keyframes svcGlitch{
+  0%,12%{opacity:1;}
+  13%,30%{opacity:0;}
+  31%,44%{opacity:1;}
+  45%,58%{opacity:.25;}
+  59%,100%{opacity:1;}
+}
+@keyframes svcOut{
+  0%,10%{opacity:1;}
+  11%,30%{opacity:0;}
+  31%,44%{opacity:.8;}
+  45%,60%{opacity:0;}
+  61%,70%{opacity:.35;}
+  71%,100%{opacity:0;}
+}
+/* before services.js runs, the first service just shows */
+.svc:not(.is-ready) .svc-item:first-child .svc-kw{opacity:1;}
+.svc:not(.is-ready) .svc-item:not(:first-child){display:none;}
+
+/* phones and narrow tablets: the side walls are too thin for the keywords,
+   so three hang from the ceiling and three stand on the floor */
+@media(max-width:899px){
+  .svc{
+    --cw:min(74vw, 46vh * .7913);
+    --ch:calc(var(--cw) / .7913);
+    --ct:calc(54vh - var(--ch) / 2);
+    --cb:calc(var(--ct) + var(--ch));
+  }
+  .svc-kw{font-size:11px;}
+  .svc-kw[data-slot="1"]{--x:6%;--y:calc(var(--ct) - 12vh);}
+  .svc-kw[data-slot="3"]{--x:50%;--y:calc(var(--ct) - 8.5vh);}
+  .svc-kw[data-slot="2"]{--x:16%;--y:calc(var(--ct) - 5vh);}
+  .svc-kw[data-slot="5"]{--x:8%;--y:calc(var(--cb) + 2.5vh);}
+  .svc-kw[data-slot="4"]{--x:44%;--y:calc(var(--cb) + 6vh);}
+  .svc-kw[data-slot="6"]{--x:14%;--y:calc(var(--cb) + 9.5vh);}
+}
+
+@media(prefers-reduced-motion:reduce){
+  .svc-kw.is-in,.svc-kw.is-lit.is-glitch,.svc-kw.is-out,
+  .svc__room.is-on{animation:none;}
+  .svc-kw.is-in{opacity:1;}
+}
+
 /* ---------- PROCESS ---------- */
-/* Process rises up OVER the dissolving corefield (the overlap handoff Works
-   used to make, nudot-style): same base colour, the top edge fading
-   transparent→solid into the corefield's vignette. Works now just follows it. */
+/* Process slides up over the pinned Our Service like a new screen: it starts
+   a full screen early, inside the service stage's tail, with a solid top edge.
+   Works just follows it. */
 .process{
-  position:relative;z-index:5;margin-top:-40vh;
-  background:linear-gradient(to bottom, rgba(14,14,14,0) 0, var(--bg-dark) 120px);
+  position:relative;z-index:5;margin-top:-100vh;
+  background:var(--bg-dark);
   color:var(--white);
   --row:44px;
   --line:rgba(255,255,255,.16);
@@ -1014,6 +1179,9 @@ button{font:inherit;background:none;border:none;color:inherit;cursor:pointer;}
 .sfooter__services li{display:flex;gap:12px;}
 /* the index reads as an aside to the service it numbers */
 .sfooter__services span{opacity:.5;}
+/* on the home page each one takes you to its service (services.js) */
+.sfooter__services li.is-link{cursor:pointer;transition:color .25s ease;}
+.sfooter__services li.is-link:hover,.sfooter__services li.is-link:focus-visible{color:var(--red);outline:none;}
 
 /* copyright, then the two policies, spread 120px apart at full width */
 .sfooter__legal{

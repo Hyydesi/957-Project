@@ -673,22 +673,25 @@ if (cfField) {
   }
 
   // ---- nudot-style pinned entrance -------------------------------------
-  // The section is sticky inside a tall .cf-stage. The first P_WIPE of the
+  // The section is sticky inside a tall .cf-stage. The first stretch of the
   // pinned scroll drives a bottom-up clip-path curtain (nudot's
-  // setDarkWrapperReveal: inset(H% 0 0 0) -> inset(0)); the remaining scroll
-  // drives the wave.
+  // setDarkWrapperReveal: inset(H% 0 0 0) -> inset(0)), the next drives the
+  // wave, and the last screen is Our Service sliding up over it, the field
+  // darkening underneath. The stretches are in vh; the CSS height adds them up.
   const stage = document.getElementById('cfStage');
-  const P_WIPE = 0.30;   // entrance curtain finishes here
-  const P_EXIT = 0.70;   // wave finishes here; remaining scroll dissolves out
-                         // (earlier so the corefield is still fading while Works rises)
+  const WIPE_VH = 33, WAVE_VH = 44, COVER_VH = 100;
+  const PIN_VH = WIPE_VH + WAVE_VH + COVER_VH;
+  const P_WIPE = WIPE_VH / PIN_VH;               // entrance curtain finishes here
+  const P_EXIT = (WIPE_VH + WAVE_VH) / PIN_VH;   // wave finishes here; Our Service slides over the rest
   const clamp01 = (v) => Math.min(1, Math.max(0, v));
   const easeInOutCubic = (x) => (x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2);
   const stageActive = () => stage && window.innerWidth >= 720;
 
   let scrollProgress = 0;
-  // the butterfly's climb spans the whole time the section is on screen —
-  // curtain, wave and most of the dissolve — not just the wave
-  const FLIGHT_END = 0.85;
+  // the butterfly's climb spans the curtain, the wave and the first half of
+  // Our Service sliding over — the part of the field still in view — not
+  // just the wave
+  const FLIGHT_END = (WIPE_VH + WAVE_VH + COVER_VH / 2) / PIN_VH;
   let flightProgress = 0;
   const updateProgress = () => {
     if (stageActive()) {
@@ -701,10 +704,10 @@ if (cfField) {
       corefieldEl.classList.toggle('is-revealed', wipe > 0.45);
       // wave runs between the curtain and the exit
       scrollProgress = clamp01((p - P_WIPE) / (P_EXIT - P_WIPE));
-      // exit: dissolve the whole field out so it hands off to Works without a
-      // hard cut (and hides the empty tail once the last row is centred)
+      // exit: the field darkens under Our Service as it slides over, the
+      // way Our Service does under Process
       const exit = easeInOutCubic(clamp01((p - P_EXIT) / (1 - P_EXIT)));
-      corefieldEl.style.opacity = (1 - exit).toFixed(3);
+      corefieldEl.style.opacity = (1 - exit * 0.6).toFixed(3);
     } else {
       corefieldEl.style.clipPath = 'none';
       corefieldEl.style.opacity = '1';
