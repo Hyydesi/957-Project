@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=Roboto:wght@400;500;600;700&family=Roboto+Mono:wght@400;500;600&family=Chakra+Petch:wght@400;500;600;700&family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=113">
+<link rel="stylesheet" href="styles.css?v=114">
 <link rel="stylesheet" href="klever.css?v=29">
 <script src="page-transition.js?v=2"></script>
 </head>
@@ -31,27 +31,24 @@
 </nav>
 
 <div class="menu-overlay" id="menuOverlay">
-  <div class="menu-overlay__panel">
-    <div class="menu-overlay__top">
-      <button class="menu-overlay__close" id="menuClose">[x] CLOSE</button>
-      <p class="menu-overlay__intro" data-cms="menu.intro" data-cms-label="Đoạn giới thiệu (giữ nguyên thẻ &lt;span&gt; để tô đỏ)" data-cms-group="Menu">We partner with <span>global startups and established companies,</span> to deliver memorable brand identities and digital experiences.</p>
-    </div>
+  <div class="menu-overlay__panel" role="dialog" aria-label="Menu">
+    <button type="button" class="menu-overlay__close" id="menuClose" aria-label="Close menu"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></button>
     <nav class="menu-overlay__links">
-      <a href="index.html#about" class="menu-link" data-cms="menu.link.about" data-cms-label="Mục 1" data-cms-group="Menu">ABOUT</a>
-      <a href="works.html" class="menu-link" data-cms="menu.link.work" data-cms-label="Mục 2" data-cms-group="Menu">WORK</a>
-      <a href="index.html#contact" class="menu-link" data-contact-open data-cms="menu.link.contact" data-cms-label="Mục 3" data-cms-group="Menu">CONTACT</a>
+      <a href="works.html" class="menu-link" data-cms="menu.link.work" data-cms-label="Mục 1" data-cms-group="Menu">Works</a>
+      <a href="index.html#about" class="menu-link" data-cms="menu.link.about" data-cms-label="Mục 2" data-cms-group="Menu">About</a>
+      <a href="index.html#services" class="menu-link" data-cms="menu.link.services" data-cms-label="Mục 3" data-cms-group="Menu">Services</a>
+      <a href="index.html#process" class="menu-link" data-cms="menu.link.process" data-cms-label="Mục 4" data-cms-group="Menu">Process</a>
+      <a href="index.html#contact" class="menu-link" data-contact-open data-cms="menu.link.contact" data-cms-label="Mục 5" data-cms-group="Menu">Start a project</a>
     </nav>
-    <div class="menu-overlay__ticker" aria-hidden="true">
-      <div class="menu-overlay__ticker-track">
-        <span>ninefiveseven@vn.com</span>
-        <span>ninefiveseven@vn.com</span>
-        <span>ninefiveseven@vn.com</span>
-        <span>ninefiveseven@vn.com</span>
-        <span>ninefiveseven@vn.com</span>
-        <span>ninefiveseven@vn.com</span>
-        <span>ninefiveseven@vn.com</span>
-        <span>ninefiveseven@vn.com</span>
-      </div>
+    <div class="menu-overlay__extra">
+      <p class="menu-overlay__label" data-cms="menu.socialsLabel" data-cms-label="Tiêu đề nhóm phụ" data-cms-group="Menu">Socials</p>
+      <ul class="menu-overlay__sublinks">
+        <li><a href="#" class="menu-sublink" data-cms="menu.social1.name" data-cms-href="menu.social1.url" data-cms-label="Mạng xã hội 1" data-cms-group="Menu">Instagram</a></li>
+        <li><a href="#" class="menu-sublink" data-cms="menu.social2.name" data-cms-href="menu.social2.url" data-cms-label="Mạng xã hội 2" data-cms-group="Menu">X / Twitter</a></li>
+        <li><a href="#" class="menu-sublink" data-cms="menu.social3.name" data-cms-href="menu.social3.url" data-cms-label="Mạng xã hội 3" data-cms-group="Menu">Behance</a></li>
+        <li><a href="#" class="menu-sublink" data-cms="menu.social4.name" data-cms-href="menu.social4.url" data-cms-label="Mạng xã hội 4" data-cms-group="Menu">LinkedIn</a></li>
+        <li><a href="mailto:ninefiveseven@vn.com" class="menu-sublink" data-cms="menu.email" data-cms-href="menu.email.url" data-cms-label="Email" data-cms-group="Menu">ninefiveseven@vn.com</a></li>
+      </ul>
     </div>
   </div>
 </div>
@@ -348,7 +345,7 @@
 
 </main>
 
-<script src="script.js?v=47"></script>
+<script src="script.js?v=48"></script>
 <script src="footer-heat.js?v=3"></script>
 <script src="contact.js?v=6"></script>
 </body>

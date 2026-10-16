@@ -26,8 +26,11 @@ class ScrambleText {
     this.frameRequest = null;
   }
 
-  randomChar() {
-    return SCRAMBLE_CHARS[Math.floor(Math.random() * SCRAMBLE_CHARS.length)];
+  // keeps the case of the letter it stands in for, so sentence-case links
+  // don't swell with capitals while they scramble
+  randomChar(to) {
+    const c = SCRAMBLE_CHARS[Math.floor(Math.random() * SCRAMBLE_CHARS.length)];
+    return to === to.toLowerCase() && to !== to.toUpperCase() ? c.toLowerCase() : c;
   }
 
   run() {
@@ -56,7 +59,7 @@ class ScrambleText {
         output += item.to;
         complete++;
       } else if (this.frame >= item.start) {
-        if (!item.char || Math.random() < 0.5) item.char = this.randomChar();
+        if (!item.char || Math.random() < 0.5) item.char = this.randomChar(item.to);
         output += item.char;
       } else {
         output += item.to;
@@ -72,9 +75,10 @@ class ScrambleText {
   }
 }
 
-document.querySelectorAll('.nav__links a, .menu-link').forEach((el) => {
+document.querySelectorAll('.nav__links a, .menu-link, .menu-sublink').forEach((el) => {
   const scrambler = new ScrambleText(el);
   el.addEventListener('mouseenter', () => scrambler.run());
+  el.addEventListener('focus', () => scrambler.run());
 });
 
 // ---------- Nav theme swap (dark/light) based on section behind it ----------
@@ -231,26 +235,43 @@ if (revealFooterEl && revealFooterSpacer && 'IntersectionObserver' in window) {
   place();
 })();
 
-// ---------- Menu overlay ----------
+// ---------- Menu: red card from the top-right corner ----------
 const menuToggle = document.getElementById('menuToggle');
 const menuOverlay = document.getElementById('menuOverlay');
 const menuClose = document.getElementById('menuClose');
 
 if (menuToggle && menuOverlay && menuClose) {
-  menuToggle.addEventListener('click', () => {
-    menuOverlay.classList.toggle('is-open');
-  });
+  let settleTimer = null;
+  // stagger index for the rise-in, in reading order
+  menuOverlay.querySelectorAll('.menu-link, .menu-overlay__label, .menu-sublink')
+    .forEach((el, i) => el.style.setProperty('--i', i));
 
+  const setMenu = (open) => {
+    clearTimeout(settleTimer);
+    menuOverlay.classList.toggle('is-open', open);
+    menuOverlay.classList.remove('is-settled');
+    menuToggle.setAttribute('aria-expanded', String(open));
+    if (open) {
+      settleTimer = setTimeout(() => menuOverlay.classList.add('is-settled'), 900);
+      menuClose.focus({ preventScroll: true });
+    }
+  };
+  menuToggle.setAttribute('aria-expanded', 'false');
+
+  menuToggle.addEventListener('click', () => setMenu(!menuOverlay.classList.contains('is-open')));
   menuClose.addEventListener('click', () => {
-    menuOverlay.classList.remove('is-open');
+    setMenu(false);
+    menuToggle.focus({ preventScroll: true });
   });
-
+  // a click anywhere outside the card closes it
   menuOverlay.addEventListener('click', (e) => {
-    if (e.target === menuOverlay) menuOverlay.classList.remove('is-open');
+    if (e.target === menuOverlay) setMenu(false);
   });
-
-  menuOverlay.querySelectorAll('.menu-link').forEach((link) => {
-    link.addEventListener('click', () => menuOverlay.classList.remove('is-open'));
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && menuOverlay.classList.contains('is-open')) setMenu(false);
+  });
+  menuOverlay.querySelectorAll('.menu-link, .menu-sublink').forEach((link) => {
+    link.addEventListener('click', () => setMenu(false));
   });
 }
 
