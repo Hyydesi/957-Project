@@ -235,6 +235,27 @@ if (revealFooterEl && revealFooterSpacer && 'IntersectionObserver' in window) {
   place();
 })();
 
+// ---------- Nav language pill: EN / VN ----------
+// Only the switch itself for now: it lights the chosen language, remembers it
+// and sets the page's lang; the copy has no VN version to swap in yet.
+const langToggle = document.getElementById('langToggle');
+if (langToggle) {
+  const parts = langToggle.querySelectorAll('[data-lang]');
+  const setLang = (lang) => {
+    parts.forEach((el) => el.classList.toggle('is-on', el.dataset.lang === lang));
+    document.documentElement.lang = lang === 'vn' ? 'vi' : 'en';
+    langToggle.setAttribute('aria-label', lang === 'vn' ? 'Switch to English' : 'Chuyển sang tiếng Việt');
+  };
+  let lang = 'en';
+  try { lang = localStorage.getItem('957-lang') === 'vn' ? 'vn' : 'en'; } catch (e) {}
+  setLang(lang);
+  langToggle.addEventListener('click', () => {
+    lang = lang === 'en' ? 'vn' : 'en';
+    setLang(lang);
+    try { localStorage.setItem('957-lang', lang); } catch (e) {}
+  });
+}
+
 // ---------- Menu: red card from the top-right corner ----------
 const menuToggle = document.getElementById('menuToggle');
 const menuOverlay = document.getElementById('menuOverlay');
@@ -437,92 +458,192 @@ if (heroStage && heroMedia) {
   }
 }
 
-// ---------- Hero side column: project stills + services ----------
-// One beat drives both. On each beat the stills step one slot to the left, so
-// the next project slides in from the right and the one landing in slot 1
-// turns to colour, and the services highlight moves one row down, wrapping
-// back to the top. Hovering either list holds the beat; so does the hero
-// being off screen or the tab being in the background.
-const heroThumbs = document.getElementById('heroThumbs');
-const heroServices = document.getElementById('heroServices');
+// ---------- Hero field: NINEFIVE SEVEN typing in and wiping out ----------
+// A dense grid of faint mono "NINEFIVE SEVEN" under the whole stage. Each cell
+// runs its own loop: it waits, types the phrase in letter by letter (the newest
+// letter fainter), holds it, then wipes it out from the left (the letter about
+// to go fainter), and waits again — every cell on its own clock, so the field
+// is never still and never all there. Under the cursor the words light up
+// white and fade back once it moves on; an empty cell types itself in when
+// hovered. Drawn on a canvas; it only runs while the stage is on screen.
+const heroField = document.getElementById('heroField');
 
-if (heroThumbs && typeof PROJECTS !== 'undefined') {
-  const BEAT_MS = 2400;
-  const SLOTS = 4;
-  const track = heroThumbs.querySelector('.hero__thumbs-track');
-  const stills = PROJECTS.filter((p) => p.image);
+if (heroField && heroField.getContext) {
+  const ctx = heroField.getContext('2d');
+  const PHRASE = 'NINEFIVE SEVEN';
+  const FONT_PX = 13;
+  const ROW = 24;            // line pitch
+  const COL_CHARS = PHRASE.length + 3;
+  const BASE = 0.1;          // resting ink
+  const FAINT = 0.045;       // the letter being typed or wiped
+  const LIT = 0.95;          // a word right under the cursor
+  const REACH = 110;         // px around the cursor that still catches some light
+  const STEP = [18, 32];     // ms per letter, typing and wiping
+  const WAIT = [200, 2600];  // empty between runs
+  const HOLD = [900, 3200];  // phrase fully shown
+  const GLOW_IN = 0.35;      // how fast a word catches the light, per frame
+  const GLOW_OUT = 0.06;     // …and lets it go
 
-  // enough copies that a fifth still is always waiting just off the right edge
-  const run = [];
-  while (stills.length && run.length < SLOTS + 1) run.push(...stills);
-  run.forEach((p) => {
-    const a = document.createElement('a');
-    a.className = 'hero__thumb';
-    a.href = p.href || 'works.html';
-    a.setAttribute('aria-label', p.name);
-    const img = document.createElement('img');
-    img.src = p.image;
-    img.alt = '';
-    a.appendChild(img);
-    track.appendChild(a);
-  });
+  const rand = (a, b) => a + Math.random() * (b - a);
+  const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const stage = heroField.parentElement;
 
-  const services = heroServices ? Array.from(heroServices.children) : [];
-  let serviceIndex = Math.max(0, services.findIndex((li) => li.classList.contains('is-active')));
+  let cells = [];
+  let charW = 8;
+  let cellW = 0;
+  let dirty = true;
+  let pointer = null;        // {x, y} in canvas px while over the stage
 
-  const markLead = () => {
-    Array.from(track.children).forEach((el, i) => el.classList.toggle('is-lead', i === 0));
-  };
-  markLead();
+  const build = () => {
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const w = heroField.clientWidth;
+    const h = heroField.clientHeight;
+    heroField.width = Math.round(w * dpr);
+    heroField.height = Math.round(h * dpr);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.font = `400 ${FONT_PX}px "Geist Mono", "Roboto Mono", monospace`;
+    ctx.textBaseline = 'top';
+    charW = ctx.measureText('M').width;
+    cellW = charW * PHRASE.length;
 
-  let busy = false;
-  const beat = () => {
-    // stills: slide the track one slot, then recycle the first still to the end
-    // and snap the track back, so the loop never runs out
-    if (!busy && track.children.length > SLOTS) {
-      busy = true;
-      const step = track.children[1].offsetLeft - track.children[0].offsetLeft;
-      // the incoming lead takes its colour as it slides into the slot
-      track.children[0].classList.remove('is-lead');
-      track.children[1].classList.add('is-lead');
-      track.classList.add('is-sliding');
-      track.style.transform = `translate3d(${-step}px,0,0)`;
-      // the stills' own colour fades bubble up here too; wait for the track
-      const settle = (e) => {
-        if (e.target !== track || e.propertyName !== 'transform') return;
-        track.removeEventListener('transitionend', settle);
-        track.classList.remove('is-sliding');
-        track.appendChild(track.firstElementChild);
-        track.style.transform = 'none';
-        busy = false;
-      };
-      track.addEventListener('transitionend', settle);
+    // enough columns and rows to run off every edge, centred so the cut is
+    // even on both sides and no strip of the frame is left bare
+    const colW = charW * COL_CHARS;
+    const cols = Math.ceil(w / colW) + 1;
+    const rows = Math.ceil(h / ROW) + 1;
+    const left = (w - (cols * colW - charW * 3)) / 2;
+    const top = (h - rows * ROW) / 2 + (ROW - FONT_PX) / 2;
+    const now = performance.now();
+    cells = [];
+    for (let r = 0; r < rows; r++) {
+      for (let c = 0; c < cols; c++) {
+        const cell = { x: left + c * colW, y: top + r * ROW, k: 0, state: 'wait', next: 0, step: rand(...STEP), glow: 0 };
+        // start mid-loop, so the first frame already reads as a field in motion
+        if (still || Math.random() < 0.5) {
+          cell.state = 'hold';
+          cell.k = PHRASE.length;
+          cell.next = now + rand(0, HOLD[1]);
+        } else {
+          cell.next = now + rand(0, WAIT[1]);
+        }
+        cells.push(cell);
+      }
     }
+    dirty = true;
+  };
 
-    if (services.length) {
-      services[serviceIndex].classList.remove('is-active');
-      serviceIndex = (serviceIndex + 1) % services.length;
-      services[serviceIndex].classList.add('is-active');
+  const advance = (cell, now) => {
+    const len = PHRASE.length;
+    switch (cell.state) {
+      case 'wait':
+        cell.state = 'type';
+        cell.k = 1;
+        cell.step = rand(...STEP);
+        cell.next = now + cell.step;
+        break;
+      case 'type':
+        if (cell.k < len) { cell.k++; cell.next = now + cell.step; }
+        else { cell.state = 'hold'; cell.next = now + rand(...HOLD); }
+        break;
+      case 'hold':
+        cell.state = 'wipe';
+        cell.k = 1;               // letters wiped from the left
+        cell.next = now + cell.step;
+        break;
+      case 'wipe':
+        if (cell.k < len) { cell.k++; cell.next = now + cell.step; }
+        else { cell.state = 'wait'; cell.k = 0; cell.next = now + rand(...WAIT); }
+        break;
     }
   };
 
-  if (!matchMedia('(prefers-reduced-motion: reduce)').matches) {
-    let timer = null;
-    let onScreen = true;
-    let hovered = false;
-    const sync = () => {
-      const go = onScreen && !hovered && !document.hidden;
-      if (go && !timer) timer = setInterval(beat, BEAT_MS);
-      if (!go && timer) { clearInterval(timer); timer = null; }
-    };
-    [heroThumbs, heroServices].forEach((el) => {
-      if (!el) return;
-      el.addEventListener('mouseenter', () => { hovered = true; sync(); });
-      el.addEventListener('mouseleave', () => { hovered = false; sync(); });
+  // 1 on the word the cursor is over, falling off to 0 at REACH beyond its box
+  const lightAt = (cell) => {
+    if (!pointer) return 0;
+    const dx = Math.max(cell.x - pointer.x, 0, pointer.x - (cell.x + cellW));
+    const dy = Math.max(cell.y - pointer.y, 0, pointer.y - (cell.y + FONT_PX));
+    const d = Math.hypot(dx, dy);
+    return d === 0 ? 1 : Math.max(0, 1 - d / REACH) * 0.6;
+  };
+
+  const ink = (a) => `rgba(255,255,255,${a})`;
+
+  const draw = () => {
+    ctx.clearRect(0, 0, heroField.width, heroField.height);
+    cells.forEach((cell) => {
+      const { k, x, y, state, glow } = cell;
+      if (state === 'wait') return;
+      const solid = ink(BASE + (LIT - BASE) * glow);
+      const faint = ink(FAINT + (LIT * 0.5 - FAINT) * glow);
+      if (state === 'type') {
+        // typed so far, the newest letter still faint
+        if (k > 1) { ctx.fillStyle = solid; ctx.fillText(PHRASE.slice(0, k - 1), x, y); }
+        ctx.fillStyle = faint; ctx.fillText(PHRASE[k - 1], x + (k - 1) * charW, y);
+      } else if (state === 'hold') {
+        ctx.fillStyle = solid; ctx.fillText(PHRASE, x, y);
+      } else {
+        // the first k letters are gone; the next to go is already faint
+        if (k >= PHRASE.length) return;
+        ctx.fillStyle = faint; ctx.fillText(PHRASE[k], x + k * charW, y);
+        if (k + 1 < PHRASE.length) { ctx.fillStyle = solid; ctx.fillText(PHRASE.slice(k + 1), x + (k + 1) * charW, y); }
+      }
     });
-    document.addEventListener('visibilitychange', sync);
-    new IntersectionObserver(([entry]) => { onScreen = entry.isIntersecting; sync(); }).observe(heroThumbs);
-    sync();
+    dirty = false;
+  };
+
+  let raf = 0;
+  let onScreen = true;
+  const tick = (now) => {
+    raf = 0;
+    cells.forEach((cell) => {
+      // a hovered empty cell doesn't wait its turn
+      const target = lightAt(cell);
+      if (target === 1 && cell.state === 'wait') cell.next = now;
+      if (!still && now >= cell.next) { advance(cell, now); dirty = true; }
+      if (cell.glow !== target) {
+        const rate = target > cell.glow ? GLOW_IN : GLOW_OUT;
+        cell.glow += (target - cell.glow) * rate;
+        if (Math.abs(target - cell.glow) < 0.01) cell.glow = target;
+        dirty = true;
+      }
+    });
+    if (dirty) draw();
+    run();
+  };
+  // keeps going while anything still moves: the loops, or a glow fading out
+  const run = () => {
+    if (raf || !onScreen || document.hidden) return;
+    if (still && !dirty && !pointer && !cells.some((c) => c.glow > 0)) return;
+    raf = requestAnimationFrame(tick);
+  };
+  const stop = () => { if (raf) cancelAnimationFrame(raf); raf = 0; };
+  const restart = () => { build(); stop(); run(); };
+
+  // the canvas sits under the rest of the stage, so the stage hears the cursor
+  if (stage && matchMedia('(hover: hover)').matches) {
+    stage.addEventListener('pointermove', (e) => {
+      const box = heroField.getBoundingClientRect();
+      pointer = { x: e.clientX - box.left, y: e.clientY - box.top };
+      run();
+    });
+    stage.addEventListener('pointerleave', () => { pointer = null; run(); });
+  }
+
+  build();
+  run();
+  if (document.fonts) document.fonts.ready.then(restart);
+  let resizeTimer = null;
+  window.addEventListener('resize', () => {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(restart, 120);
+  });
+  document.addEventListener('visibilitychange', () => { stop(); run(); });
+  if ('IntersectionObserver' in window) {
+    new IntersectionObserver(([entry]) => {
+      onScreen = entry.isIntersecting;
+      stop();
+      run();
+    }).observe(heroField);
   }
 }
 
@@ -1333,98 +1454,473 @@ if (lazyVideos.length) {
 }
 
 
-// ---------- Loading screen (home): dial → wordmark → split reveal ----------
+// ---------- Loading screen (home): red sheet → card carousel → 957 window → ASCII globe ----------
+// Figma 1502:372 → 1502:397 → 1503:489. The name parts to the edges as the
+// red comes up and runs up to the top; the name at 96px runs behind from the
+// start, out of focus until the sheet lands; the red sheet turns a quarter clockwise as it shrinks into the
+// centre, landing as the upright card 9; its neighbours slide out from behind it to
+// either side, and only then does the drum of the four cards (9 · 5 · 957 · 7)
+// start turning, upright: three turns (and on, if the page still needs it),
+// then it brakes onto 957 just as the count reaches 100. On the way out it
+// zooms into the 957 mark, which becomes a window onto the Home page; a grey ASCII globe comes up
+// over it, turns half a turn and blows apart, and only then does the page come
+// in: its type scrambling in, the hero clip arriving in pixel blocks top down. The count rides the turn
+// and waits at HOLD on the page itself; MAX_MS stops a stalled asset from
+// keeping anyone out.
 const load = document.getElementById('load');
 
 if (load && document.documentElement.classList.contains('is-loading')) {
   const countEl = document.getElementById('loadCount');
-  const slot = document.getElementById('loadSlot');
+  const ring = document.getElementById('loadRing');
+  const globeCanvas = document.getElementById('loadGlobe');
+  const flood = document.getElementById('loadFlood');
+  const marquee = load.querySelector('.load__marquee');
+  const faces = Array.from(ring.querySelectorAll('.load__face'));
 
-  const MIN_MS = 4200; // long enough for the dial, the wordmark and the split to read
-  const MAX_MS = 10000; // never strand the visitor behind one stalled asset
-  const HOLD = 92;     // where the count waits on the page itself
-  const SHOT_MS = 260; // how fast the stills swap once the wordmark is open
+  const RED_MS = 1100;      // frame 1 holds before the sheet moves
+  const FLY_MS = 1100;      // the sheet's quarter turn and shrink down to card 9
+  const SPREAD_MS = 520;    // the side cards sliding out from behind card 9
+  const SPREAD_FROM = RED_MS + FLY_MS;
+  // the turn picks up while the side cards are still settling, so opening and
+  // turning run on as one move rather than stop and start
+  const SPIN_FROM = SPREAD_FROM + SPREAD_MS * 0.6;
+  const SPEED = 300;        // deg/s once up to speed
+  const SPIN_UP = 600;      // ms to get up to speed
+  const LAND_DEG = 180;     // where 957 faces front (mod 360)
+  const TURNS = 3;          // full turns before it lands: 3 and a half in all, onto 957
+  const BRAKE_DEG = 270;    // how far before the landing it starts to brake
+  const STOP_AT = TURNS * 360 + LAND_DEG - BRAKE_DEG;
+  const FAN = 0.75;        // how far a card turns with its place on the drum
+  const PART_MS = 120;      // the name parts to the edges almost as the screen comes up
+  const LIFT_MS = PART_MS + 700; // …and runs straight on up to the top edge
+  const MAX_MS = 10000;
+  const HOLD = 92;
+  const FULL_MS = 450;      // 100 on 957, a beat, before the way out
+  const PORTAL_MS = 1150;   // the zoom into the 957 mark, through to the Home page
+  const GLOBE_FROM = 700;   // the globe comes up as the page shows through
+  const GLOBE_IN = 600;     // …growing in
+  const TURN_MS = 1500;     // its half turn
+  const BLAST_MS = 1600;    // then it blows apart, slowly
+  const PAGE_AT = GLOBE_FROM + TURN_MS + BLAST_MS * 0.5; // the page's type scrambles in as it clears
+  const CLIP_AT = PAGE_AT + 150; // the clip arrives in blocks
+  const CLIP_MS = 1200;
 
-  // the stills that ride out of the gap, straight from the shared project list
-  const SHOT_RUN = 10; // how many flash past once the wordmark splits open
-  const pool = (typeof PROJECTS !== 'undefined' ? PROJECTS : [])
-    .map((p) => p.image)
-    .filter(Boolean);
-
-  // a random run — the pool is smaller than the run, so stills repeat by design
-  for (let i = 0; pool.length && i < SHOT_RUN; i += 1) {
-    const img = document.createElement('img');
-    img.src = pool[Math.floor(Math.random() * pool.length)];
-    img.alt = '';
-    if (i === 0) img.className = 'is-on';
-    slot.appendChild(img);
-  }
-
-  let shotIndex = 0;
-  let shotTimer = null;
-  const cycleShots = () => {
-    if (shotTimer || slot.children.length < 2) return;
-    shotTimer = setInterval(() => {
-      const imgs = slot.children;
-      imgs[shotIndex].classList.remove('is-on');
-      shotIndex = (shotIndex + 1) % imgs.length;
-      imgs[shotIndex].classList.add('is-on');
-    }, SHOT_MS);
-  };
-
-  let phase = '';
-  const setPhase = (next) => {
-    if (phase === next) return;
-    phase = next;
-    load.classList.remove('is-clock', 'is-mark', 'is-split');
-    load.classList.add(next);
-    if (next === 'is-split') cycleShots();
-  };
+  const clamp01 = (v) => Math.min(1, Math.max(0, v));
 
   let ready = document.readyState === 'complete';
   window.addEventListener('load', () => { ready = true; }, { once: true });
 
-  let done = false;
-  const finish = () => {
-    if (done) return;
-    done = true;
-    clearInterval(shotTimer);
+  const cardUnit = () => Math.min(load.clientHeight / 963, load.clientWidth / 700);
 
-    load.classList.add('is-done');
+  // the drum: four cards a quarter apart, 9 · 5 · 957 · 7. Each sits at its
+  // place on the circle but turns only FAN of that angle, so the neighbours
+  // still show at the sides — steep, narrow slivers just off card 9's edges
+  // (a quarter turn would put them edge-on);
+  // no two cards cut through each other at any point of the turn, and
+  // a card going round the back shows its back, darker, so all four read as
+  // they turn. Upright the whole way: the only turn is about the vertical axis.
+  // spread opens the drum from card 9: the neighbours start tucked well in
+  // behind it, slide out sideways flat, and only turn to their angle once
+  // they've cleared its edges; the card behind joins once it's open.
+  const wrap = (v) => ((v % 360) + 540) % 360 - 180;
+  const rad = (d) => (d * Math.PI) / 180;
+  const setSpin = (deg, spread = 1) => {
+    const cu = cardUnit();
+    const R = 230 * cu;   // the side cards rest ~24px off card 9's edges, a ~51px sliver each
+    faces.forEach((face, i) => {
+      const phi = wrap(i * 90 - deg) * spread;
+      const x = R * Math.sin(rad(phi));
+      // tucked in behind card 9 while it opens; the left card a little deeper
+      // than the right, so the two never cross on their way out
+      const tuck = i === 0 ? 0 : (1 - spread) * (i === 3 ? 130 : 110) * cu;
+      const z = R * (Math.cos(rad(phi)) - 1) - tuck;
+      const a = phi * FAN * spread * spread;
+      face.style.transform = `translate3d(${x.toFixed(2)}px,0,${z.toFixed(2)}px) rotateY(${a.toFixed(2)}deg)`;
+      face.style.opacity = spread >= 1 || i !== 2 ? '1' : '0';
+      face.style.setProperty('--lit', (0.6 + 0.4 * Math.cos(rad(a))).toFixed(3));
+    });
+  };
+  setSpin(0, 0);
+
+  // ---- the Home page, held back while the loader runs ----
+  // The type that will scramble in waits hidden; the logo fades in; the hero
+  // clip sits under a dark curtain that will lift in blocks.
+  const SCRAMBLE_POOL = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  const introTargets = [
+    ...document.querySelectorAll('.nav__links > a, .nav__lang span, .nav__pill[data-contact-open]'),
+    ...document.querySelectorAll('.hero__label, .hero__social-list span, .hero__title, .hero__lead'),
+  ];
+  introTargets.forEach((el) => { el.style.visibility = 'hidden'; });
+  const navLogo = document.querySelector('.nav__logo');
+  if (navLogo) navLogo.style.opacity = '0';
+  const heroMedia = document.querySelector('.hero__media');
+  const heroVideo = heroMedia && heroMedia.querySelector('video');
+  const pixels = document.createElement('canvas');
+  pixels.className = 'hero__pixels';
+  pixels.setAttribute('aria-hidden', 'true');
+  if (heroMedia) heroMedia.appendChild(pixels);
+
+  // scramble in: every letter starts as a random one and settles left to right
+  const scrambleIn = (el, delay) => {
+    const text = el.textContent;
+    const DUR = 650;
+    const marks = Array.from(text, (c, i) => ({
+      c,
+      at: (i / Math.max(1, text.length)) * DUR * 0.6 + Math.random() * DUR * 0.4,
+    }));
+    const rand = (c) => {
+      const r = SCRAMBLE_POOL[Math.floor(Math.random() * SCRAMBLE_POOL.length)];
+      return c === c.toLowerCase() && c !== c.toUpperCase() ? r.toLowerCase() : r;
+    };
+    setTimeout(() => {
+      const t0 = performance.now();
+      el.style.visibility = 'visible';
+      const tick = (now) => {
+        const t = now - t0;
+        el.textContent = marks.map((m) => (/\s/.test(m.c) || t >= m.at ? m.c : rand(m.c))).join('');
+        if (t < DUR) requestAnimationFrame(tick);
+        else el.textContent = text;
+      };
+      requestAnimationFrame(tick);
+    }, delay);
+  };
+
+  const revealPage = () => {
+    if (navLogo) {
+      navLogo.style.transition = 'opacity .6s ease';
+      navLogo.style.opacity = '';
+    }
+    introTargets.forEach((el, i) => scrambleIn(el, i * 45));
+  };
+
+  // the clip in blocks, top to bottom: each block goes dark → a coarse pixel
+  // of the current frame → the clip, its turn set by its row plus a little luck
+  const revealClip = () => {
+    if (!heroMedia) return;
+    const w = heroMedia.clientWidth;
+    const h = heroMedia.clientHeight;
+    if (!w || !h) { pixels.remove(); return; }
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const cell = Math.max(10, Math.round(w / 22));
+    const cols = Math.ceil(w / cell);
+    const rows = Math.ceil(h / cell);
+    pixels.width = Math.round(w * dpr);
+    pixels.height = Math.round(h * dpr);
+    const ctx = pixels.getContext('2d');
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.imageSmoothingEnabled = false;
+    const small = document.createElement('canvas');
+    small.width = cols;
+    small.height = rows;
+    const sctx = small.getContext('2d');
+    const turn = [];
+    for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) turn.push((r / rows) * 0.72 + Math.random() * 0.2);
+    pixels.classList.add('is-live');
+    const t0 = performance.now();
+    const tick = (now) => {
+      const q = (now - t0) / CLIP_MS;
+      if (heroVideo && heroVideo.readyState >= 2) sctx.drawImage(heroVideo, 0, 0, cols, rows);
+      else { sctx.fillStyle = '#2a2a2a'; sctx.fillRect(0, 0, cols, rows); }
+      ctx.clearRect(0, 0, w, h);
+      ctx.drawImage(small, 0, 0, cols, rows, 0, 0, cols * cell, rows * cell);
+      ctx.fillStyle = '#101010';
+      for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < cols; c++) {
+          const local = (q - turn[r * cols + c]) / 0.12;
+          if (local < 0) ctx.fillRect(c * cell, r * cell, cell, cell);
+          else if (local >= 1) ctx.clearRect(c * cell, r * cell, cell, cell);
+        }
+      }
+      if (q < 1.1) requestAnimationFrame(tick);
+      else pixels.remove();
+    };
+    requestAnimationFrame(tick);
+  };
+
+  // ---- the ASCII globe ----
+  // A sphere of mono characters in red: land (3D value noise on the sphere)
+  // in o 0 O @, sea in . : ', both shaded by a light from the upper left. It grows in over the open page while turning half a turn about
+  // its axis, then blows apart — letters fly out from the centre, flickering
+  // to random ones as they go, each on its own luck.
+  const hash3 = (x, y, z) => {
+    let h = Math.imul(x, 374761393) + Math.imul(y, 668265263) + Math.imul(z, 1274126177);
+    h = Math.imul(h ^ (h >>> 13), 1274126177);
+    return ((h ^ (h >>> 16)) >>> 0) / 4294967295;
+  };
+  const noise3 = (x, y, z) => {
+    const xi = Math.floor(x), yi = Math.floor(y), zi = Math.floor(z);
+    const xf = x - xi, yf = y - yi, zf = z - zi;
+    const u = xf * xf * (3 - 2 * xf), v = yf * yf * (3 - 2 * yf), w = zf * zf * (3 - 2 * zf);
+    const l = (a, b, t) => a + (b - a) * t;
+    return l(
+      l(l(hash3(xi, yi, zi), hash3(xi + 1, yi, zi), u), l(hash3(xi, yi + 1, zi), hash3(xi + 1, yi + 1, zi), u), v),
+      l(l(hash3(xi, yi, zi + 1), hash3(xi + 1, yi, zi + 1), u), l(hash3(xi, yi + 1, zi + 1), hash3(xi + 1, yi + 1, zi + 1), u), v),
+      w,
+    );
+  };
+  const land = (x, y, z) => 0.6 * noise3(x * 1.7 + 9, y * 1.7 + 3, z * 1.7 + 5)
+    + 0.3 * noise3(x * 3.4 + 1, y * 3.4 + 7, z * 3.4 + 2)
+    + 0.1 * noise3(x * 6.8, y * 6.8, z * 6.8);
+  // as in the reference: land in o 0 O @ from shade to light, sea in . : '
+  const LAND = 'o0O@';
+  const SEA = ".:'";
+
+  const runGlobe = () => {
+    const gctx = globeCanvas.getContext('2d');
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+    globeCanvas.classList.add('is-on');
+    globeCanvas.width = Math.round(vw * dpr);
+    globeCanvas.height = Math.round(vh * dpr);
+    gctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    gctx.textBaseline = 'middle';
+    gctx.textAlign = 'center';
+    const box = heroMedia && heroMedia.getBoundingClientRect();
+    const cx = box && box.width ? box.left + box.width / 2 : vw / 2;
+    const cy = box && box.width ? box.top + box.height / 2 : vh / 2;
+    const R = Math.min(vw, vh) * 0.3;
+    const t0 = performance.now();
+    const tick = (now) => {
+      const t = now - t0;
+      const grow = 1 - Math.pow(1 - clamp01(t / GLOBE_IN), 3);
+      const r = R * (0.35 + 0.65 * grow);
+      const k = clamp01(t / TURN_MS);
+      // half a turn, eased in; it keeps drifting on, slowing, while it blows
+      // apart so the move never stops dead
+      const q = clamp01((t - TURN_MS) / BLAST_MS);
+      const rot = Math.PI * (k < 0.5 ? 2 * k * k : 1 - Math.pow(-2 * k + 2, 2) / 2) + 0.35 * (1 - Math.pow(1 - q, 2));
+      // the blast: every letter breaks into a few specks that drift out from
+      // the centre — each its own way and distance, easing out — and fade
+      // evenly; a speck keeps its letter, so nothing flickers
+      const fly = 1 - Math.pow(1 - q, 3);
+      const fade = 1 - Math.pow(q, 1.8);   // holds its light, then lets go at the end
+      const fs = Math.max(7, Math.min(16, R / 15));   // ~48 letters across
+      const cw = fs * 0.62;
+      const lh = fs * 1.05;
+      const scale = r / R;
+      gctx.clearRect(0, 0, vw, vh);
+      const cr = Math.cos(rot), sr = Math.sin(rot);
+      const SPECKS = q > 0 ? 4 : 1;
+      gctx.font = `500 ${fs * scale}px "Geist Mono", "Roboto Mono", monospace`;
+      for (let jj = 0, gy = -R; gy <= R; jj++, gy += lh) {
+        for (let ii = 0, gx = -R; gx <= R; ii++, gx += cw) {
+          const nx = gx / R, ny = gy / R;
+          const d = nx * nx + ny * ny;
+          if (d > 1) continue;
+          const nz = Math.sqrt(1 - d);
+          const px = nx * cr + nz * sr, pz = -nx * sr + nz * cr;
+          const lit = clamp01(0.35 + 0.65 * (nz * 0.75 - nx * 0.3 - ny * 0.35));
+          const isLand = land(px, ny, pz) > 0.53;
+          const base = isLand ? LAND[Math.min(LAND.length - 1, Math.floor(lit * LAND.length))] : SEA[Math.min(SEA.length - 1, Math.floor(lit * SEA.length))];
+          const a0 = (isLand ? 0.55 + 0.45 * lit : 0.4 + 0.35 * lit) * grow;
+          const red = Math.round(185 + 70 * lit), green = Math.round(14 + 36 * lit), blue = Math.round(10 + 26 * lit);
+          const len = Math.sqrt(d) || 0.001;
+          for (let s = 0; s < SPECKS; s++) {
+            let x = cx + gx * scale;
+            let y = cy + gy * scale;
+            let a = a0;
+            let ch = base;
+            if (q > 0) {
+              const h1 = hash3(ii, jj, 11 + s), h2 = hash3(ii, jj, 23 + s), h3 = hash3(ii, jj, 37 + s);
+              // out along the radius, turned up to ±35°, a share of the letters
+              // flung far, most drifting a little way
+              const ang = Math.atan2(ny / len, nx / len) + (h1 - 0.5) * 1.2;
+              // the letter itself only drifts, so the globe thins from the inside
+              // out; its specks are the ones flung wide
+              const out = R * (0.1 + 1.6 * h2 * h2) * fly * (s === 0 ? 0.45 : 1);
+              x += Math.cos(ang) * out;
+              y += Math.sin(ang) * out;
+              a *= fade * (0.6 + 0.4 * h3) * (s === 0 ? 1 : 0.8);
+              if (s > 0) ch = h3 < 0.5 ? '.' : (isLand ? 'o' : ':');
+            }
+            if (a < 0.015) continue;
+            gctx.fillStyle = `rgba(${red},${green},${blue},${a.toFixed(3)})`;
+            gctx.fillText(ch, x, y);
+          }
+        }
+      }
+      if (t < TURN_MS + BLAST_MS) requestAnimationFrame(tick);
+      else globeCanvas.remove();
+    };
+    requestAnimationFrame(tick);
+  };
+
+  const leave = () => {
+    load.classList.add('is-out');
     document.documentElement.classList.remove('is-loading');
     if (lenis) lenis.start();
 
-    setTimeout(() => {
-      load.remove();
-      window.dispatchEvent(new Event('scroll'));
-      window.dispatchEvent(new Event('resize'));
-    }, 800);
+    // the way in to the Home page is a zoom into the 957 mark: the mark on the
+    // front card becomes a window onto the page (a hole in the loader in its
+    // shape, exactly where it's printed), and the whole loader — cards, type,
+    // window and all — is scaled up about the mark, the mark drifting to the
+    // middle of the screen as it comes. Slow to start,
+    // then rushing in, until the window is all there is; the loader lets go
+    // as the last of it passes.
+    const card = faces[2].getBoundingClientRect();
+    const mark = {
+      x: card.left + card.width * (145 / 276),
+      y: card.top + card.height * (437 / 550),
+      w: card.width * (112 / 276),
+    };
+    mark.h = mark.w * (91 / 112);
+    load.style.setProperty('--mw', `${mark.w}px`);
+    load.style.setProperty('--mx', `${mark.x}px`);
+    load.style.setProperty('--my', `${mark.y}px`);
+    const AX = 15 / 112, AY = 20 / 91;  // a point inside the 9's stroke, in the mark's box
+    const box = heroMedia && heroMedia.getBoundingClientRect();
+    const C = box && box.width
+      ? { x: box.left + box.width / 2, y: box.top + box.height / 2 }
+      : { x: window.innerWidth / 2, y: window.innerHeight / 2 };
+    const ZOOM = 240;                   // how far in it goes
+    load.style.transformOrigin = '0 0';
+    load.style.willChange = 'transform';
+    // the mark stays white as the zoom gets going, then clears into the window
+    // (the loader's own copy is cut away by the window, so this one sits just
+    // outside it and is moved with it)
+    const cover = document.createElement('div');
+    cover.className = 'load-mark';
+    cover.setAttribute('aria-hidden', 'true');
+    const coverMark = document.createElement('img');
+    coverMark.src = 'assets/load/mark-957.svg';
+    coverMark.alt = '';
+    Object.assign(coverMark.style, { left: `${mark.x}px`, top: `${mark.y}px`, width: `${mark.w}px` });
+    cover.appendChild(coverMark);
+    document.body.appendChild(cover);
+    const t0 = performance.now();
+    const zoom = (now) => {
+      const k = clamp01((now - t0) / PORTAL_MS);
+      const e = k * k * (3 - 2 * k);
+      const s = Math.pow(ZOOM, Math.pow(k, 2.2));
+      // it zooms about the middle of the mark, which drifts to the middle of
+      // the screen; only over the last stretch does the zoom shift onto the
+      // 9's stroke, so the screen ends up inside the window, not a counter
+      const late = Math.pow(k, 3);
+      const ax = mark.x + mark.w * (0.5 + (AX - 0.5) * late);
+      const ay = mark.y + mark.h * (0.5 + (AY - 0.5) * late);
+      const cx = ax + (C.x - ax) * e;
+      const cy = ay + (C.y - ay) * e;
+      const move = `translate(${cx - s * ax}px,${cy - s * ay}px) scale(${s})`;
+      load.style.transform = move;
+      cover.style.transform = move;
+      const clear = clamp01((k - 0.12) / 0.38);
+      cover.style.opacity = String(1 - clear * clear * (3 - 2 * clear));
+      load.style.opacity = String(1 - clamp01((k - 0.7) / 0.3));
+      if (k < 1) requestAnimationFrame(zoom);
+      else {
+        load.remove();
+        cover.remove();
+        window.dispatchEvent(new Event('scroll'));
+        window.dispatchEvent(new Event('resize'));
+      }
+    };
+    requestAnimationFrame(zoom);
+
+    setTimeout(runGlobe, GLOBE_FROM);
+    setTimeout(revealPage, PAGE_AT);
+    setTimeout(revealClip, CLIP_AT);
+  };
+
+  // the sheet in flight: in one move it turns a quarter clockwise, flat in its
+  // own plane, and shrinks into the centre as the upright card 9, the turn and
+  // the shrink on the same curve. The sheet keeps its own landscape box the
+  // whole way (screen → 550 × 276) and the quarter turn stands it up; card 9's
+  // art rides inside, turned back the other way, and comes up as it lands
+  const lerp = (a, b, t) => a + (b - a) * t;
+  const inOut = (t) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
+  const art = flood.querySelector('img');
+  const fly = (k) => {
+    const vw = load.clientWidth;
+    const vh = load.clientHeight;
+    const cu = cardUnit();
+    const e = inOut(k);
+    const w = lerp(vw, 550 * cu, e);
+    const h = lerp(vh, 276 * cu, e);
+    flood.style.width = `${w}px`;
+    flood.style.height = `${h}px`;
+    flood.style.transform = `translate(-50%,-50%) rotate(${90 * e}deg)`;
+    flood.style.borderRadius = `${12 * cu * e}px`;  // square screen → the card's soft corners
+    // the running name behind is out of focus while the sheet is in flight,
+    // and comes sharp as it lands
+    marquee.style.filter = `blur(${(14 * cu * (1 - k ** 3)).toFixed(2)}px)`;  // holds, then clears at the end
+    art.style.width = `${h}px`;
+    art.style.height = `${w}px`;
+    art.style.opacity = clamp01((k - 0.7) / 0.25).toFixed(3);
   };
 
   const start = performance.now();
   let p = 0;
+  let fullAt = 0;
+  let stop = null;
 
   const step = (now) => {
     const elapsed = now - start;
-    // the count never outruns the clock, and never stalls past MAX_MS
-    const capped = HOLD * Math.min(1, elapsed / MIN_MS);
-    const target = (ready && elapsed >= MIN_MS) || elapsed >= MAX_MS ? 100 : capped;
 
-    p += (target - p) * 0.1;
-    if (target === 100 && p > 99.5) p = 100;
+    if (elapsed >= RED_MS) {
+      const k = clamp01((elapsed - RED_MS) / FLY_MS);
+      // the drum (folded, so only card 9 shows) fades in under the sheet's
+      // last stretch, then takes over from it
+      if (k >= 0.9) load.classList.add('is-landing');
+      if (k < 1) fly(k);
+      else if (!load.classList.contains('is-landed')) {
+        load.classList.add('is-landed');
+        marquee.style.filter = 'none';
+      }
+    }
+    // the side cards slide out from behind card 9
+    // smootherstep: eases in and out, so the cards glide out rather than snap
+    const sk = clamp01((elapsed - SPREAD_FROM) / SPREAD_MS);
+    const spread = sk * sk * sk * (sk * (sk * 6 - 15) + 10);
 
-    load.style.setProperty('--p', p.toFixed(2));
+    // the drum: up to speed, then a steady turn — three turns, and on for as
+    // many more as the page still needs
+    const t = Math.max(0, elapsed - SPIN_FROM);
+    const cruise = t < SPIN_UP ? (SPEED * t * t) / (2 * SPIN_UP * 1000) : SPEED * (t - SPIN_UP / 2) / 1000;
+
+    const done = (ready && cruise >= STOP_AT) || elapsed >= MAX_MS;
+    if (!stop && done && t > 0) {
+      // brake onto the next 957 about BRAKE_DEG ahead (after three turns that's
+      // three and a half in all), leaving at the speed it was going and
+      // settling with none
+      const from = cruise;
+      const to = LAND_DEG + 360 * Math.ceil((from + BRAKE_DEG - 30 - LAND_DEG) / 360);
+      const dist = to - from;
+      const ms = Math.min(2400, Math.max(1000, (2 * dist / SPEED) * 1000));
+      stop = { at: now, from, to, ms, p };
+    }
+
+    let deg = cruise;
+    if (stop) {
+      // Hermite from (from, SPEED) to (to, 0)
+      const s = clamp01((now - stop.at) / stop.ms);
+      const v = (SPEED * stop.ms) / 1000;
+      deg = (2 * s ** 3 - 3 * s ** 2 + 1) * stop.from + (s ** 3 - 2 * s ** 2 + s) * v + (-2 * s ** 3 + 3 * s ** 2) * stop.to;
+      // the count runs the rest of the way with the stop and hits 100 on landing
+      p = stop.p + (100 - stop.p) * (1 - (1 - s) * (1 - s));
+      if (s >= 1) p = 100;
+    } else {
+      // a third of the count before the turn, the rest of the way to HOLD with it
+      const target = elapsed < SPIN_FROM
+        ? 35 * (elapsed / SPIN_FROM)
+        : 35 + (HOLD - 35) * Math.min(1, cruise / STOP_AT);
+      p += (target - p) * 0.15;
+    }
+    setSpin(deg, spread);
     countEl.textContent = String(Math.round(p)).padStart(2, '0');
 
-    if (p < 55) setPhase('is-clock');
-    else if (p < 65) setPhase('is-mark');
-    else setPhase('is-split');
-
-    if (p >= 100) finish();
-    else requestAnimationFrame(step);
+    if (p >= 100 && !fullAt) {
+      fullAt = now;
+      load.classList.add('is-full');
+    }
+    if (fullAt && now - fullAt >= FULL_MS) { leave(); return; }
+    requestAnimationFrame(step);
   };
 
   if (lenis) lenis.stop();
-  setPhase('is-clock');
+  // on a timer rather than the frame loop, so it lands on cue even before the
+  // first frames come through
+  setTimeout(() => load.classList.add('is-part'), PART_MS);
+  setTimeout(() => load.classList.add('is-lift'), LIFT_MS);
   requestAnimationFrame(step);
 }

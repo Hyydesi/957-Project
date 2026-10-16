@@ -11,7 +11,7 @@
   --font-mono:'Roboto Mono', monospace;
   --font-body:'Roboto', sans-serif;
   --font-nav:'Geist Mono', 'Roboto Mono', monospace;
-  --nav-h:72px;
+  --nav-h:64px;
 }
 
 *{margin:0;padding:0;box-sizing:border-box;}
@@ -56,21 +56,27 @@ button{font:inherit;background:none;border:none;color:inherit;cursor:pointer;}
 .nav__logo-img--red{display:none;}
 .nav__links{display:flex;align-items:center;gap:16px;font-family:var(--font-nav);font-size:14px;flex-shrink:0;}
 @media(min-width:1024px){.nav__links{gap:40px;}}
-@media(min-width:1600px){.nav__links{gap:64px;}}
 .nav__links a{display:none;}
 @media(min-width:768px){.nav__links a{display:inline;}}
 .nav__actions{display:flex;align-items:center;align-self:stretch;gap:16px;}
 @media(min-width:480px){.nav__actions{gap:24px;}}
-.nav__cta{
-  display:flex;align-items:center;align-self:stretch;min-height:24px;
-  padding:0 12px;
-  background:var(--white);color:#101010;
-  font-family:'Roboto', var(--font-body);font-weight:500;font-size:14px;white-space:nowrap;
-  transition:background .35s ease,color .35s ease;
+/* EN/VN and Get in touch — two translucent pills, 8px apart (Figma 1502:395) */
+.nav__pills{display:flex;align-items:center;gap:8px;}
+.nav__pill{
+  display:inline-flex;align-items:center;justify-content:center;gap:4px;
+  padding:8px 13px;border-radius:6px;
+  background:rgba(255,255,255,.2);color:var(--white);
+  font-family:var(--font-nav);font-weight:500;font-size:14px;line-height:normal;letter-spacing:-.03em;
+  white-space:nowrap;
+  transition:background .25s ease;
 }
-@media(min-width:480px){.nav__cta{padding:0 16px;}}
-/* 24px tall as in the frame on desktop; phones keep a thumb-sized target */
-@media(max-width:767px){.nav__cta{min-height:32px;}}
+.nav__pill:hover{background:rgba(255,255,255,.3);}
+/* the language not in use, and the slash, sit at half strength */
+.nav__lang{gap:0;}
+.nav__lang-sep{margin-left:4px;} /* "EN" and "/VN" sit 4px apart */
+.nav__lang span{color:rgba(255,255,255,.5);transition:color .25s ease;}
+.nav__lang span.is-on{color:var(--white);}
+@media(max-width:479px){.nav__pill{padding:7px 9px;font-size:13px;}}
 /* four red dots — two squares, two circles, set on the diagonals */
 .nav__menu{position:relative;width:24px;height:24px;flex-shrink:0;}
 .nav__menu::before{content:'';position:absolute;inset:-8px;}
@@ -206,9 +212,11 @@ button{font:inherit;background:none;border:none;color:inherit;cursor:pointer;}
 .hero__anchor{position:absolute;left:0;top:0;width:1px;height:1px;}
 .hero__sticky{position:sticky;top:0;height:100vh;overflow:hidden;background:#101010;}
 
-/* The resting frame is the 1920×977 Figma frame scaled as a whole: --u is one
-   design px, taken from whichever of width or height runs out first, so the
-   heading, slot and side columns keep their proportions on any desktop screen. */
+/* The resting frame is the 1920×977 Figma frame (1502:243) scaled as a whole:
+   --u is one design px, taken from whichever of width or height runs out first,
+   so the slot and the type keep their proportions on any desktop screen.
+   Media links up top-left, the slot dead centre, the heading bottom-left and
+   the lead bottom-right, the two starting on the same line. */
 .hero__intro{
   --u:min(100vw / 1920, 100vh / 977);
   position:absolute;inset:0;
@@ -216,93 +224,52 @@ button{font:inherit;background:none;border:none;color:inherit;cursor:pointer;}
   grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);
   grid-template-rows:auto 1fr auto;
   grid-template-areas:
-    "title  slot side"
-    ".      slot side"
-    "social slot side";
+    "social slot ."
+    ".      slot ."
+    "title  slot lead";
   column-gap:24px;
-  /* the right column runs to 29px off the edge in the frame, not the nav's 40 */
-  padding:calc(164 * var(--u)) 29px calc(76 * var(--u)) 40px;
+  padding:calc(99 * var(--u)) 40px calc(77 * var(--u));
 }
 /* JS scrolls the block through --intro-y. It moves each child rather than the
    block itself: a transform (or z-index, or opacity) on the block would make it
    its own stacking context and cut the heading's blend off from the image. */
 .hero__intro > *{position:relative;z-index:3;transform:translate3d(0,var(--intro-y,0px),0);}
-/* the image's resting place: 504×684 in the middle of the frame, 5px below the
-   heading's top; JS reads its box and corner radius as the start of the grow */
+/* the image's resting place: 368×499, centred on the frame (the padding is
+   22px heavier on top, hence the nudge back up); JS reads its box and corner
+   radius as the start of the grow */
 .hero__media-slot{
-  grid-area:slot;align-self:start;
-  margin-top:calc(5 * var(--u));
-  height:calc(684 * var(--u));aspect-ratio:504/684;
-  border-radius:calc(32 * var(--u));
+  grid-area:slot;align-self:center;
+  margin-top:calc(-22 * var(--u));
+  height:calc(499 * var(--u));aspect-ratio:368/499;
+  border-radius:calc(72 * var(--u));
 }
 .hero__title{
   grid-area:title;align-self:start;
-  max-width:5.83em; /* 583px at 100px */
+  max-width:10.85em; /* 694px at 64px */
   mix-blend-mode:difference; /* inverts over the image, as in the Figma frame */
   font-family:var(--font-display);font-weight:400;text-transform:uppercase;
-  font-size:calc(100 * var(--u));line-height:1.03;letter-spacing:-.03em;
+  font-size:max(36px, 64 * var(--u));line-height:1.125;letter-spacing:-.03em;
 }
 .hero__social{
-  grid-area:social;align-self:end;
-  display:flex;flex-direction:column;gap:32px;
+  grid-area:social;align-self:start;
+  display:flex;flex-direction:column;gap:8px;
   font-family:var(--font-body);font-weight:700;text-transform:uppercase;
 }
-.hero__social-group{display:flex;flex-direction:column;gap:8px;}
-/* the small grey heads over the media links and the services list */
 .hero__label{font-family:var(--font-body);font-weight:700;text-transform:uppercase;font-size:14px;letter-spacing:.02em;color:#767676;}
 .hero__social-list{list-style:none;display:flex;flex-direction:column;gap:1px;font-size:16px;}
 .hero__social-list a{transition:color .25s ease;}
 .hero__social-list a:hover{color:var(--red);}
-.hero__scroll{font-size:14px;line-height:15px;color:#c1c1c1;}
-/* the right column, 592 wide: services pinned to the top, lead + stills at
-   the foot, the stills ending on the same line as (Scroll) on the left.
-   The lead pair sits 15px in from the column's edge. */
-.hero__side{
-  grid-area:side;justify-self:end;
-  width:calc(592 * var(--u));
-  display:flex;flex-direction:column;justify-content:space-between;
-}
-.hero__side-foot{
-  display:flex;flex-direction:column;align-items:flex-start;gap:calc(44 * var(--u));
-  padding-left:calc(15 * var(--u));
-}
+/* 366 wide, ending 139px off the frame's right edge */
 .hero__lead{
+  grid-area:lead;align-self:start;justify-self:end;
+  margin-right:calc(139 * var(--u) - 40px);
   max-width:15.25em; /* 366px at 24px */
   font-family:'Roboto',var(--font-body);font-weight:400;
   font-size:max(15px, 24 * var(--u));line-height:1.167;
 }
-/* four slots of project stills in a clipped window. The track steps one slot
-   left at a time (script.js), so each still enters from the right; stills sit
-   in greyscale and only the one in the first slot shows its colour. */
-.hero__thumbs{--gap:calc(4.09 * var(--u));width:100%;overflow:hidden;}
-.hero__thumbs-track{display:flex;gap:var(--gap);will-change:transform;}
-.hero__thumbs-track.is-sliding{transition:transform .8s cubic-bezier(.65,0,.35,1);}
-.hero__thumb{
-  position:relative;flex:0 0 calc((100% - 3 * var(--gap)) / 4);
-  aspect-ratio:141.2/81.8;overflow:hidden;background:#1a1a1a;
-}
-.hero__thumb img{
-  position:absolute;inset:0;width:100%;height:100%;object-fit:cover;
-  filter:grayscale(1) brightness(.75);
-  transition:filter .8s ease;
-}
-.hero__thumb.is-lead img,
-.hero__thumb:hover img{filter:none;}
-.hero__services{display:flex;flex-direction:column;gap:26px;}
-.hero__services-list{list-style:none;display:flex;flex-direction:column;gap:12px;}
-.hero__services-list li{
-  display:flex;justify-content:space-between;gap:16px;padding:0 8px;
-  font-family:var(--font-body);font-weight:700;text-transform:uppercase;
-  font-size:14px;letter-spacing:.02em;color:#c1c1c1;
-  transition:background-color .25s ease,color .25s ease;
-}
-/* the first row is lit at rest; hovering the list hands the bar to that row */
-.hero__services-list li.is-active,
-.hero__services-list li:hover{background:#494949;color:var(--white);}
-.hero__services-list:hover li.is-active:not(:hover){background:transparent;color:#c1c1c1;}
 
-/* phones and small tablets: one column — heading, slot, lead — with
-   the tagline and media links left out; the block sits clear of the nav */
+/* phones and small tablets: one column — heading, slot, lead — with the
+   media links left out; the block sits clear of the nav */
 @media(max-width:899px){
   .hero__intro{
     --u:min(100vw / 430, 100vh / 932);
@@ -310,13 +277,14 @@ button{font:inherit;background:none;border:none;color:inherit;cursor:pointer;}
     gap:24px;
     padding:var(--nav-h) 20px 32px;
   }
-  .hero__title{max-width:none;font-size:clamp(36px, 11.6vw, 72px);}
+  .hero__title{order:-1;max-width:none;font-size:clamp(36px, 11.6vw, 72px);}
   .hero__media-slot{align-self:center;margin-top:0;height:min(34vh, 110vw);border-radius:16px;}
-  .hero__social,.hero__thumbs,.hero__services{display:none;}
-  .hero__side{align-self:stretch;width:auto;gap:24px;justify-content:flex-start;}
-  .hero__side-foot{padding-left:0;}
-  .hero__lead{max-width:24em;}
+  .hero__social{display:none;}
+  .hero__lead{margin-right:0;max-width:24em;}
 }
+
+/* the hidden word field, drawn by JS under everything else on the stage */
+.hero__field{position:absolute;inset:0;z-index:1;display:block;width:100%;height:100%;pointer-events:none;}
 
 /* sized, placed and rounded every frame by JS */
 .hero__media{
@@ -325,6 +293,10 @@ button{font:inherit;background:none;border:none;color:inherit;cursor:pointer;}
 }
 .hero__video{display:block;width:100%;height:100%;object-fit:cover;}
 .hero__shade{position:absolute;inset:0;background:#000;opacity:0;}
+/* coming in from the loader: the clip arrives in blocks, top to bottom —
+   dark, then a coarse pixel of the frame, then the clip itself (script.js) */
+.hero__pixels{position:absolute;inset:0;z-index:1;width:100%;height:100%;background:#101010;pointer-events:none;}
+.hero__pixels.is-live{background:none;}
 
 .hero__about{
   position:absolute;left:0;right:0;top:0;z-index:4;
@@ -1429,137 +1401,162 @@ span.wshow__visit{border-bottom:0;font-family:var(--font-mono);font-size:12px;le
 }
 
 /* ---------- LOADING SCREEN (home) ---------- */
-/* Sized off the 1920x963 Figma frame: --px is one design pixel, so every
-   measurement below can stay in the numbers the design actually uses. */
+/* Three Figma frames (1502:372 → 1502:397 → 1503:489), 1920×963, played as one
+   move: the red sheet folds into the first card, a six-sided carousel of cards
+   spins to 957 while the name parts to the edges, the name runs behind it at
+   100, then the 957 card turns into the hero clip. --u is one design px for
+   the type; --cu one design px for the cards, kept larger on tall phones.
+   Phases are classes set by script.js (is-part, is-lift, is-landing,
+   is-landed, is-full, is-out); the spin
+   and the closing morph are driven from there frame by frame. */
 .load{
-  --px:calc(min(100vw,1920px) / 1920);
-  --p:0;
-  /* half the opened wordmark box — capped so the split still fits a phone */
-  --split:min(calc(536 * var(--px)),46vw);
+  --u:min(100vw / 1920, 100vh / 963);
+  --cu:min(100vh / 963, 100vw / 700);
+  --cw:calc(276 * var(--cu));
+  --ch:calc(550 * var(--cu));
+  --cr:calc(12 * var(--cu));     /* the cards' soft corners */
+  --ease:cubic-bezier(.76,0,.24,1);
   display:none;
   position:fixed;inset:0;z-index:400;
-  background:var(--bg-dark);overflow:hidden;
-  transition:opacity .7s cubic-bezier(.76,0,.24,1),visibility .7s;
+  background:#202020;overflow:hidden;
+  color:var(--white);
 }
-.is-loading .load{display:block;}
+.is-loading .load,.load.is-out{display:block;}
 .is-loading,.is-loading body{overflow:hidden;}
-.load.is-done{opacity:0;visibility:hidden;pointer-events:none;}
-/* phones are far narrower than the design frame — scale off a tighter
-   reference so the dial and wordmark don't shrink to stamps */
-@media(max-width:900px){.load{--px:calc(100vw / 820);}}
 
-.load__bar{
-  position:absolute;top:0;left:0;z-index:3;
-  height:calc(16 * var(--px));
-  width:max(calc(85 * var(--px)),calc(var(--p) * 1%));
-  background:var(--red);
+/* frame 1: the whole screen red. It turns a quarter clockwise, flat in its
+   own plane, as it shrinks into the centre, landing as the upright card 9, its art coming
+   up as it lands; script.js flies it frame by frame */
+.load__flood{
+  position:absolute;z-index:3;left:50%;top:50%;
+  width:100vw;height:100vh;
+  transform:translate(-50%,-50%);
+  background:#d90100;overflow:hidden;
+  will-change:transform,width,height;
 }
-
-/* crosshair — retracts to clear the wordmark once it splits open */
-.load__line{position:absolute;background:var(--white);opacity:.3;mix-blend-mode:exclusion;}
-.load__line--l{left:0;top:50%;height:1px;width:calc(50% - 227.5 * var(--px));}
-.load__line--r{right:0;top:50%;height:1px;width:calc(50% - 227.5 * var(--px));}
-.load__line--t{left:50%;top:0;width:1px;height:50%;}
-.load__line--b{left:50%;bottom:0;width:1px;height:50%;}
-.load__line--l,.load__line--r{transition:width .9s cubic-bezier(.76,0,.24,1);}
-.load__line--t,.load__line--b{transition:height .9s cubic-bezier(.76,0,.24,1);}
-.load.is-split .load__line--l,
-.load.is-split .load__line--r{width:calc(50% - var(--split));}
-.load.is-split .load__line--t,
-.load.is-split .load__line--b{height:calc(50% - 55 * var(--px));}
-
-/* dial and wordmark share one centred cell and cross-fade */
-.load__stage{position:absolute;inset:0;display:grid;place-items:center;}
-.load__clock,.load__logo{grid-area:1/1;}
-
-.load__clock{
-  position:relative;
-  width:calc(455 * var(--px));height:calc(455 * var(--px));
-  border:1px solid rgba(255,255,255,.55);border-radius:50%;
-  transition:opacity .5s ease,transform .6s cubic-bezier(.76,0,.24,1);
-}
-.load__hand{
+/* the art stands upright inside the turned sheet: counter-turned a quarter,
+   its box (set by script.js) the sheet's box swapped */
+.load__flood img{
   position:absolute;left:50%;top:50%;
-  width:calc(227.5 * var(--px));height:3px;margin-top:-1.5px;
-  background:var(--white);transform-origin:0 50%;
-  /* 12.6deg per count = 3.5 turns across the whole load — a slow sweep */
-  transform:rotate(calc(180deg + var(--p) * 12.6deg));
+  display:block;object-fit:cover;
+  transform:translate(-50%,-50%) rotate(-90deg);
+  opacity:0;
 }
-.load.is-mark .load__clock,
-.load.is-split .load__clock{opacity:0;transform:scale(.86);}
+.load.is-landed .load__flood{display:none;}
 
-.load__logo{position:relative;display:grid;place-items:center;opacity:0;transition:opacity .55s ease;}
-.load.is-mark .load__logo,
-.load.is-split .load__logo{opacity:1;}
+/* the carousel: the four cards on a drum, the front one flat at z = 0 */
+.load__stage{
+  position:absolute;inset:0;z-index:2;
+  display:grid;place-items:center;
+  perspective:calc(1100 * var(--cu));
+  /* the drum stays out of sight until the sheet lands on its front face */
+  opacity:0;
+  transition:opacity .45s ease;
+}
+.load.is-landing .load__stage{opacity:1;}
+.load__ring{
+  position:relative;width:var(--cw);height:var(--ch);
+  transform-style:preserve-3d;
+}
+/* each card is placed by script.js — round a drum, turned two thirds of the
+   way toward the viewer so the side cards still show — and only ever turns
+   about the vertical axis; the ones going round the back show their backs */
+.load__face{
+  position:absolute;inset:0;width:100%;height:100%;
+  border-radius:var(--cr);
+  filter:brightness(var(--lit,1));
+  will-change:transform;
+}
 
-.load__frame{
-  position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
-  width:calc(455 * var(--px));height:calc(110 * var(--px));
-  border:1px solid #3f3f3f;
-  transition:width .9s cubic-bezier(.76,0,.24,1);
+/* the name: centred together as the red comes up, parted to the edges
+   straight away and on up to the top edge in one go, leaving the centre line
+   to the running name. Each half is anchored at
+   its own edge and only slides — a single transform, so both halves part in
+   step whatever their widths */
+.load__name{
+  position:absolute;z-index:4;top:50%;
+  font-family:'Roboto',var(--font-body);font-size:max(13px, 24 * var(--u));line-height:1.2;
+  white-space:nowrap;
+  transition:transform .8s var(--ease),top .8s var(--ease),color .8s ease,opacity .4s ease;
 }
-.load.is-split .load__frame{width:calc(var(--split) * 2);}
-
-.load__row{
-  position:relative;z-index:2;
-  display:flex;align-items:center;gap:calc(10 * var(--px));
-  transition:gap .9s cubic-bezier(.76,0,.24,1);
+.load__name--l{
+  left:calc(94 * var(--u));font-weight:500;
+  transform:translate(calc(50vw - 94 * var(--u) - 100% - 11 * var(--u)),-50%);
 }
-.load.is-split .load__row{gap:min(calc(620 * var(--px)),42vw);}
-
-.load__word{
-  font-family:var(--font-display);color:var(--red);
-  font-size:calc(67.44 * var(--px));line-height:calc(61.5 * var(--px));
-  letter-spacing:calc(-2.02 * var(--px));
+.load__name--r{
+  right:calc(94 * var(--u));font-weight:400;
+  transform:translate(calc(-50vw + 94 * var(--u) + 100% + 11 * var(--u)),-50%);
 }
-.load__seven{display:block;width:calc(189.34 * var(--px));height:auto;}
-
-/* the stills ride out of the gap the wordmark opens */
-.load__slot{
-  position:absolute;left:50%;top:50%;z-index:1;
-  width:min(calc(420 * var(--px)),34vw);aspect-ratio:420/310;
-  overflow:hidden;background:#1a1a1a;opacity:0;
-  transform:translate(-50%,-50%) scale(.4);
-  transition:opacity .5s ease .25s,transform .7s cubic-bezier(.16,1,.3,1) .25s;
-}
-.load.is-split .load__slot{opacity:1;transform:translate(-50%,-50%) scale(1);}
-.load__slot img{
-  position:absolute;inset:0;width:100%;height:100%;object-fit:cover;
-  opacity:0;transition:opacity .35s ease;
-}
-.load__slot img.is-on{opacity:1;}
+.load.is-part .load__name{transform:translate(0,-50%);}
+.load.is-lift .load__name{top:calc(38 * var(--u));transform:translate(0,0);}
+.load.is-lift .load__name--l{color:#c5c5c5;}
+.load.is-lift .load__name--r{color:#969696;}
 
 .load__count{
-  position:absolute;left:calc(30 * var(--px));bottom:calc(24 * var(--px));
-  font-family:var(--font-body);font-weight:600;letter-spacing:-.02em;
-  font-size:calc(200 * var(--px));line-height:1;color:var(--white);
+  position:absolute;z-index:4;left:calc(30 * var(--u));bottom:calc(14 * var(--u));
+  font-family:-apple-system,'SF Pro Display','Roboto',var(--font-body);font-weight:600;
+  font-size:max(64px, 200 * var(--u));line-height:1;letter-spacing:-.01em;
+  font-variant-numeric:tabular-nums;
+  transition:opacity .4s ease;
 }
-
 .load__tagline{
-  position:absolute;right:calc(53 * var(--px));bottom:calc(72 * var(--px));
-  display:flex;flex-direction:column;align-items:flex-end;gap:calc(8 * var(--px));
-  font-family:var(--font-body);letter-spacing:-.01em;color:var(--white);
-  font-size:calc(32 * var(--px));line-height:calc(24 * var(--px));
+  position:absolute;z-index:4;right:calc(53 * var(--u));bottom:calc(72 * var(--u));
+  display:flex;flex-direction:column;align-items:flex-end;gap:calc(8 * var(--u));
+  font-family:-apple-system,'SF Pro Text','Roboto',var(--font-body);
+  font-size:max(14px, 32 * var(--u));line-height:.75;letter-spacing:-.01em;text-align:right;
+  transition:opacity .4s ease;
 }
 
-/* readout chips from the tail end of the sequence */
-.load__chip{
-  position:absolute;opacity:0;
-  display:flex;align-items:center;
-  border:1px solid #3f3f3f;color:var(--white);
-  font-family:var(--font-mono);font-size:calc(14 * var(--px));
-  padding:0 calc(12 * var(--px));white-space:nowrap;
-  transition:opacity .6s ease .35s;
+/* the name at 96px, running from the start: hidden under the red sheet at
+   first, uncovered — blurred, coming into focus — as it turns and shrinks,
+   sharp behind the cards once it lands (script.js sets the blur) */
+.load__marquee{
+  position:absolute;left:0;right:0;top:50%;z-index:1;
+  transform:translateY(-50%);
+  will-change:filter;
+  transition:opacity .6s ease;
 }
-.load.is-split .load__chip{opacity:1;}
-.load__chip--a{left:63.7%;top:26%;height:calc(40 * var(--px));}
-.load__chip--b{left:26.5%;top:14%;height:calc(50 * var(--px));}
-.load__chip--c{left:68.1%;top:64.2%;height:calc(37 * var(--px));}
+.load__marquee-track{
+  display:flex;gap:calc(80 * var(--u));width:max-content;
+  font-family:'Roboto',var(--font-body);font-weight:500;
+  font-size:max(40px, 96 * var(--u));line-height:1.18;white-space:nowrap;
+  animation:loadMarquee 9s linear infinite;
+}
+.load__marquee-track span{padding-right:0;}
+@keyframes loadMarquee{
+  from{transform:translateX(0);}
+  to{transform:translateX(calc(-50% - 40 * var(--u)));}
+}
 
-@media(max-width:639px){
-  /* the chips crowd the wordmark on a phone */
-  .load__chips{display:none;}
+/* the way out (as in the reference): a zoom into the 957 mark. The mark on
+   the front card becomes a window onto the Home page — a hole in the loader
+   cut in its shape, exactly where it's printed (script.js sets --mx/--my/--mw)
+   — and script.js scales the whole loader up about it, so the window grows
+   with the scene like a camera moving in. The type fades as it goes. */
+.load.is-out{
+  pointer-events:none;
+  -webkit-mask-image:linear-gradient(#000,#000),url("assets/load/mark-957.svg");
+  mask-image:linear-gradient(#000,#000),url("assets/load/mark-957.svg");
+  -webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;
+  -webkit-mask-size:100% 100%,var(--mw,0px) auto;mask-size:100% 100%,var(--mw,0px) auto;
+  -webkit-mask-position:0 0,var(--mx,50%) var(--my,50%);mask-position:0 0,var(--mx,50%) var(--my,50%);
+  -webkit-mask-composite:xor;mask-composite:exclude;
 }
+.load.is-out .load__name,
+.load.is-out .load__count,
+.load.is-out .load__tagline,
+.load.is-out .load__marquee{opacity:0;transition:opacity .35s ease;}
+
+/* a white copy of the 957 mark over the window as the zoom gets going, so it
+   reads as the printed mark first and only then clears into the window;
+   script.js moves it with the loader */
+.load-mark{position:fixed;inset:0;z-index:401;pointer-events:none;transform-origin:0 0;will-change:transform,opacity;}
+.load-mark img{position:absolute;display:block;height:auto;filter:invert(1);}
+
+/* the globe over the Home page once it's open: red ASCII, half a turn, then
+   blown apart; outside the loader so the opening never cuts it */
+.load-globe{display:none;position:fixed;inset:0;z-index:401;width:100%;height:100%;pointer-events:none;}
+.is-loading .load-globe,.load-globe.is-on{display:block;}
 
 @media(prefers-reduced-motion:reduce){
   .load{display:none;}

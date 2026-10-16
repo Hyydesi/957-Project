@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=Roboto:wght@400;500;600;700&family=Roboto+Mono:wght@400;500;600&family=DM+Sans:wght@400;500&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=125">
+<link rel="stylesheet" href="styles.css?v=141">
 <script src="page-transition.js?v=2"></script>
 <!-- the loading screen plays when the site is opened or reloaded, not when
      arriving from another of its pages (the page transition covers that) -->
@@ -15,35 +15,33 @@
 </head>
 <body class="home">
 
-<!-- LOADING -->
+<!-- LOADING (Figma 1502:372 → 1502:397 → 1503:489): the red sheet lifting
+     off and shrinking into the first card, a carousel of the four cards turning to
+     957, the name running behind it, then the 957 mark opening onto the Home
+     page, where an ASCII globe turns and blows apart -->
 <div class="load" id="load" role="status" aria-label="Loading">
-  <span class="load__bar" aria-hidden="true"></span>
-
-  <div class="load__grid" aria-hidden="true">
-    <span class="load__line load__line--l"></span>
-    <span class="load__line load__line--r"></span>
-    <span class="load__line load__line--t"></span>
-    <span class="load__line load__line--b"></span>
-  </div>
-
-  <div class="load__stage" aria-hidden="true">
-    <div class="load__clock"><span class="load__hand"></span></div>
-
-    <div class="load__logo">
-      <span class="load__frame"></span>
-      <div class="load__row">
-        <span class="load__word">NINEFIVE</span>
-        <img class="load__seven" src="assets/logo-seven-red.svg" alt="">
-      </div>
-      <span class="load__slot" id="loadSlot"></span>
+  <div class="load__marquee" aria-hidden="true">
+    <div class="load__marquee-track">
+      <span>NINEFIVE SEVEN</span><span>NINEFIVE SEVEN</span><span>NINEFIVE SEVEN</span><span>NINEFIVE SEVEN</span>
+      <span>NINEFIVE SEVEN</span><span>NINEFIVE SEVEN</span><span>NINEFIVE SEVEN</span><span>NINEFIVE SEVEN</span>
     </div>
   </div>
 
-  <div class="load__chips" aria-hidden="true">
-    <span class="load__chip load__chip--a">9876.19387.2654</span>
-    <span class="load__chip load__chip--b">918.876</span>
-    <span class="load__chip load__chip--c">-98.76543.0987654210</span>
+  <div class="load__stage" aria-hidden="true">
+    <div class="load__ring" id="loadRing">
+        <img class="load__face" src="assets/load/card-9.svg" alt="">
+        <img class="load__face" src="assets/load/card-5.svg" alt="">
+        <img class="load__face" src="assets/load/card-957.svg" alt="">
+        <img class="load__face" src="assets/load/card-7.svg" alt="">
+    </div>
   </div>
+
+
+  <!-- frame 1's red sheet: it lifts off the screen, tilts and shrinks into card 9 -->
+  <div class="load__flood" id="loadFlood" aria-hidden="true"><img src="assets/load/card-9.svg" alt=""></div>
+
+  <p class="load__name load__name--l" aria-hidden="true">NINEFIVE SEVEN</p>
+  <p class="load__name load__name--r" aria-hidden="true">Design Studio</p>
 
   <p class="load__count" id="loadCount">00</p>
 
@@ -51,6 +49,11 @@
     <span>ALIGN</span><span>DRIVE</span><span>VISION</span>
   </div>
 </div>
+
+<!-- the way out: the 957 mark opens into the Home page, then an ASCII globe
+     turns half a turn over it and blows apart (drawn by script.js); it sits
+     outside the loader so the opening never cuts it -->
+<canvas class="load-globe" id="loadGlobe" aria-hidden="true"></canvas>
 
 <nav class="nav" id="nav" data-theme="dark">
   <div class="nav__inner">
@@ -62,7 +65,10 @@
       <a href="works.html">[01] WORKS</a>
       <a href="#about">[02] ABOUT</a>
       <div class="nav__actions">
-        <button type="button" class="nav__cta" data-contact-open>Start a project</button>
+        <div class="nav__pills">
+          <button type="button" class="nav__pill nav__lang" id="langToggle" aria-label="Switch language"><span class="is-on" data-lang="en">EN</span><span class="nav__lang-sep">/</span><span data-lang="vn">VN</span></button>
+          <button type="button" class="nav__pill" data-contact-open>Get in touch</button>
+        </div>
         <button type="button" class="nav__menu" id="menuToggle" aria-label="Open menu"><i></i><i></i><i></i><i></i></button>
       </div>
     </div>
@@ -99,45 +105,27 @@
   <section class="hero" id="hero" data-theme="dark">
     <span class="hero__anchor" id="about" aria-hidden="true"></span>
     <div class="hero__sticky">
-      <!-- resting frame: heading top-left, the clip in a tall rounded slot in the
-           middle, media links bottom-left; down the right, the services list up
-           top, the lead and a strip of project stills at the foot -->
+      <!-- the hidden field: NINEFIVE / SEVEN typing in and wiping out all
+           over the frame, far behind everything (see the hero field in script.js) -->
+      <canvas class="hero__field" id="heroField" aria-hidden="true"></canvas>
+
+      <!-- resting frame (Figma 1502:243): media links top-left, the clip in a
+           tall rounded slot dead centre, the heading bottom-left and the lead
+           bottom-right, both starting on the same line -->
       <div class="hero__intro">
-        <h1 class="hero__title" data-cms="hero.title" data-cms-label="Tiêu đề" data-cms-group="Hero">Designing ideas into scalable digital experiences</h1>
-        <div class="hero__media-slot" aria-hidden="true"></div>
         <div class="hero__social">
-          <div class="hero__social-group">
-            <p class="hero__label">Media</p>
-            <ul class="hero__social-list">
-              <li><a href="#" data-cms-href="hero.media1.url" data-cms-label="Link media 1" data-cms-group="Hero"><span data-cms="hero.media1.name" data-cms-label="Tên media 1" data-cms-group="Hero">X</span></a></li>
-              <li><a href="#" data-cms-href="hero.media2.url" data-cms-label="Link media 2" data-cms-group="Hero"><span data-cms="hero.media2.name" data-cms-label="Tên media 2" data-cms-group="Hero">Behance</span></a></li>
-              <li><a href="#" data-cms-href="hero.media3.url" data-cms-label="Link media 3" data-cms-group="Hero"><span data-cms="hero.media3.name" data-cms-label="Tên media 3" data-cms-group="Hero">Instagram</span></a></li>
-              <li><a href="#" data-cms-href="hero.media4.url" data-cms-label="Link media 4" data-cms-group="Hero"><span data-cms="hero.media4.name" data-cms-label="Tên media 4" data-cms-group="Hero">Telegram</span></a></li>
-              <li><a href="#" data-cms-href="hero.media5.url" data-cms-label="Link media 5" data-cms-group="Hero"><span data-cms="hero.media5.name" data-cms-label="Tên media 5" data-cms-group="Hero">LinkedIn</span></a></li>
-            </ul>
-          </div>
-          <p class="hero__scroll" aria-hidden="true">(Scroll)</p>
+          <p class="hero__label">Media</p>
+          <ul class="hero__social-list">
+            <li><a href="#" data-cms-href="hero.media1.url" data-cms-label="Link media 1" data-cms-group="Hero"><span data-cms="hero.media1.name" data-cms-label="Tên media 1" data-cms-group="Hero">X</span></a></li>
+            <li><a href="#" data-cms-href="hero.media2.url" data-cms-label="Link media 2" data-cms-group="Hero"><span data-cms="hero.media2.name" data-cms-label="Tên media 2" data-cms-group="Hero">Behance</span></a></li>
+            <li><a href="#" data-cms-href="hero.media3.url" data-cms-label="Link media 3" data-cms-group="Hero"><span data-cms="hero.media3.name" data-cms-label="Tên media 3" data-cms-group="Hero">Instagram</span></a></li>
+            <li><a href="#" data-cms-href="hero.media4.url" data-cms-label="Link media 4" data-cms-group="Hero"><span data-cms="hero.media4.name" data-cms-label="Tên media 4" data-cms-group="Hero">Telegram</span></a></li>
+            <li><a href="#" data-cms-href="hero.media5.url" data-cms-label="Link media 5" data-cms-group="Hero"><span data-cms="hero.media5.name" data-cms-label="Tên media 5" data-cms-group="Hero">LinkedIn</span></a></li>
+          </ul>
         </div>
-        <div class="hero__side">
-          <div class="hero__services">
-            <p class="hero__label">Services</p>
-            <ul class="hero__services-list" id="heroServices">
-              <li class="is-active"><span data-cms="hero.service1" data-cms-label="Dịch vụ 1" data-cms-group="Hero">Product design</span><span>[1]</span></li>
-              <li><span data-cms="hero.service2" data-cms-label="Dịch vụ 2" data-cms-group="Hero">Logo &amp; Branding</span><span>[2]</span></li>
-              <li><span data-cms="hero.service3" data-cms-label="Dịch vụ 3" data-cms-group="Hero">Websites &amp; Landing Page</span><span>[3]</span></li>
-              <li><span data-cms="hero.service4" data-cms-label="Dịch vụ 4" data-cms-group="Hero">Game design</span><span>[4]</span></li>
-              <li><span data-cms="hero.service5" data-cms-label="Dịch vụ 5" data-cms-group="Hero">Motion design</span><span>[5]</span></li>
-            </ul>
-          </div>
-          <div class="hero__side-foot">
-            <p class="hero__lead" data-cms="hero.lead" data-cms-label="Mô tả" data-cms-group="Hero">We are a design agency helping teams design, build, and scale digital products that actually work and drive real impact.</p>
-            <!-- the project stills, filled from projects.js; they step in from the
-                 right and the one that lands in the first slot takes its colour -->
-            <div class="hero__thumbs" id="heroThumbs">
-              <div class="hero__thumbs-track"></div>
-            </div>
-          </div>
-        </div>
+        <div class="hero__media-slot" aria-hidden="true"></div>
+        <h1 class="hero__title" data-cms="hero.title" data-cms-label="Tiêu đề" data-cms-group="Hero">Designing ideas into scalable digital experiences</h1>
+        <p class="hero__lead" data-cms="hero.lead" data-cms-label="Mô tả" data-cms-group="Hero">We are a design agency helping teams design, build, and scale digital products that actually work and drive real impact.</p>
       </div>
 
       <div class="hero__media" aria-hidden="true">
@@ -742,7 +730,7 @@
 
 <script src="https://cdn.jsdelivr.net/npm/lenis@1.1.13/dist/lenis.min.js"></script>
 <script src="projects.js?v=24"></script>
-<script src="script.js?v=49"></script>
+<script src="script.js?v=82"></script>
 <script src="footer-heat.js?v=3"></script>
 <script src="services.js?v=12"></script>
 <script src="process.js?v=2"></script>

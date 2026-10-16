@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=Roboto:wght@400;500;600;700&family=Roboto+Mono:wght@400;500;600&family=Chakra+Petch:wght@400;500;600;700&family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=125">
+<link rel="stylesheet" href="styles.css?v=141">
 <link rel="stylesheet" href="klever.css?v=29">
 <script src="page-transition.js?v=2"></script>
 </head>
@@ -23,7 +23,10 @@
       <a href="works.html">[01] WORKS</a>
       <a href="index.html#about">[02] ABOUT</a>
       <div class="nav__actions">
-        <button type="button" class="nav__cta" data-contact-open>Start a project</button>
+        <div class="nav__pills">
+          <button type="button" class="nav__pill nav__lang" id="langToggle" aria-label="Switch language"><span class="is-on" data-lang="en">EN</span><span class="nav__lang-sep">/</span><span data-lang="vn">VN</span></button>
+          <button type="button" class="nav__pill" data-contact-open>Get in touch</button>
+        </div>
         <button type="button" class="nav__menu" id="menuToggle" aria-label="Open menu"><i></i><i></i><i></i><i></i></button>
       </div>
     </div>
@@ -345,7 +348,7 @@
 
 </main>
 
-<script src="script.js?v=49"></script>
+<script src="script.js?v=82"></script>
 <script src="footer-heat.js?v=3"></script>
 <script src="contact.js?v=6"></script>
 </body>
