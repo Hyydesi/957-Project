@@ -84,29 +84,42 @@ button{font:inherit;background:none;border:none;color:inherit;cursor:pointer;}
    section, while the white marks already invert to dark there on their own */
 
 /* menu — a red card dropped from the top-right corner, opened from the dots.
-   It unfolds as a circle grown out of its own close button, then the links
-   rise in one after another; every link scrambles its letters on hover. */
+   It grows out of its own close button (the clip starts as that 56px tile and
+   opens to the whole card), then the links rise in one after another. Closing
+   runs it back: the links fade first, then the card folds into the tile.
+   Every link scrambles its letters on hover. */
 .menu-overlay{
   position:fixed;inset:0;z-index:200;
   pointer-events:none;
+  /* the card's clip would cut a box-shadow off, so the shadow is cast here,
+     around whatever part of the card is showing */
+  filter:drop-shadow(0 24px 40px rgba(0,0,0,.35));
 }
 .menu-overlay.is-open{pointer-events:auto;}
 .menu-overlay__panel{
-  --menu-ease:cubic-bezier(.77,0,.18,1);
   position:absolute;top:12px;right:12px;left:12px;
   max-height:calc(100dvh - 24px);overflow-y:auto;overscroll-behavior:contain;
   padding:16px 16px 36px;
   background:var(--red);color:var(--white);
   border-radius:24px;
-  box-shadow:0 24px 60px -12px rgba(0,0,0,.45);
-  clip-path:circle(0 at calc(100% - 44px) 44px);
+  /* closed: clipped down to the close tile, 16px in from the top-right corner */
+  clip-path:inset(16px 16px calc(100% - 72px) calc(100% - 72px) round 14px);
+  opacity:0;
   visibility:hidden;
-  transition:clip-path .6s var(--menu-ease),visibility 0s .6s;
+  will-change:clip-path;
+  /* closing: wait for the links to fade, fold back in, then let go */
+  transition:clip-path .55s cubic-bezier(.65,0,.35,1) .08s,
+             opacity .2s ease .45s,
+             visibility 0s .65s;
 }
 .menu-overlay.is-open .menu-overlay__panel{
-  clip-path:circle(150% at calc(100% - 44px) 44px);
+  clip-path:inset(0 0 0 0 round 24px);
+  opacity:1;
   visibility:visible;
-  transition:clip-path .7s var(--menu-ease),visibility 0s;
+  /* opening: a long, soft deceleration out of the tile */
+  transition:clip-path .8s cubic-bezier(.16,1,.3,1),
+             opacity .15s ease,
+             visibility 0s;
 }
 @media(min-width:640px){
   .menu-overlay__panel{top:16px;right:24px;left:auto;width:440px;}
@@ -158,24 +171,28 @@ button{font:inherit;background:none;border:none;color:inherit;cursor:pointer;}
 }
 .menu-sublink:hover{color:var(--white);}
 
-/* contents rise in after the card has started to open, one after another */
+/* contents rise in after the card has started to open, one after another,
+   and all fade out together, quickly, before it folds away */
 .menu-link,.menu-overlay__label,.menu-sublink{
   display:inline-block;
-  opacity:0;transform:translateY(14px);
+  opacity:0;transform:translateY(16px);filter:blur(4px);
+  transition:opacity .2s ease,transform .3s ease,filter .2s ease;
 }
 .menu-overlay.is-open .menu-link,
 .menu-overlay.is-open .menu-overlay__label,
 .menu-overlay.is-open .menu-sublink{
-  opacity:1;transform:none;
-  transition:opacity .5s ease calc(.18s + var(--i,0) * 35ms),
-             transform .6s cubic-bezier(.22,1,.36,1) calc(.18s + var(--i,0) * 35ms);
+  opacity:1;transform:none;filter:none;
+  transition:opacity .55s ease calc(.14s + var(--i,0) * 30ms),
+             transform .75s cubic-bezier(.16,1,.3,1) calc(.14s + var(--i,0) * 30ms),
+             filter .55s ease calc(.14s + var(--i,0) * 30ms);
 }
 /* once everything is in, hovers answer straight away instead of on the stagger */
 .menu-overlay.is-settled .menu-link{transition:opacity .25s ease;}
 .menu-overlay.is-settled .menu-sublink{transition:color .2s ease;}
 .menu-overlay.is-settled .menu-overlay__links:hover .menu-link:not(:hover){opacity:.5;}
 @media(prefers-reduced-motion:reduce){
-  .menu-overlay__panel,.menu-overlay.is-open .menu-overlay__panel{transition:visibility 0s;}
+  .menu-overlay__panel,.menu-overlay.is-open .menu-overlay__panel,
+  .menu-overlay .menu-link,.menu-overlay .menu-overlay__label,.menu-overlay .menu-sublink{transition:none;}
 }
 
 /* ---------- HERO + ABOUT ---------- */

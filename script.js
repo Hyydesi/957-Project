@@ -252,7 +252,7 @@ if (menuToggle && menuOverlay && menuClose) {
     menuOverlay.classList.remove('is-settled');
     menuToggle.setAttribute('aria-expanded', String(open));
     if (open) {
-      settleTimer = setTimeout(() => menuOverlay.classList.add('is-settled'), 900);
+      settleTimer = setTimeout(() => menuOverlay.classList.add('is-settled'), 1250);
       menuClose.focus({ preventScroll: true });
     }
   };
