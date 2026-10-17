@@ -269,7 +269,7 @@
     // the still as live ASCII: a grid of cells, each the character for how
     // bright the (cover-cropped, slowly swaying) source is at its middle, in
     // the source's colour, over a faint blur of the source; then dimmed the
-    // way the plain still is: 45% of it over the page's #101010, under a 15%
+    // way the plain still is: 65% of it over the page's #101010, under an 8%
     // black. The band of sky across the top (behind the heading and the nav)
     // is typed fainter, at about half
     bgProg = program(full, `precision mediump float;
@@ -304,11 +304,11 @@
         }
         float ink = texture2D(glyphs, vec2((idx + inCell.x) / SLOTS, inCell.y)).a;
         vec3 tint = clamp(col * 1.7, 0.0, 1.0);
-        vec3 under = texture2D(t, cover(v), 5.0).rgb * 0.3;
+        vec3 under = texture2D(t, cover(v), 5.0).rgb * 0.4;
         // the top band, behind the heading and the nav, fades to about half
         float sky = 1.0 - 0.5 * smoothstep(0.5, 0.72, v.y);
         vec3 ascii = under + tint * ink * sky;
-        gl_FragColor = vec4(mix(vec3(16.0 / 255.0), ascii, 0.45) * 0.85, 1.0);
+        gl_FragColor = vec4(mix(vec3(16.0 / 255.0), ascii, 0.65) * 0.92, 1.0);
       }`);
     // a card: its corners already placed in perspective (clip space, with w
     // for perspective-correct texturing)

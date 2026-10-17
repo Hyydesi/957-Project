@@ -1447,7 +1447,7 @@ html.svc-snap-native{scroll-snap-type:y proximity;}
   --strip-top:calc(250 * var(--u));
   position:sticky;top:0;height:100vh;overflow:hidden;
 }
-.wstrip__bg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0;opacity:.45;}
+.wstrip__bg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0;opacity:.65;}
 .wstrip__title{
   position:absolute;z-index:3;left:40px;top:calc(103 * var(--u));
   /* 9.07em is the frame's 580px at 64px: "everything" always drops to the second line */
@@ -1478,7 +1478,7 @@ html.svc-snap-native{scroll-snap-type:y proximity;}
 }
 .wstrip__gl{position:absolute;z-index:1;inset:0;width:100%;height:100%;pointer-events:none;}
 /* a light black over the still (and its fisheye), under the cards and type */
-.wstrip__shade{position:absolute;inset:0;z-index:1;background:rgba(0,0,0,.15);pointer-events:none;}
+.wstrip__shade{position:absolute;inset:0;z-index:1;background:rgba(0,0,0,.08);pointer-events:none;}
 /* with the canvas drawing the still and the cards through the fisheye, the
    real still and shade step aside and the real cards stay only as links */
 .wstrip__sticky.is-gl .wstrip__bg,
