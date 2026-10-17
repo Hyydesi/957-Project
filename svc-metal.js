@@ -12,7 +12,9 @@
 //
 // The light is all in the fragment shader: a key light from the top left and
 // one that hangs in front of the cursor, an anisotropic highlight (after
-// Ward) that the horizontal brushing draws out into a narrow upright streak,
+// Ward) that the brushing draws out into a narrow streak — the face is
+// brushed on the slant, so the streak falls from the top left to the bottom
+// right, STREAK degrees below the level —
 // a dim sky/ground reflection that brightens and darkens as the slab tips,
 // and a rim of light where the faces turn away. The slab's shadow is the
 // card's own, underneath (CSS: a filter on a WebGL canvas can blank it).
@@ -25,6 +27,7 @@ window.createSvcMetal = function createSvcMetal(canvas) {
   const PERSP = 1400;     // px from the eye to the card, as the CSS perspective
   const DEPTH = 0.035;    // the slab's thickness, as a share of its width
   const TEX = 2;          // the print's resolution, in device pixels per CSS pixel
+  const STREAK = 40;      // the highlight's slant, in degrees below the level (top left to bottom right)
 
   // ---- shaders
   const compile = (type, src) => {
@@ -37,20 +40,20 @@ window.createSvcMetal = function createSvcMetal(canvas) {
   gl.attachShader(prog, compile(gl.VERTEX_SHADER, `
     attribute vec3 aPos; attribute vec3 aNor; attribute vec2 aUv; attribute float aFront;
     uniform mat3 uRot; uniform vec2 uRes; uniform vec2 uCenter; uniform float uPersp;
-    varying vec3 vPos; varying vec3 vNor; varying vec2 vUv; varying float vFront;
+    varying vec3 vPos; varying vec3 vNor; varying vec2 vUv; varying float vFront; varying vec2 vLocal;
     void main(){
       vec3 q = uRot * aPos;
       vec2 s = uCenter + q.xy * (uPersp / (uPersp - q.z));
       gl_Position = vec4(s.x / uRes.x * 2.0 - 1.0, 1.0 - s.y / uRes.y * 2.0, -q.z / 4000.0, 1.0);
-      vPos = q; vNor = uRot * aNor; vUv = aUv; vFront = aFront;
+      vPos = q; vNor = uRot * aNor; vUv = aUv; vFront = aFront; vLocal = aPos.xy;
     }`));
   gl.attachShader(prog, compile(gl.FRAGMENT_SHADER, `
     precision highp float;
-    uniform sampler2D uTex; uniform vec3 uTan; uniform vec3 uCursor; uniform float uPersp;
-    varying vec3 vPos; varying vec3 vNor; varying vec2 vUv; varying float vFront;
+    uniform sampler2D uTex; uniform vec3 uTan; uniform vec2 uStreak; uniform vec3 uCursor; uniform float uPersp;
+    varying vec3 vPos; varying vec3 vNor; varying vec2 vUv; varying float vFront; varying vec2 vLocal;
     float hash(float n){ return fract(sin(n) * 43758.5453); }
     // the highlight of light L: tight along the brushing (T), drawn out
-    // across it (B), so it reads as an upright streak
+    // across it (B), so it reads as a streak at right angles to the grain
     float aniso(vec3 N, vec3 T, vec3 B, vec3 L, vec3 V){
       vec3 H = normalize(L + V);
       float ht = dot(H, T) / 0.05, hb = dot(H, B) / 0.45, hn = max(dot(H, N), 0.05);
@@ -61,8 +64,9 @@ window.createSvcMetal = function createSvcMetal(canvas) {
       vec3 V = normalize(vec3(0.0, 0.0, uPersp) - vPos);
       vec3 T = normalize(uTan - N * dot(uTan, N));
       vec3 B = cross(N, T);
-      // the brushing: fine lines of slightly different sheen
-      float line = vFront > 0.5 ? vUv.y * 900.0 : (vUv.x + vUv.y) * 600.0;
+      // the brushing: fine lines of slightly different sheen, running along
+      // the grain (so they step across the streak's direction)
+      float line = vFront > 0.5 ? dot(vLocal, uStreak) * 1.4 : (vUv.x + vUv.y) * 600.0;
       float g = hash(floor(line)) * 0.6 + hash(floor(line * 0.25) + 17.0) * 0.4;
       vec3 Lk = normalize(vec3(-0.45, -0.65, 0.62));
       vec3 Lc = normalize(uCursor - vPos);
@@ -96,7 +100,12 @@ window.createSvcMetal = function createSvcMetal(canvas) {
   const ib = gl.createBuffer();
   const U = (n) => gl.getUniformLocation(prog, n);
   const uRot = U('uRot'), uRes = U('uRes'), uCenter = U('uCenter'), uPersp = U('uPersp');
-  const uTan = U('uTan'), uCursor = U('uCursor');
+  const uTan = U('uTan'), uStreak = U('uStreak'), uCursor = U('uCursor');
+  // the streak's direction on the face (x right, y down), and the grain at
+  // right angles to it
+  const sa = (STREAK * Math.PI) / 180;
+  const STREAK_DIR = [Math.cos(sa), Math.sin(sa)];
+  const GRAIN = [Math.sin(sa), -Math.cos(sa), 0];
   gl.uniform1i(U('uTex'), 0);
   gl.enable(gl.DEPTH_TEST);
   gl.clearColor(0, 0, 0, 0);
@@ -232,7 +241,11 @@ window.createSvcMetal = function createSvcMetal(canvas) {
     gl.uniform2f(uRes, W, H);
     gl.uniform2f(uCenter, center[0], center[1]);
     gl.uniform1f(uPersp, PERSP);
-    gl.uniform3f(uTan, m[0], m[1], m[2]);
+    gl.uniform3f(uTan,
+      m[0] * GRAIN[0] + m[3] * GRAIN[1],
+      m[1] * GRAIN[0] + m[4] * GRAIN[1],
+      m[2] * GRAIN[0] + m[5] * GRAIN[1]);
+    gl.uniform2f(uStreak, STREAK_DIR[0], STREAK_DIR[1]);
     // the cursor's light hangs where its mirror image lands right under the
     // cursor, however the slab leans: off the point under it, along the
     // reflection of the line of sight in the face

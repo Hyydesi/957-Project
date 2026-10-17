@@ -71,7 +71,9 @@
   const HOLD = 450;           // ms the bare screen holds after landing, at the least
   const GESTURE_GAP = 180;    // ms without a wheel tick that ends a gesture (trackpads coast)
   const HYSTERESIS = 0.55;    // how far past halfway before the open service changes
+  const AT_REST = 0.003;      // how close to its stop the room must be for the metal (0.27°)
   const TILT = 10;            // deg the hovered card leans toward the cursor, at most
+  const TILT_PERSP = 1400;    // px, the perspective it leans under (svc-metal.js's and the CSS's)
   const SPRING = 0.085;       // how hard the slab is pulled toward its lean, per frame
   const DAMP = 0.8;           // how much of its swing it keeps, per frame (some overshoot)
   const SLABS = 10;           // slices behind a hovered card, 2px apart: its thickness
@@ -399,6 +401,25 @@
     el.style.visibility = on ? '' : 'hidden';
   };
 
+  // The lean of the hovered card (the WebGL slab's, or the CSS stand-in's),
+  // and where it puts a corner of the card on screen: turned about the middle
+  // of the face as rotateX(rx) rotateY(ry) under TILT_PERSP, as the slab is,
+  // so the edges can stay on its corners while it leans.
+  const lean3 = { rx: 0, ry: 0, card: -1 };
+  const setLean = (rx, ry, i) => {
+    if (rx === lean3.rx && ry === lean3.ry && i === lean3.card) return;
+    lean3.rx = rx; lean3.ry = ry; lean3.card = i;
+    dirty = true;
+  };
+  const leaned = (x, y) => {
+    const a = (lean3.rx * Math.PI) / 180, b = (lean3.ry * Math.PI) / 180;
+    const ca = Math.cos(a), sa = Math.sin(a), cb = Math.cos(b), sb = Math.sin(b);
+    const X = x - ex, Y = y - ey;
+    const qx = cb * X, qy = sa * sb * X + ca * Y, qz = -ca * sb * X + sa * Y;
+    const k = TILT_PERSP / (TILT_PERSP - qz);
+    return [ex + qx * k, ey + qy * k];
+  };
+
   // a keyword's transform: its wall's turn, then the lens about the eye
   const chip = (k, a) => {
     const e = toEye(k.cx, k.cy, a);
@@ -438,7 +459,7 @@
         return;
       }
       const a0 = angle(jn.j), a1 = angle(jn.j + 1);
-      [card.top, card.bottom].forEach((y, n) => edge(jn.pair[n], y, a0, a1, near));
+      [card.top, card.bottom].forEach((y, n) => edge(jn.pair[n], y, a0, a1, near, jn.j));
     });
   };
   // One edge. Its base is the straight line from wall j's card corner to wall
@@ -468,10 +489,15 @@
   };
   // how far a point lies outside the screen (0 inside it)
   const outside = (p) => Math.hypot(Math.max(0, -p[0], p[0] - W), Math.max(0, -p[1], p[1] - H));
-  const edge = (path, y, a0, a1, near) => {
+  const edge = (path, y, a0, a1, near, j) => {
     const seg = clip(toEye(card.right, y, a0), toEye(card.left, y, a1), near);
     if (!seg) { path.style.display = 'none'; return; }
     let p = toScreen(seg[0]), f = toScreen(seg[1]);
+    // the leaning card's corners, where it leans to
+    if (lean3.card >= 0) {
+      if (j === lean3.card) p = leaned(card.right, y);
+      if (j + 1 === lean3.card) f = leaned(card.left, y);
+    }
     if (outside(p) > outside(f)) [p, f] = [f, p];
     const shown = clip2(p, f, 0, 0, W, H);
     if (!shown) { path.style.display = 'none'; return; }
@@ -751,16 +777,27 @@
     metalCanvas.classList.toggle('is-cut', !!cut);
     metalCanvas.classList.remove('is-on');
     glCard = -1;
+    setLean(0, 0, -1);
   };
+  // The metal waits until the room has truly stopped: a snap's last stretch
+  // still turns the card a degree or two, which would shift it sideways
+  // under the slab. (settled is looser, for the echoes.)
+  const atRest = () => settled && Math.abs(pos - open) < AT_REST;
   const shineGL = () => {
-    if (!settled) {
+    if (!atRest()) {
       if (glCard >= 0) { glOff(true); swing.x = swing.y = swing.vx = swing.vy = 0; }
       return;
     }
     const want = hovered === open ? open : -1;
     if (want >= 0 && glCard !== want) {
       glOff(true);
-      metalGL.prepare(services[want].card, section);
+      // printed off the card standing square, whatever trace of a turn it
+      // still has, so the slab lands where the room's edges meet it
+      const c = services[want].card;
+      const turned = c.style.transform;
+      c.style.transform = 'none';
+      metalGL.prepare(c, section);
+      c.style.transform = turned;
       metalGL.draw(-swing.y * TILT, swing.x * TILT, lean.mx / 100, lean.my / 100);
       glCard = want;
       metalCanvas.classList.remove('is-cut');
@@ -773,7 +810,8 @@
     swing.vy = (swing.vy + (ty - swing.y) * SPRING) * DAMP;
     swing.x += swing.vx;
     swing.y += swing.vy;
-    metalGL.draw(-swing.y * TILT, swing.x * TILT, lean.mx / 100, lean.my / 100);
+    setLean(-swing.y * TILT, swing.x * TILT, glCard);
+    metalGL.draw(lean3.rx, lean3.ry, lean.mx / 100, lean.my / 100);
     const still = Math.max(Math.abs(swing.x), Math.abs(swing.y), Math.abs(swing.vx), Math.abs(swing.vy)) < 0.002;
     if (want < 0 && still) glOff(false);
   };
@@ -782,7 +820,7 @@
   let leaning = -1;   // the card still easing back to flat, if any
   const shine = () => {
     if (metalGL) { shineGL(); return; }
-    const on = hovered === open && settled ? open : -1;
+    const on = hovered === open && atRest() ? open : -1;
     if (on !== metal) {
       if (metal >= 0) services[metal].card.classList.remove('is-metal');
       if (on >= 0) services[on].card.classList.add('is-metal');
@@ -797,8 +835,10 @@
     if (Math.abs(lean.x) < 0.001 && Math.abs(lean.y) < 0.001 && on < 0) {
       ['--svc-rx', '--svc-ry', '--svc-sheen'].forEach((p) => b.style.removeProperty(p));
       leaning = -1;
+      setLean(0, 0, -1);
       return;
     }
+    setLean(-lean.y * TILT, lean.x * TILT, leaning);
     b.style.setProperty('--svc-ry', `${(lean.x * TILT).toFixed(2)}deg`);
     b.style.setProperty('--svc-rx', `${(-lean.y * TILT).toFixed(2)}deg`);
     b.style.setProperty('--svc-sheen', `${(lean.x * 25).toFixed(1)}deg`);
@@ -811,11 +851,11 @@
   const tick = (now) => {
     if (!running) return;
     measure();
+    shine();     // before place(), so the edges meet the card where it leans this frame
     place();
     updateOpen();
     glitch(now);
     echo(now);
-    shine();
     requestAnimationFrame(tick);
   };
   const start = () => {
