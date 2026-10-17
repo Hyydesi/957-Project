@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=Roboto:wght@400;500;600;700&family=Roboto+Mono:wght@400;500;600&family=DM+Sans:wght@400;500&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=149">
+<link rel="stylesheet" href="styles.css?v=150">
 <script src="page-transition.js?v=2"></script>
 <!-- the loading screen plays when the site is opened or reloaded, not when
      arriving from another of its pages (the page transition covers that) -->
@@ -207,19 +207,6 @@
        services.js places the two sides mirroring each other. -->
   <div class="svc-stage" id="svcStage">
     <section class="svc" id="our-service" data-theme="dark" aria-label="Our service">
-      <!-- the lens: bends the room toward the screen's corners (services.js
-           draws the displacement map and turns it on) -->
-      <svg class="svc__lens" width="0" height="0" aria-hidden="true" focusable="false">
-        <filter id="svcLens" x="0" y="0" width="1" height="1" color-interpolation-filters="sRGB">
-          <feImage id="svcLensMap" x="0" y="0" width="1" height="1" preserveAspectRatio="none" result="map"/>
-          <feImage id="svcLensMask" x="0" y="0" width="1" height="1" preserveAspectRatio="none" result="mask"/>
-          <feDisplacementMap id="svcLensWarp" in="SourceGraphic" in2="map" scale="0" xChannelSelector="R" yChannelSelector="G" result="warped"/>
-          <feComposite in="warped" in2="mask" operator="in" result="edge"/>
-          <feComposite in="SourceGraphic" in2="mask" operator="out" result="middle"/>
-          <feMerge><feMergeNode in="middle"/><feMergeNode in="edge"/></feMerge>
-        </filter>
-      </svg>
-      <!-- the count stays out of the lens, straight -->
       <ol class="svc__ticks" aria-hidden="true"></ol>
       <div class="svc__sticky">
         <svg class="svc__room" aria-hidden="true"></svg>
@@ -760,7 +747,7 @@
 <script src="script.js?v=82"></script>
 <script src="footer-heat.js?v=3"></script>
 <script src="svc-metal.js?v=5"></script>
-<script src="services.js?v=32"></script>
+<script src="services.js?v=36"></script>
 <script src="process.js?v=2"></script>
 <script src="contact.js?v=6"></script>
 </body>

@@ -484,10 +484,6 @@ html.svc-snap-native{scroll-snap-type:y proximity;}
   background:#000;opacity:calc(var(--svc-cover,0) * .6);
 }
 .svc__sticky{position:absolute;inset:0;}
-/* the lens (see services.js): the room bends toward the screen's corners,
-   the middle untouched */
-.svc__lens{position:absolute;width:0;height:0;overflow:hidden;}
-.svc__sticky.has-lens{filter:url(#svcLens);}
 /* the edges stay dark while the section slides in — they run off to the
    screen's corners, so its top edge would cut them short — and flicker on
    once it has landed (services.js sets .is-on) */
@@ -608,7 +604,7 @@ html.svc-snap-native{scroll-snap-type:y proximity;}
   background:#262626;white-space:nowrap;
   font-family:var(--font-nav);font-weight:500;font-size:clamp(11px,min(.833vw,1.24vh),16px);
   line-height:1.3;letter-spacing:.02em;text-transform:uppercase;
-  opacity:0;will-change:transform,opacity;
+  opacity:0;
 }
 .svc-kw::before{content:'[';opacity:.5;}
 .svc-kw::after{content:']';opacity:.5;}

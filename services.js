@@ -19,9 +19,10 @@
 //     intro) brings the first card up from the foot of the screen, and once it
 //     is in place the edges flicker on, and its keywords with them
 //   · a tick per service along the foot of the screen keeps count
-//   · the whole room is seen through a lens that bends it toward the screen's
-//     corners (a fisheye, as on a curved screen), the middle — the card and
-//     a margin round it — left untouched and sharp
+//   · the room is seen through a lens that bends it toward the screen's
+//     corners (a fisheye, as on a curved screen): the edges and the keywords
+//     are drawn bent, the middle — the card and a margin round it — is left
+//     untouched and sharp
 //   · on a mouse, hovering the open card while the room is at rest turns it
 //     into a slab of brushed gunmetal that leans toward the cursor on a
 //     spring, with a light that follows it: drawn with WebGL over the card
@@ -96,16 +97,6 @@
   const services = items.map((item, i) => {
     const card = item.querySelector('.svc-card');
     const body = card.querySelector('.svc-card__body');
-    const layer = (cls, i) => {
-      const el = document.createElement('div');
-      el.className = cls;
-      el.setAttribute('aria-hidden', 'true');
-      if (i != null) el.style.setProperty('--i', i);
-      return el;
-    };
-    for (let n = SLABS; n >= 1; n--) body.prepend(layer('svc-card__slab', n));
-    body.insertBefore(layer('svc-card__metal'), body.querySelector('.svc-card__bar'));
-    body.appendChild(layer('svc-card__shine'));
     const list = item.querySelector('.svc-kws');
     const kws = [...list.querySelectorAll('.svc-kw')].map((el) => kwOf(el, i, {
       side: SIDES[0].includes(el.dataset.slot) ? 0 : 1,
@@ -120,7 +111,7 @@
       list.appendChild(el);
       return kwOf(el, i, { side, echo: true, dieAt: 0, nextAt: 0 });
     }));
-    return { card, body, kws, echoes, all: kws.concat(echoes), words, shown: null };
+    return { card, body, kws, echoes, all: kws.concat(echoes), words, sizes: {}, shown: null };
   });
   const tickList = section.querySelector('.svc__ticks');
   const ticks = items.map(() => {
@@ -163,6 +154,7 @@
 
   // ---- sizes -----------------------------------------------------------
   let W = 0, H = 0, step = 1, intro = 1;
+  let dirty = true;               // the room needs drawing again even if the scroll hasn't moved
   let ex = 0, ey = 0, depth = 1;   // the eye, straight in front of the card's centre
   let card = { left: 0, top: 0, right: 0, bottom: 0 };
 
@@ -179,6 +171,7 @@
     depth = (W < 900 ? DEPTH_NARROW : DEPTH) * c.offsetWidth;
     room.setAttribute('viewBox', `0 0 ${W} ${H}`);
     lens();
+    dirty = true;
     if (metalGL) { metalGL.resize(W, H); glOff(true); }
     // every piece turns about the eye, wherever it sits on its wall
     services.forEach((s) => {
@@ -186,60 +179,44 @@
       arrange(s);
       // the old scatter no longer fits: let the echoes start afresh
       s.echoes.forEach((e) => { if (e.state !== '') setKw(e, ''); e.nextAt = 0; });
+      // each word's size as an echo, measured once here rather than as it pops up
+      if (s.echoes.length) {
+        const probe = s.echoes[0].el;
+        s.words.forEach((w) => {
+          probe.textContent = w;
+          s.sizes[w] = [probe.offsetWidth, probe.offsetHeight];
+        });
+        probe.textContent = '';
+      }
     });
   };
 
+
   // ---- the lens ----------------------------------------------------------
-  // A fisheye laid over the room with an SVG displacement filter, so it bends
-  // the real page — lines, keywords, cards, the metal slab — and the copy
-  // stays live text. Each point is read from a little further out from the
-  // middle, the further out it lies (as the reference's `c * (1 + k r²)`), so
-  // straight lines bow and the corners draw in. It starts from nothing just
-  // outside the card's farthest corner (r is 1 at the screen's corners), so
-  // the card and everything near it are not touched at all. The map is a
-  // small canvas stretched over the section: red the shift across, green the
-  // shift down, mid-grey none. An 8-bit map can't say "exactly none", so a
-  // second one masks the middle off: there the room is shown straight from
-  // the page, unfiltered, and only outside it is the bent copy used (it bends
-  // from nothing there, so the two meet without a seam).
-  const lensEl = section.querySelector('.svc__sticky');
-  const lensMap = section.querySelector('#svcLensMap');
-  const lensWarp = section.querySelector('#svcLensWarp');
-  const lensMask = section.querySelector('#svcLensMask');
-  const lensCanvas = document.createElement('canvas');
+  // A fisheye, as the reference's `c * (1 + k r²)`, worked out rather than
+  // filtered (a filter over the whole room re-ran on every flicker): each
+  // point is drawn pulled in toward the eye by LENS × t², where t climbs from
+  // nothing just outside the card's farthest corner to 1 at the screen's
+  // corners (r is the distance from the eye, 1 at a corner). So straight
+  // edges bow, the corners draw in, and the card and everything near it are
+  // untouched. The edges are bent point by point; a keyword, being small, is
+  // moved and shrunk as its middle would be, by a scale about the eye in
+  // front of its own turn.
+  let lensFrom = 1;
   const lens = () => {
-    if (!lensMap || !lensWarp || !lensMask) return;
-    const R = (x, y) => Math.hypot((x - W / 2) / (W / 2), (y - H / 2) / (H / 2)) / Math.SQRT2;
-    const from = Math.min(0.9, Math.max(R(card.left, card.top), R(card.right, card.bottom)) + 0.05);
-    const N = 160;
-    const scale = Math.max(W, H) * LENS * 1.04;   // the largest shift either way, with room to spare
-    lensCanvas.width = lensCanvas.height = N;
-    const ctx = lensCanvas.getContext('2d');
-    const img = ctx.createImageData(N, N);
-    const mask = ctx.createImageData(N, N);
-    for (let j = 0; j < N; j++) for (let i = 0; i < N; i++) {
-      const x = ((i + 0.5) / N - 0.5) * W, y = ((j + 0.5) / N - 0.5) * H;
-      const t = Math.max(0, (R(x + W / 2, y + H / 2) - from) / (1 - from));
-      const w = t * t;
-      const k = (j * N + i) * 4;
-      img.data[k] = Math.round((0.5 + (x * LENS * w) / scale) * 255);
-      img.data[k + 1] = Math.round((0.5 + (y * LENS * w) / scale) * 255);
-      img.data[k + 2] = 128;
-      img.data[k + 3] = 255;
-      mask.data[k + 3] = Math.round(Math.min(1, t * 10) * 255);
-    }
-    const put = (el, data) => {
-      ctx.putImageData(data, 0, 0);
-      const url = lensCanvas.toDataURL('image/png');
-      el.setAttribute('href', url);
-      el.setAttributeNS('http://www.w3.org/1999/xlink', 'xlink:href', url);
-      el.setAttribute('width', W);
-      el.setAttribute('height', H);
-    };
-    put(lensMap, img);
-    put(lensMask, mask);
-    lensWarp.setAttribute('scale', scale.toFixed(1));
-    lensEl.classList.add('has-lens');
+    const R = (x, y) => Math.hypot((x - ex) / (W / 2), (y - ey) / (H / 2)) / Math.SQRT2;
+    lensFrom = Math.min(0.9, Math.max(R(card.left, card.top), R(card.right, card.bottom)) + 0.05);
+  };
+  // how much the lens keeps of a point's distance from the eye (1: all of it)
+  const lensK = (x, y) => {
+    const r = Math.hypot((x - ex) / (W / 2), (y - ey) / (H / 2)) / Math.SQRT2;
+    const t = Math.min(1.6, (r - lensFrom) / (1 - lensFrom));
+    return t > 0 ? 1 - LENS * t * t : 1;
+  };
+  // a point as the lens shows it; b fades the bend (0 none, 1 all of it)
+  const warp = (x, y, b) => {
+    const f = 1 - (1 - lensK(x, y)) * b;
+    return [ex + (x - ex) * f, ey + (y - ey) * f];
   };
 
   // ---- keyword places ----------------------------------------------------
@@ -251,9 +228,9 @@
   // up, and the floor below mirrors it.
   const ROWS = [0.248, 0.4825, 0.712];   // keyword tops, as shares of the card's height
   const GAP_NEAR = 0.22, GAP_FAR = 0.417;        // gap to the card, as shares of its width
-  const put = (k, x, y) => {
+  const put = (k, x, y, ww, hh) => {
     const el = k.el;
-    const w = el.offsetWidth, h = el.offsetHeight;
+    const w = ww ?? el.offsetWidth, h = hh ?? el.offsetHeight;
     el.style.left = `${x.toFixed(1)}px`;
     el.style.top = `${y.toFixed(1)}px`;
     k.left = x; k.right = x + w;
@@ -308,15 +285,19 @@
     || (k.echo && k.state === '')
     || x1 + gx <= k.left || x0 - gx >= k.right || y1 + gy <= k.top || y0 - gy >= k.bottom);
   const spawn = (s, e, now) => {
-    e.el.textContent = pick(s.words);
-    const w = e.el.offsetWidth, h = e.el.offsetHeight;
+    const word = pick(s.words);
+    const size = s.sizes[word];
+    if (!size) return;
+    const [w, h] = size;
     const f = frame(e.side);
     if (f.x1 - f.x0 < w || f.y1 - f.y0 < h) { e.nextAt = now + 800; return; }
     const [gx, gy] = gaps(h);
     for (let n = 0; n < 20; n++) {
       const x = rand(f.x0, f.x1 - w), y = rand(f.y0, f.y1 - h);
       if (!clear(s, e, x, y, x + w, y + h, gx, gy)) continue;
-      put(e, x, y);
+      e.el.textContent = word;
+      put(e, x, y, w, h);
+      e.el.style.transform = chip(e, angle(e.wall));
       setKw(e, 'in', 0);
       e.dieAt = now + rand(450, 1900);
       return;
@@ -347,6 +328,8 @@
   let reveal = -1;
   let cover = -1;
 
+  // (read first thing in the frame, before anything is written, so the page
+  // has it to hand and nothing is laid out again for it)
   const measure = () => {
     const r = stage.getBoundingClientRect();
     const s = -r.top;
@@ -416,7 +399,20 @@
     el.style.visibility = on ? '' : 'hidden';
   };
 
+  // a keyword's transform: its wall's turn, then the lens about the eye
+  const chip = (k, a) => {
+    const e = toEye(k.cx, k.cy, a);
+    const p = e[2] > 1 ? toScreen(e) : null;
+    const f = p ? lensK(p[0], p[1]) : 1;
+    return (f < 0.9995 ? `scale(${f.toFixed(4)}) ` : '') + turn(a);
+  };
+  let drawn = '';
   const place = () => {
+    // nothing to do while the room stands still
+    const key = `${pos}|${reveal}`;
+    if (key === drawn && !dirty) return;
+    drawn = key;
+    dirty = false;
     const near = NEAR * depth;
     // during the intro the first card is still on its way up from below
     const rise = reveal < 1 ? (1 - ease(Math.max(0, reveal))) * (H - card.top) : 0;
@@ -430,7 +426,7 @@
       s.all.forEach((k) => {
         const on = facing && nearest(k.left, k.right, a) > near;
         show(k, k.el, on);
-        if (on) k.el.style.transform = turn(a);
+        if (on) k.el.style.transform = chip(k, a);
       });
     }
     // the edges: wall j's right corners to wall j+1's left corners
@@ -457,6 +453,8 @@
   // plain straight line. A phone keeps them straight: there is too little
   // room between the card and the screen's side for a curve.
   const KX = 0.355, KY = 0.146;
+  const EDGE_STEPS = 24;
+  const smooth = (t) => t * t * (3 - 2 * t);
   const clip2 = (p, q, x0, y0, x1, y1) => {
     const dx = q[0] - p[0], dy = q[1] - p[1];
     let t0 = 0, t1 = 1;
@@ -483,9 +481,20 @@
     const w = W < 900 ? 0 : Math.min(1, (outside(f) - outside(p)) / (W * 0.5));
     const kx = 0.5 + (KX - 0.5) * w, ky = 0.5 + (KY - 0.5) * w;
     const K = [P[0] + (E[0] - P[0]) * kx, P[1] + (E[1] - P[1]) * ky];
-    const n = (v) => v.toFixed(1);
+    // through the lens, point by point; an end that is a card's corner stays
+    // put (the card isn't bent), the bend coming in over the first stretch
+    const atP = outside(p) === 0, atE = outside(f) === 0;
+    let d = '';
+    for (let i = 0; i <= EDGE_STEPS; i++) {
+      const t = i / EDGE_STEPS, u = 1 - t;
+      const x = u * u * P[0] + 2 * u * t * K[0] + t * t * E[0];
+      const y = u * u * P[1] + 2 * u * t * K[1] + t * t * E[1];
+      const b = (atP ? smooth(Math.min(1, t / 0.3)) : 1) * (atE ? smooth(Math.min(1, u / 0.3)) : 1);
+      const q = warp(x, y, b);
+      d += `${i ? 'L' : 'M'}${q[0].toFixed(1)} ${q[1].toFixed(1)}`;
+    }
     path.style.display = '';
-    path.setAttribute('d', `M${n(P[0])} ${n(P[1])}Q${n(K[0])} ${n(K[1])} ${n(E[0])} ${n(E[1])}`);
+    path.setAttribute('d', d);
   };
 
   // ---- keyword flicker -------------------------------------------------
@@ -499,7 +508,6 @@
     if (state === 'in' || state === 'out') {
       el.style.setProperty('--d', `${delay.toFixed(2)}s`);
       el.style.setProperty('--dur', `${rand(state === 'in' ? 0.2 : 0.15, state === 'in' ? 0.34 : 0.26).toFixed(2)}s`);
-      void el.offsetWidth; // restart the animation
       el.classList.add(state === 'in' ? 'is-in' : 'is-out');
     } else if (state === 'lit') {
       el.classList.add('is-lit');
@@ -554,8 +562,6 @@
       const el = on.splice((Math.random() * on.length) | 0, 1)[0].el;
       el.style.setProperty('--g-name', pick(GLITCHES));
       el.style.setProperty('--g-dur', `${rand(0.14, 0.32).toFixed(2)}s`);
-      el.classList.remove('is-glitch');
-      void el.offsetWidth;
       el.classList.add('is-glitch');
     }
   };
@@ -703,8 +709,9 @@
     services.forEach((s, i) => {
       s.card.addEventListener('pointermove', (e) => {
         hovered = i;
-        // the card's own box doesn't tilt, so it maps the cursor steadily
-        const r = s.card.getBoundingClientRect();
+        // the card's resting box (the room is pinned and still whenever the
+        // metal is on), so it maps the cursor steadily without asking the page
+        const r = { left: card.left, top: card.top, width: card.right - card.left, height: card.bottom - card.top };
         const u = Math.min(1, Math.max(0, (e.clientX - r.left) / r.width));
         const v = Math.min(1, Math.max(0, (e.clientY - r.top) / r.height));
         lean.tx = (u - 0.5) * 2;
@@ -721,6 +728,21 @@
   // If the room starts to turn it is dropped at once.
   const metalCanvas = section.querySelector('.svc__metal');
   const metalGL = canHover && metalCanvas && window.createSvcMetal ? window.createSvcMetal(metalCanvas) : null;
+  // without it, the CSS stand-in: the card's own slices, finish and sheen
+  if (canHover && !metalGL) {
+    const layer = (cls, i) => {
+      const el = document.createElement('div');
+      el.className = cls;
+      el.setAttribute('aria-hidden', 'true');
+      if (i != null) el.style.setProperty('--i', i);
+      return el;
+    };
+    services.forEach(({ body }) => {
+      for (let n = SLABS; n >= 1; n--) body.prepend(layer('svc-card__slab', n));
+      body.insertBefore(layer('svc-card__metal'), body.querySelector('.svc-card__bar'));
+      body.appendChild(layer('svc-card__shine'));
+    });
+  }
   let glCard = -1;   // the card the slab is standing in for
   const swing = { x: 0, y: 0, vx: 0, vy: 0 };
   const glOff = (cut) => {
