@@ -444,17 +444,18 @@ button{font:inherit;background:none;border:none;color:inherit;cursor:pointer;}
    corners (drawn by services.js into .svc__room) and its keywords hang on the
    side walls. The stage is pinned like the Process stack; services.js turns
    the room from one service to the next and settles on the nearest one.
-   It slides up over the pinned Core as a new screen, solid edge and all: it
-   starts a full screen early, inside the Core stage's last 100vh. Its grey
-   edges only flicker on once it has landed, so none of them is ever cut
-   off at that edge. After the last service it holds one more screen (the
-   tail), which is the scroll Process takes to slide up over it the same way.
-   Just after it lands the first service holds still for a little (the lead),
-   so it can be read before the room turns. */
+   It slides up over the pinned Core as a new screen, solid edge and all, but
+   bare: it starts a full screen early, inside the Core stage's last 100vh,
+   and lands with only its heading on it. The next stretch of scroll (the
+   intro) brings the first card up from the foot of the screen, and only once
+   it is in place do the grey edges and the keywords flicker on — so none of
+   the edges is ever cut off at the section's top edge. After the last
+   service it holds one more screen (the tail), which is the scroll Process
+   takes to slide up over it the same way. */
 .svc-stage{
-  --n:5;--lead:30vh;--step:90vh;--tail:100vh;
+  --n:5;--intro:70vh;--step:90vh;--tail:100vh;
   position:relative;z-index:5;margin-top:-100vh;
-  height:calc(100vh + var(--lead) + (var(--n) - 1) * var(--step) + var(--tail));
+  height:calc(100vh + var(--intro) + (var(--n) - 1) * var(--step) + var(--tail));
 }
 /* below 720px the Core isn't pinned, so there is nothing to slide over */
 @media(max-width:719px){.svc-stage{margin-top:0;}}
@@ -462,10 +463,11 @@ button{font:inherit;background:none;border:none;color:inherit;cursor:pointer;}
    is CSS scroll-snap onto one marker per service, a swipe never flinging past
    one; services.js adds the class */
 html.svc-snap-native{scroll-snap-type:y proximity;}
-/* the first service rests where the section lands; the rest come after the lead */
-.svc__snap{position:absolute;left:0;width:1px;height:1px;top:calc(min(var(--i), 1) * var(--lead) + var(--i) * var(--step));scroll-snap-align:start;scroll-snap-stop:always;pointer-events:none;}
-/* the last marker: Process all the way up */
-.svc__snap--end{top:calc(var(--lead) + (var(--n) - 1) * var(--step) + var(--tail));}
+/* a marker for the bare screen, one per service after the intro, and the
+   last for Process all the way up */
+.svc__snap{position:absolute;left:0;width:1px;height:1px;top:calc(var(--intro) + var(--i, 0) * var(--step));scroll-snap-align:start;scroll-snap-stop:always;pointer-events:none;}
+.svc__snap--start{top:0;}
+.svc__snap--end{top:calc(var(--intro) + (var(--n) - 1) * var(--step) + var(--tail));}
 
 .svc{
   /* the back wall, sized off the height like the frame (632×799 at 1295 tall)
@@ -482,20 +484,17 @@ html.svc-snap-native{scroll-snap-type:y proximity;}
   background:#000;opacity:calc(var(--svc-cover,0) * .6);
 }
 .svc__sticky{position:absolute;inset:0;}
+/* the lens (see services.js): the room bends toward the screen's corners,
+   the middle untouched */
+.svc__lens{position:absolute;width:0;height:0;overflow:hidden;}
+.svc__sticky.has-lens{filter:url(#svcLens);}
 /* the edges stay dark while the section slides in — they run off to the
    screen's corners, so its top edge would cut them short — and flicker on
    once it has landed (services.js sets .is-on) */
 .svc__room{position:absolute;inset:0;z-index:1;width:100%;height:100%;overflow:visible;pointer-events:none;opacity:0;}
 .svc__room.is-on{opacity:1;animation:fxFlicker .45s linear both;}
 /* the ceiling and floor edges: the grey the Works cards are outlined in */
-.svc__room line{stroke:#525252;stroke-width:1.4;vector-effect:non-scaling-stroke;}
-/* set like the Process label, centred over the room */
-.svc__heading{
-  position:absolute;z-index:5;left:0;right:0;top:calc(var(--nav-h) + 3vh);
-  font-family:var(--font-nav);font-weight:400;font-size:14px;line-height:1.3;color:rgba(255,255,255,.6);
-  text-align:center;text-transform:uppercase;
-}
-@media(min-width:900px){.svc__heading{top:14.4vh;}}
+.svc__room path{fill:none;stroke:#525252;stroke-width:1.4;stroke-linejoin:round;vector-effect:non-scaling-stroke;}
 /* one tick per service along the foot of the screen, the open one red */
 .svc__ticks{
   position:absolute;z-index:5;left:50%;bottom:clamp(20px,4vh,40px);transform:translateX(-50%);
@@ -510,26 +509,93 @@ html.svc-snap-native{scroll-snap-type:y proximity;}
   position:absolute;z-index:4;top:var(--ct);left:calc(50% - var(--cw) / 2);
   width:var(--cw);height:var(--ch);
   container-type:size;
-  background:var(--bg-dark);border:1.4px solid var(--red);
   will-change:transform;
 }
+/* the card's face: services.js tilts it under the cursor (--svc-rx, --svc-ry) */
+.svc-card__body{
+  position:absolute;inset:0;
+  background:var(--bg-dark);border:1.4px solid var(--red);
+  transform:perspective(1400px) rotateX(var(--svc-rx,0deg)) rotateY(var(--svc-ry,0deg));
+  transform-style:preserve-3d;
+  transition:box-shadow .4s ease,opacity .25s ease;
+}
+/* while the WebGL slab stands in for the card, the card itself steps aside,
+   leaving only its shadow under the slab */
+.svc-card{transition:box-shadow .3s ease;}
+.svc-card.is-gl{box-shadow:0 40px 80px -20px rgba(0,0,0,.75);}
+.svc-card.is-gl .svc-card__body{opacity:0;}
+/* the WebGL slab (svc-metal.js): over the whole section, so it can lean out
+   past the card's box; hidden when not in use */
+.svc__metal{
+  position:absolute;inset:0;z-index:4;width:100%;height:100%;pointer-events:none;
+  opacity:0;visibility:hidden;transition:opacity .25s ease,visibility 0s linear .25s;
+}
+.svc__metal.is-on{opacity:1;visibility:visible;transition:opacity .25s ease;}
+.svc__metal.is-cut{transition:none;}
+/* the bar: the number on the left, the section's name on the right */
 .svc-card__bar{
   position:absolute;left:0;right:0;top:0;height:7.9cqh;
-  display:flex;align-items:center;padding-left:3.8cqw;
+  display:flex;align-items:center;justify-content:space-between;gap:4cqw;padding:0 4cqw;
+  text-transform:uppercase;white-space:nowrap;
   background:var(--red);
   font-family:var(--font-nav);font-size:3cqh;line-height:1;
 }
-/* titles break where the Figma frames do: 510 of the card's 632 wide, 442 for
-   Branding (set on its card as --svc-title-w) */
+/* title and copy centred down the card. The title's box is narrow enough
+   that each breaks where the Figma frames do (BRANDING / & LOGO on a box of
+   its own, set on its card as --svc-title-w; WEBSITES & / LANDING PAGE and
+   MOBILE APP / DESIGN on the default) */
 .svc-card__title{
-  position:absolute;left:5.9cqw;top:14.3cqh;width:var(--svc-title-w,81cqw);
-  font-family:var(--font-display);font-weight:400;text-transform:uppercase;
-  font-size:12.52cqh;line-height:1.12;letter-spacing:-.03em;
+  position:absolute;left:0;right:0;top:18.7cqh;margin:0 auto;width:var(--svc-title-w,88cqw);
+  font-family:var(--font-display);font-weight:400;text-transform:uppercase;text-align:center;
+  font-size:13.3cqh;line-height:1;letter-spacing:-.03em;
 }
 .svc-card__desc{
-  position:absolute;right:9.2cqw;bottom:8.5cqh;width:78cqw;
-  font-family:var(--font-nav);font-size:3cqh;line-height:1.3;text-align:right;
+  position:absolute;left:0;right:0;bottom:8.5cqh;margin:0 auto;width:80cqw;
+  font-family:var(--font-nav);font-size:3cqh;line-height:1.3;text-align:center;
 }
+
+/* Without WebGL, the stand-in for svc-metal.js's slab. Hovered (on a mouse,
+   while the room is at rest), the open card turns into a slab of brushed
+   gunmetal: it tilts toward the cursor (services.js), a stack
+   of thin slices behind it shows its thickness at the edges, the face takes a
+   cross-brushed steel finish, and a highlight and a glancing sheen follow the
+   cursor (--svc-mx, --svc-my) across it. The red bar and frame stay, the bar
+   anodised; the title turns to engraved silver. */
+.svc-card__metal,.svc-card__shine,.svc-card__slab{position:absolute;pointer-events:none;opacity:0;transition:opacity .35s ease;}
+.svc-card__metal{
+  inset:0;
+  background:
+    radial-gradient(120% 90% at var(--svc-mx,50%) var(--svc-my,30%), rgba(255,255,255,.09), transparent 60%),
+    repeating-linear-gradient(0deg, rgba(255,255,255,.028) 0 1px, rgba(0,0,0,.06) 1px 2px, transparent 2px 4px),
+    linear-gradient(135deg, #2e3136 0%, #191b1e 36%, #272a2f 60%, #111214 100%);
+}
+.svc-card__shine{
+  inset:0;mix-blend-mode:screen;
+  background:
+    radial-gradient(circle at var(--svc-mx,50%) var(--svc-my,30%), rgba(255,255,255,.26), rgba(255,255,255,.05) 22%, transparent 48%),
+    linear-gradient(calc(105deg + var(--svc-sheen,0deg)), transparent 32%, rgba(255,255,255,.09) 46%, rgba(255,255,255,.02) 54%, transparent 64%);
+}
+/* the slab's thickness: thin slices stacked behind the face (--i set in
+   services.js), lit from the top */
+.svc-card__slab{
+  inset:-1.4px;
+  background:linear-gradient(180deg, #3a3e44, #1a1c1f 50%, #0b0c0d);
+  transform:translateZ(calc(var(--i) * -2px));
+}
+.svc-card.is-metal .svc-card__metal,
+.svc-card.is-metal .svc-card__shine,
+.svc-card.is-metal .svc-card__slab{opacity:1;}
+.svc-card.is-metal .svc-card__body{box-shadow:0 40px 80px -20px rgba(0,0,0,.75);}
+.svc-card.is-metal .svc-card__bar{
+  background:linear-gradient(180deg, #ef1d1d 0%, #b90000 55%, #d40a0a 100%);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.25), inset 0 -1px 0 rgba(0,0,0,.35);
+}
+.svc-card.is-metal .svc-card__title{
+  background:linear-gradient(180deg, #ffffff 0%, #e2e5e9 42%, #9da3aa 100%);
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+  filter:drop-shadow(0 1px 0 rgba(0,0,0,.6));
+}
+.svc-card.is-metal .svc-card__desc{text-shadow:0 1px 0 rgba(0,0,0,.6);}
 
 /* the keywords: three on each side wall. These places (the Figma frame's, as
    shares of 1920×1295) only hold until services.js runs; it sets the two
@@ -553,11 +619,28 @@ html.svc-snap-native{scroll-snap-type:y proximity;}
 .svc-kw[data-slot="5"]{--x:17.19%;--y:68.34vh;}
 .svc-kw[data-slot="6"]{--x:69.69%;--y:66.72vh;}
 
-/* flicker states, set by services.js: in → lit (an occasional glitch) → out */
-.svc-kw.is-in{animation:fxFlicker .45s linear both;animation-delay:var(--d,0s);}
+/* flicker states, set by services.js: in → lit (twitching now and then) → out.
+   Each run is quick and gets its own length (--dur, --g-dur), and a twitch
+   one of three patterns (--g-name) */
+.svc-kw.is-in{animation:fxFlicker var(--dur,.3s) linear both;animation-delay:var(--d,0s);}
 .svc-kw.is-lit{opacity:1;}
-.svc-kw.is-lit.is-glitch{animation:svcGlitch .4s linear both;}
-.svc-kw.is-out{animation:svcOut .35s linear both;animation-delay:var(--d,0s);}
+.svc-kw.is-lit.is-glitch{animation:var(--g-name,svcGlitch) var(--g-dur,.25s) linear both;}
+.svc-kw.is-out{animation:svcOut var(--dur,.22s) linear both;animation-delay:var(--d,0s);}
+@keyframes svcGlitchB{
+  0%,20%{opacity:0;}
+  21%,48%{opacity:1;}
+  49%,70%{opacity:0;}
+  71%,100%{opacity:1;}
+}
+@keyframes svcGlitchC{
+  0%,8%{opacity:1;}
+  9%,22%{opacity:.15;}
+  23%,35%{opacity:1;}
+  36%,46%{opacity:0;}
+  47%,62%{opacity:.6;}
+  63%,74%{opacity:0;}
+  75%,100%{opacity:1;}
+}
 @keyframes svcGlitch{
   0%,12%{opacity:1;}
   13%,30%{opacity:0;}

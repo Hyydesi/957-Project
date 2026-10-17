@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=Roboto:wght@400;500;600;700&family=Roboto+Mono:wght@400;500;600&family=DM+Sans:wght@400;500&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=141">
+<link rel="stylesheet" href="styles.css?v=149">
 <script src="page-transition.js?v=2"></script>
 <!-- the loading screen plays when the site is opened or reloaded, not when
      arriving from another of its pages (the page transition covers that) -->
@@ -194,25 +194,43 @@
   </section>
   </div>
 
-  <!-- OUR SERVICE — slides up over the Core like a new screen, then a pinned
-       room seen down its length: the open service is the back wall, red edges run from the screen's corners to its corners and
+  <!-- OUR SERVICE — slides up over the Core like a new screen, bare at first;
+       each card carries the section's name on its bar, beside its number,
+       and on hover it turns into a slab of brushed gunmetal drawn with WebGL
+       over it (svc-metal.js), leaning toward the cursor;
+       the next scroll brings the first card up. Then a pinned room seen down
+       its length: the open service is the back wall, red edges run from the screen's corners to its corners and
        its keywords hang on the side walls. Scrolling turns the room to the
        next service and settles on the nearest when the page comes to rest
        (see services.js). data-slot 1, 2 and 5 hang on the left wall (the
        ceiling on phones), 3, 4 and 6 on the right (the floor), top to bottom;
        services.js places the two sides mirroring each other. -->
   <div class="svc-stage" id="svcStage">
-    <section class="svc" id="our-service" data-theme="dark" aria-labelledby="svcHeading">
+    <section class="svc" id="our-service" data-theme="dark" aria-label="Our service">
+      <!-- the lens: bends the room toward the screen's corners (services.js
+           draws the displacement map and turns it on) -->
+      <svg class="svc__lens" width="0" height="0" aria-hidden="true" focusable="false">
+        <filter id="svcLens" x="0" y="0" width="1" height="1" color-interpolation-filters="sRGB">
+          <feImage id="svcLensMap" x="0" y="0" width="1" height="1" preserveAspectRatio="none" result="map"/>
+          <feImage id="svcLensMask" x="0" y="0" width="1" height="1" preserveAspectRatio="none" result="mask"/>
+          <feDisplacementMap id="svcLensWarp" in="SourceGraphic" in2="map" scale="0" xChannelSelector="R" yChannelSelector="G" result="warped"/>
+          <feComposite in="warped" in2="mask" operator="in" result="edge"/>
+          <feComposite in="SourceGraphic" in2="mask" operator="out" result="middle"/>
+          <feMerge><feMergeNode in="middle"/><feMergeNode in="edge"/></feMerge>
+        </filter>
+      </svg>
+      <!-- the count stays out of the lens, straight -->
+      <ol class="svc__ticks" aria-hidden="true"></ol>
       <div class="svc__sticky">
         <svg class="svc__room" aria-hidden="true"></svg>
-        <h2 class="svc__heading" id="svcHeading" data-cms="svc.heading" data-cms-label="Tiêu đề" data-cms-group="Our Service">(Our service)</h2>
-        <ol class="svc__ticks" aria-hidden="true"></ol>
         <ol class="svc__list">
           <li class="svc-item">
-            <div class="svc-card" style="--svc-title-w:70cqw">
-              <p class="svc-card__bar">[01]</p>
-              <h3 class="svc-card__title" data-cms="svc.s1.title" data-cms-label="Dịch vụ 1: tiêu đề" data-cms-group="Our Service">Branding and Logo</h3>
-              <p class="svc-card__desc" data-cms="svc.s1.desc" data-cms-label="Dịch vụ 1: mô tả" data-cms-group="Our Service">Strong and unique brand identity that reflects your vision</p>
+            <div class="svc-card" style="--svc-title-w:62cqw">
+              <div class="svc-card__body">
+                <p class="svc-card__bar"><span>[01]</span><span data-cms="svc.heading" data-cms-label="Nhãn trên thẻ (chung cho cả 5 thẻ)" data-cms-group="Our Service">Our service</span></p>
+                <h3 class="svc-card__title" data-cms="svc.s1.title" data-cms-label="Dịch vụ 1: tiêu đề" data-cms-group="Our Service">Branding &amp; Logo</h3>
+                <p class="svc-card__desc" data-cms="svc.s1.desc" data-cms-label="Dịch vụ 1: mô tả" data-cms-group="Our Service">Strong and unique brand identity that reflects your vision</p>
+              </div>
             </div>
             <ul class="svc-kws">
               <li class="svc-kw" data-slot="1"><span data-cms="svc.s1.kw1" data-cms-label="Dịch vụ 1: từ khoá 1" data-cms-group="Our Service">Identity</span></li>
@@ -225,9 +243,11 @@
           </li>
           <li class="svc-item">
             <div class="svc-card">
-              <p class="svc-card__bar">[02]</p>
-              <h3 class="svc-card__title" data-cms="svc.s2.title" data-cms-label="Dịch vụ 2: tiêu đề" data-cms-group="Our Service">Websites &amp; Landing Page</h3>
-              <p class="svc-card__desc" data-cms="svc.s2.desc" data-cms-label="Dịch vụ 2: mô tả" data-cms-group="Our Service">We turn ideas into digital experiences, built to engage, convert, and move brands forward.</p>
+              <div class="svc-card__body">
+                <p class="svc-card__bar"><span>[02]</span><span data-cms="svc.heading" data-cms-label="Nhãn trên thẻ (chung cho cả 5 thẻ)" data-cms-group="Our Service">Our service</span></p>
+                <h3 class="svc-card__title" data-cms="svc.s2.title" data-cms-label="Dịch vụ 2: tiêu đề" data-cms-group="Our Service">Websites &amp; Landing Page</h3>
+                <p class="svc-card__desc" data-cms="svc.s2.desc" data-cms-label="Dịch vụ 2: mô tả" data-cms-group="Our Service">We turn ideas into digital experiences, built to engage, convert, and move brands forward.</p>
+              </div>
             </div>
             <ul class="svc-kws">
               <li class="svc-kw" data-slot="1"><span data-cms="svc.s2.kw1" data-cms-label="Dịch vụ 2: từ khoá 1" data-cms-group="Our Service">UX strategy</span></li>
@@ -240,9 +260,11 @@
           </li>
           <li class="svc-item">
             <div class="svc-card">
-              <p class="svc-card__bar">[03]</p>
-              <h3 class="svc-card__title" data-cms="svc.s3.title" data-cms-label="Dịch vụ 3: tiêu đề" data-cms-group="Our Service">Mobile App Design</h3>
-              <p class="svc-card__desc" data-cms="svc.s3.desc" data-cms-label="Dịch vụ 3: mô tả" data-cms-group="Our Service">More than an interface. A product experience built around people.</p>
+              <div class="svc-card__body">
+                <p class="svc-card__bar"><span>[03]</span><span data-cms="svc.heading" data-cms-label="Nhãn trên thẻ (chung cho cả 5 thẻ)" data-cms-group="Our Service">Our service</span></p>
+                <h3 class="svc-card__title" data-cms="svc.s3.title" data-cms-label="Dịch vụ 3: tiêu đề" data-cms-group="Our Service">Mobile App Design</h3>
+                <p class="svc-card__desc" data-cms="svc.s3.desc" data-cms-label="Dịch vụ 3: mô tả" data-cms-group="Our Service">More than an interface. A product experience built around people.</p>
+              </div>
             </div>
             <ul class="svc-kws">
               <li class="svc-kw" data-slot="1"><span data-cms="svc.s3.kw1" data-cms-label="Dịch vụ 3: từ khoá 1" data-cms-group="Our Service">Product strategy</span></li>
@@ -255,9 +277,11 @@
           </li>
           <li class="svc-item">
             <div class="svc-card">
-              <p class="svc-card__bar">[04]</p>
-              <h3 class="svc-card__title" data-cms="svc.s4.title" data-cms-label="Dịch vụ 4: tiêu đề" data-cms-group="Our Service">Game Design</h3>
-              <p class="svc-card__desc" data-cms="svc.s4.desc" data-cms-label="Dịch vụ 4: mô tả" data-cms-group="Our Service">We turn game concepts into worlds players want to stay in.</p>
+              <div class="svc-card__body">
+                <p class="svc-card__bar"><span>[04]</span><span data-cms="svc.heading" data-cms-label="Nhãn trên thẻ (chung cho cả 5 thẻ)" data-cms-group="Our Service">Our service</span></p>
+                <h3 class="svc-card__title" data-cms="svc.s4.title" data-cms-label="Dịch vụ 4: tiêu đề" data-cms-group="Our Service">Game Design</h3>
+                <p class="svc-card__desc" data-cms="svc.s4.desc" data-cms-label="Dịch vụ 4: mô tả" data-cms-group="Our Service">We turn game concepts into worlds players want to stay in.</p>
+              </div>
             </div>
             <ul class="svc-kws">
               <li class="svc-kw" data-slot="1"><span data-cms="svc.s4.kw1" data-cms-label="Dịch vụ 4: từ khoá 1" data-cms-group="Our Service">Gameplay</span></li>
@@ -270,9 +294,11 @@
           </li>
           <li class="svc-item">
             <div class="svc-card">
-              <p class="svc-card__bar">[05]</p>
-              <h3 class="svc-card__title" data-cms="svc.s5.title" data-cms-label="Dịch vụ 5: tiêu đề" data-cms-group="Our Service">Motion Video</h3>
-              <p class="svc-card__desc" data-cms="svc.s5.desc" data-cms-label="Dịch vụ 5: mô tả" data-cms-group="Our Service">We turn ideas into motion, built to catch eyes and hold attention.</p>
+              <div class="svc-card__body">
+                <p class="svc-card__bar"><span>[05]</span><span data-cms="svc.heading" data-cms-label="Nhãn trên thẻ (chung cho cả 5 thẻ)" data-cms-group="Our Service">Our service</span></p>
+                <h3 class="svc-card__title" data-cms="svc.s5.title" data-cms-label="Dịch vụ 5: tiêu đề" data-cms-group="Our Service">Motion Video</h3>
+                <p class="svc-card__desc" data-cms="svc.s5.desc" data-cms-label="Dịch vụ 5: mô tả" data-cms-group="Our Service">We turn ideas into motion, built to catch eyes and hold attention.</p>
+              </div>
             </div>
             <ul class="svc-kws">
               <li class="svc-kw" data-slot="1"><span data-cms="svc.s5.kw1" data-cms-label="Dịch vụ 5: từ khoá 1" data-cms-group="Our Service">Concept</span></li>
@@ -284,6 +310,7 @@
             </ul>
           </li>
         </ol>
+        <canvas class="svc__metal" aria-hidden="true"></canvas>
       </div>
     </section>
   </div>
@@ -732,7 +759,8 @@
 <script src="projects.js?v=24"></script>
 <script src="script.js?v=82"></script>
 <script src="footer-heat.js?v=3"></script>
-<script src="services.js?v=12"></script>
+<script src="svc-metal.js?v=5"></script>
+<script src="services.js?v=32"></script>
 <script src="process.js?v=2"></script>
 <script src="contact.js?v=6"></script>
 </body>
