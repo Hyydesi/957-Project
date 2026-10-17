@@ -81,6 +81,193 @@ document.querySelectorAll('.nav__links a, .menu-link, .menu-sublink').forEach((e
   el.addEventListener('focus', () => scrambler.run());
 });
 
+// ---------- Headings: pixel mosaic reveal ----------
+// A heading builds itself out of blocks: coarse squares appear where its
+// letters will be, break into smaller squares, then into the letters
+// themselves — sweeping left to right, each region on its own luck. The text
+// is drawn to an offscreen canvas first (from the heading's own laid-out
+// letters, so wrapping, size and colour match) to know where the ink is; a
+// canvas over the heading plays the reveal while the real text waits hidden,
+// and hands back to it when done. Every h1/h2 plays it once as it comes into
+// view, and again whenever it's hovered; the home hero title (after the loader) and the Works title (after
+// the page transition) are started by their own pages.
+const pixelReveal = (() => {
+  const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const rand = (i, j, k) => {
+    let h = Math.imul(i, 374761393) + Math.imul(j, 668265263) + Math.imul(k, 1274126177);
+    h = Math.imul(h ^ (h >>> 13), 1274126177);
+    return ((h ^ (h >>> 16)) >>> 0) / 4294967295;
+  };
+
+  // every letter of the heading with its box, font and colour
+  const lettersOf = (el) => {
+    const out = [];
+    const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
+    const range = document.createRange();
+    for (let node = walker.nextNode(); node; node = walker.nextNode()) {
+      const cs = getComputedStyle(node.parentElement);
+      const font = `${cs.fontStyle} ${cs.fontWeight} ${cs.fontSize} ${cs.fontFamily}`;
+      const upper = cs.textTransform === 'uppercase';
+      const text = node.textContent;
+      for (let i = 0; i < text.length; i++) {
+        if (/\s/.test(text[i])) continue;
+        range.setStart(node, i);
+        range.setEnd(node, i + 1);
+        const r = range.getClientRects()[0];
+        if (!r || !r.width) continue;
+        out.push({ ch: upper ? text[i].toUpperCase() : text[i], r, font, color: cs.color });
+      }
+    }
+    return out;
+  };
+
+  // replay (on hover) hides the text by opacity rather than visibility, so the
+  // heading keeps the cursor and doesn't read the replay as leaving and
+  // coming back
+  const play = (el, { duration = 1100, delay = 0, replay = false } = {}) => new Promise((resolve) => {
+    const show = () => {
+      if (replay) el.style.opacity = '';
+      else el.style.visibility = 'visible';
+      delete el.dataset.pxBusy;
+      resolve();
+    };
+    if (still) { show(); return; }
+    el.dataset.pxBusy = '1';
+    if (replay) el.style.opacity = '0';
+    else el.style.visibility = 'hidden';
+    setTimeout(() => {
+      const box = el.getBoundingClientRect();
+      const letters = lettersOf(el);
+      if (!letters.length || !box.width) { show(); return; }
+      const PAD = 6;
+      const W = Math.ceil(box.width + PAD * 2);
+      const H = Math.ceil(box.height + PAD * 2);
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+
+      // the ink: the heading's letters, drawn where they're laid out
+      const ink = document.createElement('canvas');
+      ink.width = Math.round(W * dpr);
+      ink.height = Math.round(H * dpr);
+      const ictx = ink.getContext('2d');
+      ictx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      letters.forEach(({ ch, r, font, color }) => {
+        ictx.font = font;
+        ictx.fillStyle = color;
+        const m = ictx.measureText(ch);
+        const ascent = m.fontBoundingBoxAscent || r.height * 0.8;
+        ictx.fillText(ch, r.left - box.left + PAD, r.top - box.top + PAD + ascent);
+      });
+      const alpha = ictx.getImageData(0, 0, ink.width, ink.height).data;
+
+      // block sizes: three steps down to a fine square, then the letters
+      const size = parseFloat(getComputedStyle(el).fontSize) || 48;
+      const B = Math.max(4, Math.min(14, size * 0.09));
+      const S = [B * 4, B * 2, B];
+      const cover = (x, y, s) => {
+        // the share of the block that's ink, sampled on a coarse grid
+        let hit = 0, n = 0;
+        const step = Math.max(1, Math.floor((s * dpr) / 6));
+        for (let yy = Math.floor(y * dpr); yy < Math.min(ink.height, (y + s) * dpr); yy += step) {
+          for (let xx = Math.floor(x * dpr); xx < Math.min(ink.width, (x + s) * dpr); xx += step) {
+            n++;
+            if (alpha[(yy * ink.width + xx) * 4 + 3] > 60) hit++;
+          }
+        }
+        return n ? hit / n : 0;
+      };
+      const color = letters[0].color;
+      // the blocks, coarse to fine; each has a start time and its children
+      // follow it, so a region always goes coarse → finer → letters
+      const SEG = 0.1;
+      const blocks = [];
+      for (let y = 0, by = 0; y < H; y += S[0], by++) {
+        for (let x = 0, bx = 0; x < W; x += S[0], bx++) {
+          const t0 = 0.5 * (x / W) + 0.25 * rand(bx, by, 1);
+          const kids = [];
+          for (let y2 = y, cy = 0; y2 < y + S[0] && y2 < H; y2 += S[1], cy++) {
+            for (let x2 = x, cx = 0; x2 < x + S[0] && x2 < W; x2 += S[1], cx++) {
+              const t1 = t0 + SEG * (1 + 0.5 * rand(bx * 2 + cx, by * 2 + cy, 2));
+              const fine = [];
+              for (let y3 = y2, fy = 0; y3 < y2 + S[1] && y3 < H; y3 += S[2], fy++) {
+                for (let x3 = x2, fx = 0; x3 < x2 + S[1] && x3 < W; x3 += S[2], fx++) {
+                  const t2 = t1 + SEG * (1 + 0.5 * rand(bx * 4 + cx * 2 + fx, by * 4 + cy * 2 + fy, 3));
+                  fine.push({ x: x3, y: y3, t2, t3: t2 + SEG * (1 + 0.5 * rand(x3 | 0, y3 | 0, 4)), on: cover(x3, y3, S[2]) > 0.3 });
+                }
+              }
+              kids.push({ x: x2, y: y2, t1, on: cover(x2, y2, S[1]) > 0.25, fine });
+            }
+          }
+          blocks.push({ x, y, t0, on: cover(x, y, S[0]) > 0.15, kids });
+        }
+      }
+      const END = 1 + SEG * 4;
+
+      const cv = document.createElement('canvas');
+      cv.className = 'px-reveal';
+      cv.setAttribute('aria-hidden', 'true');
+      cv.width = ink.width;
+      cv.height = ink.height;
+      cv.style.width = `${W}px`;
+      cv.style.height = `${H}px`;
+      cv.style.mixBlendMode = getComputedStyle(el).mixBlendMode;
+      document.body.appendChild(cv);
+      const ctx = cv.getContext('2d');
+      const t0 = performance.now();
+      const frame = (now) => {
+        // it rides along with the heading if the page moves meanwhile
+        const b = el.getBoundingClientRect();
+        cv.style.transform = `translate(${b.left - PAD}px,${b.top - PAD}px)`;
+        const u = ((now - t0) / duration) * END;
+        ctx.setTransform(1, 0, 0, 1, 0, 0);
+        ctx.clearRect(0, 0, cv.width, cv.height);
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        ctx.fillStyle = color;
+        blocks.forEach((bl) => {
+          if (u < bl.t0) return;
+          bl.kids.forEach((k) => {
+            if (u < k.t1) { if (bl.on) ctx.fillRect(bl.x, bl.y, S[0], S[0]); return; }
+            k.fine.forEach((f) => {
+              if (u < f.t2) { if (k.on) ctx.fillRect(k.x, k.y, S[1], S[1]); return; }
+              if (u < f.t3) { if (f.on) ctx.fillRect(f.x, f.y, S[2], S[2]); return; }
+              ctx.drawImage(ink, f.x * dpr, f.y * dpr, S[2] * dpr, S[2] * dpr, f.x, f.y, S[2], S[2]);
+            });
+          });
+        });
+        if (u < END) requestAnimationFrame(frame);
+        else { cv.remove(); show(); }
+      };
+      requestAnimationFrame(frame);
+    }, delay);
+  });
+
+  // and plays again, quicker, whenever the cursor comes onto it (not while
+  // it's still building, and not before it has first come in)
+  document.querySelectorAll('h1, h2').forEach((el) => {
+    el.addEventListener('mouseenter', () => {
+      if (still || el.dataset.pxBusy || el.style.visibility === 'hidden') return;
+      play(el, { duration: 900, replay: true });
+    });
+  });
+
+  // every h1/h2 plays once as it comes into view, unless its page starts it
+  const manual = (el) => el.matches('.whero__title')
+    || (el.matches('.hero__title') && document.documentElement.classList.contains('is-loading'));
+  const heads = Array.from(document.querySelectorAll('h1, h2')).filter((el) => !manual(el));
+  if (!still && 'IntersectionObserver' in window && heads.length) {
+    heads.forEach((el) => { el.style.visibility = 'hidden'; });
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (!entry.isIntersecting) return;
+        io.unobserve(entry.target);
+        play(entry.target);
+      });
+    }, { threshold: 0.35 });
+    const start = () => heads.forEach((el) => io.observe(el));
+    Promise.all([window.pageReady || Promise.resolve(), document.fonts ? document.fonts.ready : null]).then(start);
+  }
+  return play;
+})();
+
 // ---------- Nav theme swap (dark/light) based on section behind it ----------
 const nav = document.getElementById('nav');
 // Exclude the nav itself — it also carries [data-theme] to set its own
@@ -256,7 +443,7 @@ if (langToggle) {
   });
 }
 
-// ---------- Menu: red card from the top-right corner ----------
+// ---------- Menu: red card morphing out of the nav's four dots ----------
 const menuToggle = document.getElementById('menuToggle');
 const menuOverlay = document.getElementById('menuOverlay');
 const menuClose = document.getElementById('menuClose');
@@ -267,8 +454,57 @@ if (menuToggle && menuOverlay && menuClose) {
   menuOverlay.querySelectorAll('.menu-link, .menu-overlay__label, .menu-sublink')
     .forEach((el, i) => el.style.setProperty('--i', i));
 
+  // the morph's start: the card's clip is measured onto the toggle's box, and
+  // each of the close button's nine dots onto the nearest of the toggle's four
+  // (the middle row and column split between them), so opening spreads the
+  // dots into the grid as the card grows out of the button — and closing
+  // gathers them back
+  const panel = menuOverlay.querySelector('.menu-overlay__panel');
+  const gridDots = Array.from(menuClose.querySelectorAll('i'));
+  const toggleDots = Array.from(menuToggle.querySelectorAll('i'));
+  // the toggle's dots in the order top-left, bottom-left, bottom-right, top-right
+  const corner = (col, row) => {
+    const right = col === 2 || (col === 1 && row !== 1);
+    const bottom = row === 2 || (row === 1 && col !== 1);
+    return right ? (bottom ? 2 : 3) : (bottom ? 1 : 0);
+  };
+  const measureMorph = () => {
+    if (!panel) return;
+    const p = panel.getBoundingClientRect();
+    const t = menuToggle.getBoundingClientRect();
+    if (!p.width || !t.width) return;
+    panel.style.setProperty('--mt', `${t.top - p.top}px`);
+    panel.style.setProperty('--ml', `${t.left - p.left}px`);
+    panel.style.setProperty('--mr', `${p.right - t.right}px`);
+    panel.style.setProperty('--mb', `${p.bottom - t.bottom}px`);
+    gridDots.forEach((dot, i) => {
+      const home = toggleDots[corner(i % 3, Math.floor(i / 3))];
+      if (!home) return;
+      // measured without the dot's own offset, so it's where it sits in the grid
+      dot.style.setProperty('--dx', '0px');
+      dot.style.setProperty('--dy', '0px');
+      dot.style.transition = 'none';
+      const g = dot.getBoundingClientRect();
+      const h = home.getBoundingClientRect();
+      dot.style.setProperty('--dx', `${h.left + h.width / 2 - (g.left + g.width / 2)}px`);
+      dot.style.setProperty('--dy', `${h.top + h.height / 2 - (g.top + g.height / 2)}px`);
+      dot.style.setProperty('--k', i);
+      void dot.offsetWidth;
+      dot.style.transition = '';
+    });
+  };
+  window.addEventListener('resize', () => {
+    if (!menuOverlay.classList.contains('is-open')) measureMorph();
+  });
+
   const setMenu = (open) => {
     clearTimeout(settleTimer);
+    if (open) {
+      // fresh from wherever the toggle is now (the nav may have moved), and
+      // committed before the card starts to grow
+      measureMorph();
+      void panel.offsetWidth;
+    }
     menuOverlay.classList.toggle('is-open', open);
     menuOverlay.classList.remove('is-settled');
     menuToggle.setAttribute('aria-expanded', String(open));
@@ -314,6 +550,189 @@ if (heroStage && heroMedia) {
   const slot = heroStage.querySelector('.hero__media-slot');
   const intro = heroStage.querySelector('.hero__intro');
   const shade = heroStage.querySelector('.hero__shade');
+  // the clip sits bowed into the page at rest, like a curved screen seen from
+  // the front: its top edge dips toward the middle and its bottom edge rises,
+  // the middle a touch darker for lying further back. It flattens out over the
+  // first stretch of the scroll as it starts to grow.
+  const BOW = 0.06;       // how far the edges bow in at the middle, per px of height
+  const FLAT_AT = 0.5;    // flat (and clear) by this far into beat 1
+  const bow = document.createElement('span');
+  bow.className = 'hero__bow';
+  bow.setAttribute('aria-hidden', 'true');
+  heroMedia.appendChild(bow);
+
+  // the old-TV look at rest: soft, a little hot, the red and blue channels
+  // pulled apart, under scanlines, grain and a slow rolling band; it clears
+  // as the clip flattens, while the picture eases back from a 10% zoom, so
+  // the clip opens up into focus. The channel split is an SVG filter (Safari
+  // draws SVG filters on video unreliably, so it goes without).
+  const tvVideo = heroMedia.querySelector('.hero__video');
+  const tv = document.createElement('span');
+  tv.className = 'hero__tv';
+  tv.setAttribute('aria-hidden', 'true');
+  heroMedia.appendChild(tv);
+  const splitOK = !/^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+  let splitR = null;
+  let splitB = null;
+  if (splitOK) {
+    const NS = 'http://www.w3.org/2000/svg';
+    const svg = document.createElementNS(NS, 'svg');
+    svg.setAttribute('width', '0');
+    svg.setAttribute('height', '0');
+    svg.setAttribute('aria-hidden', 'true');
+    svg.style.position = 'absolute';
+    svg.innerHTML = `<filter id="heroTv" x="0" y="0" width="100%" height="100%" color-interpolation-filters="sRGB">
+      <feColorMatrix in="SourceGraphic" type="matrix" values="1 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 1 0" result="r"/>
+      <feOffset in="r" dx="0" dy="0" result="rs"/>
+      <feColorMatrix in="SourceGraphic" type="matrix" values="0 0 0 0 0  0 1 0 0 0  0 0 0 0 0  0 0 0 1 0" result="g"/>
+      <feColorMatrix in="SourceGraphic" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 1 0 0  0 0 0 1 0" result="b"/>
+      <feOffset in="b" dx="0" dy="0" result="bs"/>
+      <feBlend in="rs" in2="g" mode="screen" result="rg"/>
+      <feBlend in="rg" in2="bs" mode="screen"/>
+    </filter>`;
+    document.body.appendChild(svg);
+    [splitR, splitB] = svg.querySelectorAll('feOffset');
+  }
+  let lastTv = -1;
+  // under the cursor the clip comes apart into pixels: every square in a
+  // small round the cursor takes the frame's colour there, splits into four
+  // and the quarters drift out from the cursor over the clip itself; as the
+  // cursor moves on they slow, come back together and the clip shows through
+  // again. Each square keeps an energy the cursor tops up and time drains;
+  // only lit squares are drawn, and the loop sleeps once they're all back.
+  // The canvas lies inside the clip, under the TV layer, so the pieces never
+  // leave the frame or change its shape.
+  if (tvVideo && matchMedia('(hover: hover)').matches && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    const CELL = 14;          // px
+    const REACH = 56;         // px around the cursor that comes apart
+    const DRIFT = 22;         // px the quarters travel at full energy
+    const DECAY = 0.93;       // energy kept per frame
+    const shatter = document.createElement('canvas');
+    shatter.className = 'hero__shatter';
+    shatter.setAttribute('aria-hidden', 'true');
+    tvVideo.after(shatter);
+    const sctx = shatter.getContext('2d');
+    const sample = document.createElement('canvas');
+    const pctx = sample.getContext('2d', { willReadFrequently: true });
+    let cols = 0, rows = 0, W = 0, H = 0, dpr = 1;
+    let energy = new Float32Array(0);
+    let dirX = new Float32Array(0);   // which way each square's pieces drift:
+    let dirY = new Float32Array(0);   // away from where the cursor struck it
+    const live = new Set();
+    let raf = 0;
+    let pointer = null;
+
+    const fit = () => {
+      const w = heroMedia.clientWidth;
+      const h = heroMedia.clientHeight;
+      if (w === W && h === H) return;
+      W = w; H = h;
+      dpr = Math.min(window.devicePixelRatio || 1, 2);
+      shatter.width = Math.round(W * dpr);
+      shatter.height = Math.round(H * dpr);
+      cols = Math.ceil(W / CELL);
+      rows = Math.ceil(H / CELL);
+      sample.width = cols * 2;
+      sample.height = rows * 2;
+      energy = new Float32Array(cols * rows);
+      dirX = new Float32Array(cols * rows);
+      dirY = new Float32Array(cols * rows);
+      live.clear();
+    };
+
+    // the frame at two samples a square, cropped as object-fit: cover crops it
+    const grab = () => {
+      const vw = tvVideo.videoWidth, vh = tvVideo.videoHeight;
+      if (!vw || tvVideo.readyState < 2) return false;
+      const scale = Math.max(W / vw, H / vh);
+      const sw = W / scale, sh = H / scale;
+      pctx.drawImage(tvVideo, (vw - sw) / 2, (vh - sh) / 2, sw, sh, 0, 0, sample.width, sample.height);
+      return true;
+    };
+
+    const strike = (i, e, dx, dy) => {
+      if (e <= energy[i]) return;
+      energy[i] = e;
+      dirX[i] = dx;
+      dirY[i] = dy;
+      live.add(i);
+    };
+
+    const frame = () => {
+      raf = 0;
+      if (pointer) {
+        const c0 = Math.max(0, Math.floor((pointer.x - REACH) / CELL));
+        const c1 = Math.min(cols - 1, Math.floor((pointer.x + REACH) / CELL));
+        const r0 = Math.max(0, Math.floor((pointer.y - REACH) / CELL));
+        const r1 = Math.min(rows - 1, Math.floor((pointer.y + REACH) / CELL));
+        for (let r = r0; r <= r1; r++) {
+          for (let c = c0; c <= c1; c++) {
+            const ox = (c + 0.5) * CELL - pointer.x, oy = (r + 0.5) * CELL - pointer.y;
+            const d = Math.hypot(ox, oy);
+            if (d > REACH) continue;
+            strike(r * cols + c, 1 - d / REACH, ox / (d || 1), oy / (d || 1));
+          }
+        }
+      }
+      sctx.setTransform(1, 0, 0, 1, 0, 0);
+      sctx.clearRect(0, 0, shatter.width, shatter.height);
+      if (!live.size || !grab()) { if (live.size) raf = requestAnimationFrame(frame); return; }
+      const px = pctx.getImageData(0, 0, sample.width, sample.height).data;
+      sctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      const half = CELL / 2;
+      live.forEach((i) => {
+        const e = energy[i];
+        const c = i % cols, r = (i / cols) | 0;
+        const x = c * CELL, y = r * CELL;
+        // nothing is blacked out behind a square: its pieces just shift over
+        // the clip, so no dark disc forms round the cursor
+        for (let q = 0; q < 4; q++) {
+          const qx = q & 1, qy = q >> 1;
+          const s = (r * 2 + qy) * sample.width + (c * 2 + qx);
+          const away = DRIFT * e * e * (0.6 + 0.8 * (((i * 7 + q * 13) % 10) / 10));
+          const size = half * (1 - 0.35 * e);
+          sctx.fillStyle = `rgb(${px[s * 4]},${px[s * 4 + 1]},${px[s * 4 + 2]})`;
+          sctx.fillRect(
+            x + qx * half + (half - size) / 2 + dirX[i] * away + (qx - 0.5) * away * 0.5,
+            y + qy * half + (half - size) / 2 + dirY[i] * away + (qy - 0.5) * away * 0.5,
+            size, size,
+          );
+        }
+        energy[i] = e * DECAY;
+        if (energy[i] < 0.03) { energy[i] = 0; live.delete(i); }
+      });
+      raf = requestAnimationFrame(frame);
+    };
+    const wake = () => { if (!raf) raf = requestAnimationFrame(frame); };
+
+    sticky.addEventListener('pointermove', (e) => {
+      const box = heroMedia.getBoundingClientRect();
+      const x = e.clientX - box.left, y = e.clientY - box.top;
+      if (x < 0 || y < 0 || x > box.width || y > box.height) { pointer = null; return; }
+      fit();
+      pointer = { x, y };
+      wake();
+    });
+    sticky.addEventListener('pointerleave', () => { pointer = null; });
+  }
+
+  const setTv = (k) => {
+    if (Math.abs(k - lastTv) < 0.004) return;
+    lastTv = k;
+    tv.style.opacity = k.toFixed(3);
+    if (!tvVideo) return;
+    if (k < 0.02) {
+      tvVideo.style.filter = '';
+      tvVideo.style.transform = '';
+      return;
+    }
+    if (splitR) {
+      splitR.setAttribute('dx', (2.6 * k).toFixed(2));
+      splitB.setAttribute('dx', (-2.6 * k).toFixed(2));
+    }
+    tvVideo.style.filter = `${splitR ? 'url(#heroTv) ' : ''}blur(${(1.1 * k).toFixed(2)}px) contrast(${(1 + 0.15 * k).toFixed(3)}) saturate(${(1 + 0.25 * k).toFixed(3)}) brightness(${(1 - 0.05 * k).toFixed(3)})`;
+    tvVideo.style.transform = `scale(${(1 + 0.1 * k).toFixed(4)})`;
+  };
   const copy = heroStage.querySelector('.hero__about');
   const copyText = heroStage.querySelector('.hero__about-text');
   const anchor = document.getElementById('about');
@@ -322,7 +741,6 @@ if (heroStage && heroMedia) {
   const GROW_H = 0.9;
   const GROW_W = 0.9;
   const MID_WIDTH = 1 / 3;        // beat 1 ends 640 wide in the 1920 frame
-  const MID_RADIUS = 32 / 1920;   // corner radius once it's a full-height column, per px of width
   const INTRO_DRIFT = 183 / 977;  // how far the block has risen by the end of beat 1, per px of height
   const VEIL = 0.35;
   const VEIL_OPACITY = 0.55;
@@ -419,11 +837,25 @@ if (heroStage && heroMedia) {
     // the image leaves the slot as it rose with the block, then meets the top edge
     const top = lerp(start.top - drift * aRaw, 0, a);
     const r0 = start.r;
-    const r1 = Math.max(20, vw * MID_RADIUS);
+    const r1 = 0;   // square-cornered throughout
     heroMedia.style.width = `${w}px`;
     heroMedia.style.height = `${h}px`;
     heroMedia.style.transform = `translate3d(${(vw - w) / 2}px,${top}px,0)`;
-    heroMedia.style.borderRadius = `${b > 0 ? lerp(r1, 0, b) : lerp(r0, r1, a)}px`;
+    const radius = b > 0 ? lerp(r1, 0, b) : lerp(r0, r1, a);
+    heroMedia.style.borderRadius = `${radius}px`;
+
+    // the bow: a clip with the top and bottom edges curving in (each a
+    // quadratic whose middle sits `sag` in), its corners rounded to the radius
+    const f = clamp01(aRaw / FLAT_AT);
+    const sag = BOW * h * (1 - f * f * (3 - 2 * f));
+    if (sag > 0.5) {
+      const r = Math.min(radius, w / 2, h / 2);
+      heroMedia.style.clipPath = `path('M0,${r} Q0,0 ${r},0 Q${w / 2},${2 * sag} ${w - r},0 Q${w},0 ${w},${r} L${w},${h - r} Q${w},${h} ${w - r},${h} Q${w / 2},${h - 2 * sag} ${r},${h} Q0,${h} 0,${h - r} Z')`;
+    } else {
+      heroMedia.style.clipPath = '';
+    }
+    bow.style.opacity = (sag / (BOW * h || 1)).toFixed(3);
+    setTv(1 - f * f * (3 - 2 * f));
 
     shade.style.opacity = VEIL_OPACITY * clamp01((y - growH - growW) / veil);
 
@@ -458,7 +890,7 @@ if (heroStage && heroMedia) {
   }
 }
 
-// ---------- Hero field: NINEFIVE SEVEN typing in and wiping out ----------
+// ---------- Word field: NINEFIVE SEVEN typing in and wiping out (hero, Works) ----------
 // A dense grid of faint mono "NINEFIVE SEVEN" under the whole stage. Each cell
 // runs its own loop: it waits, types the phrase in letter by letter (the newest
 // letter fainter), holds it, then wipes it out from the left (the letter about
@@ -466,10 +898,11 @@ if (heroStage && heroMedia) {
 // is never still and never all there. Under the cursor the words light up
 // white and fade back once it moves on; an empty cell types itself in when
 // hovered. Drawn on a canvas; it only runs while the stage is on screen.
-const heroField = document.getElementById('heroField');
-
-if (heroField && heroField.getContext) {
-  const ctx = heroField.getContext('2d');
+// One canvas per stage — under the home hero, and under the home Works
+// section, where it rides along at screen height as the section scrolls by.
+const wordField = (field, stage) => {
+  if (!field || !field.getContext) return;
+  const ctx = field.getContext('2d');
   const PHRASE = 'NINEFIVE SEVEN';
   const FONT_PX = 13;
   const ROW = 24;            // line pitch
@@ -486,7 +919,6 @@ if (heroField && heroField.getContext) {
 
   const rand = (a, b) => a + Math.random() * (b - a);
   const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const stage = heroField.parentElement;
 
   let cells = [];
   let charW = 8;
@@ -496,10 +928,10 @@ if (heroField && heroField.getContext) {
 
   const build = () => {
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
-    const w = heroField.clientWidth;
-    const h = heroField.clientHeight;
-    heroField.width = Math.round(w * dpr);
-    heroField.height = Math.round(h * dpr);
+    const w = field.clientWidth;
+    const h = field.clientHeight;
+    field.width = Math.round(w * dpr);
+    field.height = Math.round(h * dpr);
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx.font = `400 ${FONT_PX}px "Geist Mono", "Roboto Mono", monospace`;
     ctx.textBaseline = 'top';
@@ -569,7 +1001,7 @@ if (heroField && heroField.getContext) {
   const ink = (a) => `rgba(255,255,255,${a})`;
 
   const draw = () => {
-    ctx.clearRect(0, 0, heroField.width, heroField.height);
+    ctx.clearRect(0, 0, field.width, field.height);
     cells.forEach((cell) => {
       const { k, x, y, state, glow } = cell;
       if (state === 'wait') return;
@@ -622,7 +1054,7 @@ if (heroField && heroField.getContext) {
   // the canvas sits under the rest of the stage, so the stage hears the cursor
   if (stage && matchMedia('(hover: hover)').matches) {
     stage.addEventListener('pointermove', (e) => {
-      const box = heroField.getBoundingClientRect();
+      const box = field.getBoundingClientRect();
       pointer = { x: e.clientX - box.left, y: e.clientY - box.top };
       run();
     });
@@ -643,9 +1075,11 @@ if (heroField && heroField.getContext) {
       onScreen = entry.isIntersecting;
       stop();
       run();
-    }).observe(heroField);
+    }).observe(field);
   }
-}
+};
+wordField(document.getElementById('heroField'), document.getElementById('heroField')?.parentElement);
+wordField(document.getElementById('worksField'), document.getElementById('works'));
 
 // ---------- Core keyword field: nudot-style dual wave (scroll-driven) ----------
 // Faithful port of nudot.com.tw's _ipWave:
@@ -1464,7 +1898,8 @@ if (lazyVideos.length) {
 // then it brakes onto 957 just as the count reaches 100. On the way out it
 // zooms into the 957 mark, which becomes a window onto the Home page; a grey ASCII globe comes up
 // over it, turns half a turn and blows apart, and only then does the page come
-// in: its type scrambling in, the hero clip arriving in pixel blocks top down. The count rides the turn
+// in: its title building out of pixel blocks, the rest of its type scrambling
+// in, the hero clip arriving in pixel blocks top down. The count rides the turn
 // and waits at HOLD on the page itself; MAX_MS stops a stalled asset from
 // keeping anyone out.
 const load = document.getElementById('load');
@@ -1548,7 +1983,7 @@ if (load && document.documentElement.classList.contains('is-loading')) {
   const SCRAMBLE_POOL = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
   const introTargets = [
     ...document.querySelectorAll('.nav__links > a, .nav__lang span, .nav__pill[data-contact-open]'),
-    ...document.querySelectorAll('.hero__label, .hero__social-list span, .hero__title, .hero__lead'),
+    ...document.querySelectorAll('.hero__label, .hero__social-list span, .hero__lead'),
   ];
   introTargets.forEach((el) => { el.style.visibility = 'hidden'; });
   const navLogo = document.querySelector('.nav__logo');
@@ -1585,7 +2020,12 @@ if (load && document.documentElement.classList.contains('is-loading')) {
     }, delay);
   };
 
+  // the hero title builds itself out of pixel blocks with the rest of the page
+  const heroTitle = document.querySelector('.hero__title');
+  if (heroTitle) heroTitle.style.visibility = 'hidden';
+
   const revealPage = () => {
+    if (heroTitle) pixelReveal(heroTitle, { duration: 1300 });
     if (navLogo) {
       navLogo.style.transition = 'opacity .6s ease';
       navLogo.style.opacity = '';

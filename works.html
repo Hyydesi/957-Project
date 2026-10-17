@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=Roboto:wght@400;500;600;700&family=Roboto+Mono:wght@400;500;600&family=DM+Sans:wght@400;500;700&family=Geist+Mono:wght@400&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=141">
+<link rel="stylesheet" href="styles.css?v=172">
 <script src="page-transition.js?v=2"></script>
 </head>
 <body class="works-page">
@@ -24,7 +24,7 @@
       <div class="nav__actions">
         <div class="nav__pills">
           <button type="button" class="nav__pill nav__lang" id="langToggle" aria-label="Switch language"><span class="is-on" data-lang="en">EN</span><span class="nav__lang-sep">/</span><span data-lang="vn">VN</span></button>
-          <button type="button" class="nav__pill" data-contact-open>Get in touch</button>
+          <button type="button" class="nav__pill nav__pill--cta" data-contact-open>Start a project</button>
         </div>
         <button type="button" class="nav__menu" id="menuToggle" aria-label="Open menu"><i></i><i></i><i></i><i></i></button>
       </div>
@@ -57,92 +57,31 @@
 
 <main>
 
-  <!-- WORK HERO (Figma 1453:4228) — the heading and its label centred on the
-       screen, the intro line bottom-left and a jump list to each project bottom-right -->
-  <section class="whero" id="wHero" data-theme="dark">
-    <!-- stills flying out at the viewer from the middle (works.js) -->
-    <div class="whero__fly" id="wheroFly" aria-hidden="true"></div>
-    <div class="whero__center">
-      <h1 class="whero__title" data-cms="works.hero.title" data-cms-label="Tiêu đề" data-cms-group="Works hero">Handpicked from everything we've built</h1>
-      <p class="whero__eyebrow" data-cms="works.hero.eyebrow" data-cms-label="Nhãn dưới tiêu đề" data-cms-group="Works hero">[] featured projects</p>
-    </div>
-    <div class="whero__bottom">
-      <p class="whero__lead" data-cms="works.hero.lead" data-cms-label="Mô tả" data-cms-group="Works hero">Every project here started as a rough idea. We shaped the brand, designed the product, and built it until it was ready for real users. Pick one and see how.</p>
-      <ol class="whero__list" id="wheroList"></ol>
-    </div>
-  </section>
-
-  <!-- PROJECT SHOWCASE — a strip of every project's stills scrolls up the
-       middle; the one level with the reader opens in the preview on the left,
-       and its project's copy, name and year hold on the right (works.js) -->
-  <section class="wshow" id="projects-list" data-theme="dark">
-    <div class="wshow__preview">
-      <div class="wshow__frame"><img id="wshowPreview" alt=""></div>
-    </div>
-    <div class="wshow__strip" id="wshowStrip"></div>
-    <div class="wshow__info" id="wshowInfo">
-      <p class="wshow__desc" id="wshowDesc"></p>
-      <a class="wshow__visit" id="wshowVisit"></a>
-      <div class="wshow__title">
-        <h2 class="wshow__name" id="wshowName"></h2>
-        <span class="wshow__year" id="wshowYear"></span>
-      </div>
+  <!-- WORK (Figma 1539:249) — the heading top-left over a full-screen still,
+       an endless loop of project cards across the middle that the wheel or a
+       swipe carries round, and the lead bottom-right. The cards fly in from
+       the right on arrival and bend at both screen edges (fisheye, works.js) -->
+  <section class="wstrip" id="wStrip" data-theme="dark">
+    <div class="wstrip__sticky">
+      <img class="wstrip__bg" src="assets/works/bg-code.jpg" data-ascii-src="assets/works/bg-block.jpg" alt="" data-cms-src="works.hero.bg" data-cms-label="Ảnh nền" data-cms-group="Works hero">
+      <h1 class="whero__title wstrip__title" data-cms="works.hero.title" data-cms-label="Tiêu đề" data-cms-group="Works hero">Handpicked from everything we've built</h1>
+      <!-- the cards themselves (links, filled from projects.js); drawn through
+           the fisheye canvas on top where WebGL is available -->
+      <div class="wstrip__track" id="wStripTrack"></div>
+      <canvas class="wstrip__gl" id="wStripGl" aria-hidden="true"></canvas>
+      <span class="wstrip__shade" aria-hidden="true"></span>
+      <!-- the project nearest the middle (works.js) -->
+      <p class="wstrip__now" aria-live="polite"></p>
+      <p class="wstrip__lead" data-cms="works.hero.lead" data-cms-label="Mô tả" data-cms-group="Works hero">We are a design agency helping teams design, build, and scale digital products that actually work and drive real impact.</p>
     </div>
   </section>
 
-  <!-- FOOTER -->
-  <footer class="sfooter" id="contact" data-theme="dark">
-
-    <!-- the wordmark across the top, the line and the motto under it -->
-    <div class="sfooter__top">
-      <div class="sfooter__name">
-        <img src="assets/hero/wordmark-ninefive.svg" alt="NINEFIVESEVEN">
-        <img src="assets/hero/wordmark-seven.svg" alt="">
-      </div>
-      <div class="sfooter__lede">
-        <p class="sfooter__tagline" data-cms="footer.tagline" data-cms-label="Câu giới thiệu" data-cms-group="Footer">Designing ideas into scalable digital experiences</p>
-        <p class="sfooter__motto"><span data-cms="footer.motto1" data-cms-label="Từ 1" data-cms-group="Footer">Align</span><span data-cms="footer.motto2" data-cms-label="Từ 2" data-cms-group="Footer">Drive</span><span data-cms="footer.motto3" data-cms-label="Từ 3" data-cms-group="Footer">Vision</span></p>
-      </div>
-    </div>
-
-    <!-- services over the legal line on the left, socials on the right -->
-    <div class="sfooter__bottom">
-      <div class="sfooter__main">
-        <div class="sfooter__col">
-          <p class="sfooter__label" data-cms="footer.servicesLabel" data-cms-label="Tiêu đề cột dịch vụ" data-cms-group="Footer">Services</p>
-          <ul class="sfooter__services">
-            <li data-cms="footer.service1" data-cms-type="text" data-cms-label="Dịch vụ 1" data-cms-group="Footer"><span>[01]</span>Branding and logo</li>
-            <li data-cms="footer.service2" data-cms-type="text" data-cms-label="Dịch vụ 2" data-cms-group="Footer"><span>[02]</span>Websites &amp; landing page</li>
-            <li data-cms="footer.service3" data-cms-type="text" data-cms-label="Dịch vụ 3" data-cms-group="Footer"><span>[03]</span>Mobile app design</li>
-            <li data-cms="footer.service4" data-cms-type="text" data-cms-label="Dịch vụ 4" data-cms-group="Footer"><span>[04]</span>Game design</li>
-            <li data-cms="footer.service5" data-cms-type="text" data-cms-label="Dịch vụ 5" data-cms-group="Footer"><span>[05]</span>Motion video</li>
-          </ul>
-        </div>
-        <div class="sfooter__legal">
-          <p><span data-cms="footer.copyright" data-cms-label="Dòng bản quyền" data-cms-group="Footer">957Studio @2026.</span><span data-cms="footer.rights" data-cms-label="Dòng quyền" data-cms-group="Footer">All rights reserved.</span></p>
-          <a href="#" data-cms="footer.legal1" data-cms-href="footer.legal1.url" data-cms-label="Link pháp lý 1" data-cms-group="Footer">Privacy policy</a>
-          <a href="#" data-cms="footer.legal2" data-cms-href="footer.legal2.url" data-cms-label="Link pháp lý 2" data-cms-group="Footer">Cookie policy</a>
-        </div>
-      </div>
-
-      <div class="sfooter__col sfooter__col--socials">
-        <p class="sfooter__label" data-cms="footer.socialsLabel" data-cms-label="Tiêu đề cột mạng xã hội" data-cms-group="Footer">Socials</p>
-        <div class="sfooter__socials">
-          <a class="sfooter__social" href="#" data-cms-href="footer.social1.url" data-cms-label="Link mạng xã hội 1" data-cms-group="Footer"><span data-cms="footer.social1.name" data-cms-label="Tên mạng xã hội 1" data-cms-group="Footer">Instagram</span><img src="assets/footer/arrow-up-right.svg" alt="" width="24" height="24"></a>
-          <a class="sfooter__social" href="#" data-cms-href="footer.social2.url" data-cms-label="Link mạng xã hội 2" data-cms-group="Footer"><span data-cms="footer.social2.name" data-cms-label="Tên mạng xã hội 2" data-cms-group="Footer">X / Twitter</span><img src="assets/footer/arrow-up-right.svg" alt="" width="24" height="24"></a>
-          <a class="sfooter__social" href="#" data-cms-href="footer.social3.url" data-cms-label="Link mạng xã hội 3" data-cms-group="Footer"><span data-cms="footer.social3.name" data-cms-label="Tên mạng xã hội 3" data-cms-group="Footer">Behance</span><img src="assets/footer/arrow-up-right.svg" alt="" width="24" height="24"></a>
-          <a class="sfooter__social" href="#" data-cms-href="footer.social4.url" data-cms-label="Link mạng xã hội 4" data-cms-group="Footer"><span data-cms="footer.social4.name" data-cms-label="Tên mạng xã hội 4" data-cms-group="Footer">LinkedIn</span><img src="assets/footer/arrow-up-right.svg" alt="" width="24" height="24"></a>
-        </div>
-      </div>
-    </div>
-  </footer>
 
 </main>
 
 <script src="projects.js?v=24"></script>
-<script src="script.js?v=82"></script>
-<script src="footer-heat.js?v=3"></script>
-<script src="works.js?v=32"></script>
+<script src="script.js?v=95"></script>
+<script src="works.js?v=45"></script>
 <script src="contact.js?v=6"></script>
 </body>
 </html>

@@ -60,7 +60,7 @@ button{font:inherit;background:none;border:none;color:inherit;cursor:pointer;}
 @media(min-width:768px){.nav__links a{display:inline;}}
 .nav__actions{display:flex;align-items:center;align-self:stretch;gap:16px;}
 @media(min-width:480px){.nav__actions{gap:24px;}}
-/* EN/VN and Get in touch — two translucent pills, 8px apart (Figma 1502:395) */
+/* EN/VN and Start a project — two pills, 8px apart (Figma 1502:395) */
 .nav__pills{display:flex;align-items:center;gap:8px;}
 .nav__pill{
   display:inline-flex;align-items:center;justify-content:center;gap:4px;
@@ -71,6 +71,9 @@ button{font:inherit;background:none;border:none;color:inherit;cursor:pointer;}
   transition:background .25s ease;
 }
 .nav__pill:hover{background:rgba(255,255,255,.3);}
+/* Start a project: the solid white one */
+.nav__pill--cta{background:var(--white);color:#101010;}
+.nav__pill--cta:hover{background:#dcdcdc;}
 /* the language not in use, and the slash, sit at half strength */
 .nav__lang{gap:0;}
 .nav__lang-sep{margin-left:4px;} /* "EN" and "/VN" sit 4px apart */
@@ -89,11 +92,13 @@ button{font:inherit;background:none;border:none;color:inherit;cursor:pointer;}
 /* no light variant: under difference dark type would vanish on a light
    section, while the white marks already invert to dark there on their own */
 
-/* menu — a red card dropped from the top-right corner, opened from the dots.
-   It grows out of its own close button (the clip starts as that 56px tile and
-   opens to the whole card), then the links rise in one after another. Closing
-   runs it back: the links fade first, then the card folds into the tile.
-   Every link scrambles its letters on hover. */
+/* menu — a red card dropped from the top-right corner that morphs out of the
+   nav's four dots: the card's clip starts as the 24px toggle itself (script.js
+   measures it into --mt/--mr/--mb/--ml) and opens out to the whole card, while
+   the four dots spread into the close button's 3×3 grid; then the links rise
+   in one after another. Closing runs it back: the links fade, the grid folds
+   into four dots and the card shrinks onto the toggle. Every link scrambles
+   its letters on hover. */
 .menu-overlay{
   position:fixed;inset:0;z-index:200;
   pointer-events:none;
@@ -108,47 +113,57 @@ button{font:inherit;background:none;border:none;color:inherit;cursor:pointer;}
   padding:16px 16px 36px;
   background:var(--red);color:var(--white);
   border-radius:24px;
-  /* closed: clipped down to the close tile, 16px in from the top-right corner */
-  clip-path:inset(16px 16px calc(100% - 72px) calc(100% - 72px) round 14px);
+  /* closed: clipped down to the nav toggle's own box */
+  clip-path:inset(var(--mt,16px) var(--mr,16px) var(--mb,calc(100% - 72px)) var(--ml,calc(100% - 72px)) round 6px);
   opacity:0;
   visibility:hidden;
   will-change:clip-path;
-  /* closing: wait for the links to fade, fold back in, then let go */
-  transition:clip-path .55s cubic-bezier(.65,0,.35,1) .08s,
-             opacity .2s ease .45s,
-             visibility 0s .65s;
+  /* closing: wait for the links to fade, shrink back onto the toggle, then let go */
+  transition:clip-path .6s cubic-bezier(.65,0,.35,1) .1s,
+             opacity .15s ease .62s,
+             visibility 0s .77s;
 }
 .menu-overlay.is-open .menu-overlay__panel{
   clip-path:inset(0 0 0 0 round 24px);
   opacity:1;
   visibility:visible;
-  /* opening: a long, soft deceleration out of the tile */
-  transition:clip-path .8s cubic-bezier(.16,1,.3,1),
-             opacity .15s ease,
+  /* opening: a long, soft deceleration out of the toggle */
+  transition:clip-path .85s cubic-bezier(.16,1,.3,1),
+             opacity .1s ease,
              visibility 0s;
 }
 @media(min-width:640px){
   .menu-overlay__panel{top:16px;right:24px;left:auto;width:440px;}
 }
 
-/* 3×3 dots on a darker tile — the close button sits where the toggle was */
+/* 3×3 dots on a darker tile — the close button. Closed, its nine dots sit
+   gathered on the toggle's four (script.js sets each one's --dx/--dy), so on
+   opening they spread out into the grid as the card grows; the tile itself
+   only fills in once they've arrived */
 .menu-overlay__close{
   display:grid;grid-template-columns:repeat(3,6px);gap:5px;
   place-content:center;
   width:56px;height:56px;margin-left:auto;
-  border-radius:14px;background:rgba(0,0,0,.2);
-  transition:background .25s ease;
+  border-radius:14px;background:rgba(0,0,0,0);
+  transition:background .2s ease;
 }
+.menu-overlay.is-open .menu-overlay__close{background:rgba(0,0,0,.2);transition:background .35s ease .4s;}
 .menu-overlay__close i{
   width:6px;height:6px;border-radius:50%;background:var(--white);
-  transition:transform .45s cubic-bezier(.22,1,.36,1);
+  transform:translate(var(--dx,0px),var(--dy,0px));
+  transition:transform .5s cubic-bezier(.65,0,.35,1);
 }
-.menu-overlay__close:hover{background:rgba(0,0,0,.3);}
+.menu-overlay.is-open .menu-overlay__close i{
+  transform:none;
+  transition:transform .75s cubic-bezier(.16,1,.3,1) calc(var(--k,0) * 18ms);
+}
+.menu-overlay.is-open .menu-overlay__close:hover{background:rgba(0,0,0,.3);}
 /* on hover the corners pull in, the grid folding toward its centre dot */
-.menu-overlay__close:hover i:nth-child(1){transform:translate(4px,4px);}
-.menu-overlay__close:hover i:nth-child(3){transform:translate(-4px,4px);}
-.menu-overlay__close:hover i:nth-child(7){transform:translate(4px,-4px);}
-.menu-overlay__close:hover i:nth-child(9){transform:translate(-4px,-4px);}
+.menu-overlay.is-settled .menu-overlay__close i{transition:transform .45s cubic-bezier(.22,1,.36,1);}
+.menu-overlay.is-open .menu-overlay__close:hover i:nth-child(1){transform:translate(4px,4px);}
+.menu-overlay.is-open .menu-overlay__close:hover i:nth-child(3){transform:translate(-4px,4px);}
+.menu-overlay.is-open .menu-overlay__close:hover i:nth-child(7){transform:translate(4px,-4px);}
+.menu-overlay.is-open .menu-overlay__close:hover i:nth-child(9){transform:translate(-4px,-4px);}
 
 .menu-overlay__links{
   display:flex;flex-direction:column;align-items:flex-start;
@@ -234,14 +249,16 @@ button{font:inherit;background:none;border:none;color:inherit;cursor:pointer;}
    block itself: a transform (or z-index, or opacity) on the block would make it
    its own stacking context and cut the heading's blend off from the image. */
 .hero__intro > *{position:relative;z-index:3;transform:translate3d(0,var(--intro-y,0px),0);}
-/* the image's resting place: 368×499, centred on the frame (the padding is
-   22px heavier on top, hence the nudge back up); JS reads its box and corner
-   radius as the start of the grow */
+/* the clip's resting place: a wide 988×584 window centred across the frame,
+   123px from its top, clear of the nav above and the heading below,
+   square-cornered (script.js bows it into the page at rest). It sits
+   over the grid rather than in it, so the heading and lead keep their full
+   columns. JS reads its box and corner radius as the start of the grow. */
 .hero__media-slot{
-  grid-area:slot;align-self:center;
-  margin-top:calc(-22 * var(--u));
-  height:calc(499 * var(--u));aspect-ratio:368/499;
-  border-radius:calc(72 * var(--u));
+  position:absolute;left:50%;top:calc(123 * var(--u));
+  width:calc(988 * var(--u));height:calc(584 * var(--u));
+  transform:translate3d(-50%,var(--intro-y,0px),0);
+  border-radius:0;
 }
 .hero__title{
   grid-area:title;align-self:start;
@@ -256,9 +273,18 @@ button{font:inherit;background:none;border:none;color:inherit;cursor:pointer;}
   font-family:var(--font-body);font-weight:700;text-transform:uppercase;
 }
 .hero__label{font-family:var(--font-body);font-weight:700;text-transform:uppercase;font-size:14px;letter-spacing:.02em;color:#767676;}
-.hero__social-list{list-style:none;display:flex;flex-direction:column;gap:1px;font-size:16px;}
-.hero__social-list a{transition:color .25s ease;}
-.hero__social-list a:hover{color:var(--red);}
+.hero__social-list{list-style:none;display:flex;flex-direction:column;align-items:flex-start;gap:6px;font-size:16px;}
+/* on hover a red bar slides in behind the word from the left (a mask
+   sweeping across it), and back out the way it came */
+.hero__social-list a{position:relative;display:inline-block;isolation:isolate;}
+.hero__social-list a::before{
+  content:'';position:absolute;inset:-1px -6px;z-index:-1;
+  background:var(--red);
+  clip-path:inset(0 100% 0 0);
+  transition:clip-path .35s cubic-bezier(.65,0,.35,1);
+}
+.hero__social-list a:hover::before,
+.hero__social-list a:focus-visible::before{clip-path:inset(0 0 0 0);}
 /* 366 wide, ending 139px off the frame's right edge */
 .hero__lead{
   grid-area:lead;align-self:start;justify-self:end;
@@ -278,7 +304,10 @@ button{font:inherit;background:none;border:none;color:inherit;cursor:pointer;}
     padding:var(--nav-h) 20px 32px;
   }
   .hero__title{order:-1;max-width:none;font-size:clamp(36px, 11.6vw, 72px);}
-  .hero__media-slot{align-self:center;margin-top:0;height:min(34vh, 110vw);border-radius:16px;}
+  .hero__media-slot{
+    position:relative;left:auto;top:auto;transform:translate3d(0,var(--intro-y,0px),0);
+    align-self:stretch;width:auto;height:auto;aspect-ratio:988/584;border-radius:16px;
+  }
   .hero__social{display:none;}
   .hero__lead{margin-right:0;max-width:24em;}
 }
@@ -291,8 +320,49 @@ button{font:inherit;background:none;border:none;color:inherit;cursor:pointer;}
   position:absolute;left:0;top:0;z-index:2;width:0;height:0;
   overflow:hidden;background:#000;will-change:transform,width,height;
 }
-.hero__video{display:block;width:100%;height:100%;object-fit:cover;}
+.hero__video{display:block;width:100%;height:100%;object-fit:cover;will-change:transform;}
 .hero__shade{position:absolute;inset:0;background:#000;opacity:0;}
+/* the bowed-in clip's depth: its middle lies further back, a touch darker,
+   the edges (nearer) lighter; fades out as the clip flattens (script.js) */
+/* the pixels the clip comes apart into under the cursor (script.js): a
+   canvas inside the clip, so the pieces keep to the frame and its shape */
+.hero__shatter{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;}
+
+/* the old-TV layer over the clip at rest: grain (the element's own
+   background), scanlines with a faint flicker, and a band of light rolling
+   down; script.js fades it out as the clip opens */
+.hero__tv{
+  position:absolute;inset:0;pointer-events:none;overflow:hidden;opacity:0;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 .22 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size:180px 180px;
+  animation:tvGrain .5s steps(5) infinite;
+}
+.hero__tv::before{
+  content:'';position:absolute;inset:0;
+  background:repeating-linear-gradient(180deg,rgba(0,0,0,.34) 0 1px,rgba(0,0,0,0) 1px 3px);
+  animation:tvFlicker .14s steps(2) infinite;
+}
+.hero__tv::after{
+  content:'';position:absolute;left:0;right:0;top:0;height:24%;
+  background:linear-gradient(180deg,rgba(255,255,255,0),rgba(255,255,255,.08),rgba(255,255,255,0));
+  transform:translateY(-100%);
+  animation:tvRoll 5.5s linear infinite;
+}
+@keyframes tvGrain{
+  0%{background-position:0 0;}20%{background-position:-37px 21px;}40%{background-position:52px -44px;}
+  60%{background-position:-18px 66px;}80%{background-position:71px 13px;}100%{background-position:0 0;}
+}
+@keyframes tvFlicker{from{opacity:1;}to{opacity:.82;}}
+@keyframes tvRoll{from{transform:translateY(-100%);}to{transform:translateY(520%);}}
+@media(prefers-reduced-motion:reduce){
+  .hero__tv,.hero__tv::before,.hero__tv::after{animation:none;}
+}
+.hero__bow{
+  position:absolute;inset:0;pointer-events:none;
+  background:
+    linear-gradient(90deg,rgba(255,255,255,.06),rgba(0,0,0,.22) 50%,rgba(255,255,255,.06)),
+    linear-gradient(180deg,rgba(0,0,0,.18),transparent 22%,transparent 78%,rgba(0,0,0,.18));
+}
 /* coming in from the loader: the clip arrives in blocks, top to bottom —
    dark, then a coarse pixel of the frame, then the clip itself (script.js) */
 .hero__pixels{position:absolute;inset:0;z-index:1;width:100%;height:100%;background:#101010;pointer-events:none;}
@@ -811,6 +881,12 @@ html.svc-snap-native{scroll-snap-type:y proximity;}
 /* full-bleed like the hero: same edge padding, no centered max-width cap */
 .works{padding:56px 24px 120px;margin:0;position:relative;z-index:6;
   background:var(--bg-dark);}
+/* the hero's word field behind the projects: the layer spans the section, the
+   canvas inside it is one screen high and sticks to the top as the section
+   scrolls by; z-index -1 keeps it over the section's own background and under
+   everything else in it */
+.works__bg{position:absolute;inset:0;z-index:-1;pointer-events:none;}
+.works__field{position:sticky;top:0;display:block;width:100%;height:100vh;}
 .works__topbar{
   display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:24px;
   position:sticky;top:var(--nav-h);z-index:5;
@@ -1343,140 +1419,95 @@ html.svc-snap-native{scroll-snap-type:y proximity;}
   .home .sfooter__reveal{display:block; height:100vh; height:100dvh; pointer-events:none;}
 }
 
-/* ---------- WORKS: hero ---------- */
-/* The 1920×977 Figma frame (1453:4228) scaled as a whole, like the home hero:
-   --u is one design px from whichever of width or height runs out first. */
-.whero{
+/* ---------- WORKS: card strip (Figma 1539:249) ---------- */
+/* One pinned screen over a full-screen still: the heading top-left, a strip
+   of 960×552 project cards (the frame's 730×419, scaled up) across the middle
+   that the wheel or a swipe carries round in an endless loop, the lead
+   bottom-left under the heading, and the name of the project in the middle
+   bottom-right. --u is one design px of the 1920×977 frame. works.js stands
+   the cards in 3D (flat in the middle, set back and turned toward the edges),
+   flies them in on arrival, and draws the still (typed out live as moving
+   ASCII from bg-block.jpg) and the cards together into
+   a WebGL canvas whose two side edges bulge toward the viewer (fisheye), the
+   real cards left on top unseen as the links; without WebGL the real cards
+   and the plain still show. */
+.wstrip{position:relative;height:100vh;background:#101010;}
+/* the page doesn't scroll: the strip takes the wheel and swipes itself */
+.works-page{overscroll-behavior:none;}
+/* the works page drops the nav's difference blend: it sits plainly over the
+   still */
+.works-page .nav{mix-blend-mode:normal;}
+/* and its menu icon goes white over the dark still */
+.works-page .nav__menu i{background:var(--white);}
+.wstrip__sticky{
   --u:min(100vw / 1920, 100vh / 977);
-  position:relative;height:100vh;min-height:560px;overflow:hidden;
-  display:flex;flex-direction:column;justify-content:flex-end;
-  padding:0 40px calc(52 * var(--u));
-  background:#101010;color:var(--white);
+  /* a third up on the frame's 730×419, the strip lifted to stay centred */
+  --card-w:calc(960 * var(--u));
+  --card-h:calc(552 * var(--u));
+  --strip-top:calc(250 * var(--u));
+  position:sticky;top:0;height:100vh;overflow:hidden;
 }
-/* centred with auto margins rather than a transform: a transform would make
-   it its own stacking context and cut the heading's blend off from the stills */
-.whero__center{
-  position:absolute;inset:0;margin:auto;width:fit-content;height:fit-content;
-  display:flex;flex-direction:column;align-items:center;gap:calc(32 * var(--u));
+.wstrip__bg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0;opacity:.45;}
+.wstrip__title{
+  position:absolute;z-index:3;left:40px;top:calc(103 * var(--u));
+  /* 9.07em is the frame's 580px at 64px: "everything" always drops to the second line */
+  width:9.07em;max-width:calc(100vw - 80px);
+  font-family:var(--font-display);font-weight:400;text-transform:uppercase;
+  font-size:max(32px, 56 * var(--u));line-height:1.125;letter-spacing:-.03em;
+  color:var(--white);
 }
-/* the flying stills sit under the copy. z-index:0 keeps the cards' own depth
-   order (works.js sets each card's z-index) inside this layer; without it they
-   would stack over the heading. The centre block and the (positioned) bottom
-   row come later in the DOM, so they paint over the layer, and the heading's
-   difference blend, like the nav's, inverts over the stills passing behind. */
-.whero__fly{position:absolute;inset:0;z-index:0;overflow:hidden;pointer-events:none;}
-.whero__card{
-  position:absolute;left:0;top:0;
-  background:#1a1a1a;overflow:hidden;opacity:0;
-  will-change:transform,opacity;
+/* the cards stand in 3D: works.js places, sets back and turns each one */
+.wstrip__track{
+  position:absolute;z-index:2;left:0;right:0;top:var(--strip-top);height:var(--card-h);
+  perspective:calc(1500 * var(--u));perspective-origin:50% 50%;
+  transform-style:preserve-3d;
 }
-.whero__card img{width:100%;height:100%;object-fit:cover;}
-.whero__eyebrow{font-family:var(--font-nav);font-size:max(16px, 24 * var(--u));white-space:nowrap;}
-.whero__title{
-  width:8.78em;max-width:calc(100vw - 48px); /* 878px at 100px: breaks after FROM */
-  font-family:var(--font-display);font-weight:400;text-transform:uppercase;text-align:center;
-  font-size:max(48px, 100 * var(--u));line-height:1.03;letter-spacing:-.03em;
-  mix-blend-mode:difference;
+.wcard{
+  position:absolute;left:0;top:0;display:block;
+  width:var(--card-w);height:var(--card-h);
+  overflow:hidden;background:#d9d9d9;
+  transform-origin:50% 50%;backface-visibility:hidden;
+  will-change:transform;
 }
-/* letter boxes for the arrival scramble (works.js); hidden until it starts so
-   the final text doesn't flash first */
-.whero__glyph{display:inline-block;text-align:center;}
-.whero__title.is-scrambling{visibility:hidden;}
-.whero__bottom{position:relative;display:flex;justify-content:space-between;align-items:flex-end;gap:40px;}
-/* the list's rows carry 8px under their text, so the lead does too: its last
-   line then sits on the same baseline as the last project */
-.whero__lead{
-  max-width:15.8em; /* 379px at 24px */
-  padding-bottom:8px;
-  font-family:'Roboto',var(--font-body);font-size:max(15px, 24 * var(--u));line-height:1;
+.wcard img{display:block;width:100%;height:100%;object-fit:cover;}
+.wcard__cap{
+  position:absolute;left:16px;right:16px;bottom:14px;
+  display:flex;justify-content:space-between;gap:16px;
+  font-family:var(--font-nav);font-size:13px;line-height:1.2;color:var(--white);
+  text-transform:uppercase;text-shadow:0 1px 8px rgba(0,0,0,.45);
 }
-.whero__list{list-style:none;display:flex;flex-direction:column;gap:16px;width:min(384px,100%);flex-shrink:0;}
-.whero__list li{border-bottom:1px solid #323232;}
-.whero__list li:last-child{border-bottom:0;}
-.whero__list a{
-  display:flex;justify-content:space-between;gap:16px;padding:0 8px 8px;
-  font-family:var(--font-body);font-weight:700;text-transform:uppercase;
-  font-size:14px;line-height:17px;letter-spacing:.02em;color:#c1c1c1;
-  transition:background-color .25s ease,color .25s ease;
+.wstrip__gl{position:absolute;z-index:1;inset:0;width:100%;height:100%;pointer-events:none;}
+/* a light black over the still (and its fisheye), under the cards and type */
+.wstrip__shade{position:absolute;inset:0;z-index:1;background:rgba(0,0,0,.15);pointer-events:none;}
+/* with the canvas drawing the still and the cards through the fisheye, the
+   real still and shade step aside and the real cards stay only as links */
+.wstrip__sticky.is-gl .wstrip__bg,
+.wstrip__sticky.is-gl .wstrip__shade{visibility:hidden;}
+.wstrip__sticky.is-gl .wcard{opacity:0;}
+.wstrip__lead{
+  position:absolute;z-index:3;left:40px;top:calc(847 * var(--u));
+  width:calc(404 * var(--u));min-width:min(300px, calc(100vw - 40px));
+  font-family:'Roboto',var(--font-body);font-size:max(14px, 20 * var(--u));line-height:1.1;
+  color:var(--white);
 }
-.whero__list a:hover{background:#494949;color:var(--white);}
-
+/* bottom-right, level with the lead: the name of the project in the middle */
+.wstrip__now{
+  position:absolute;z-index:3;right:calc(68 * var(--u));top:calc(847 * var(--u));
+  margin:0;text-align:right;white-space:nowrap;
+  font-family:var(--font-display);font-weight:400;text-transform:uppercase;
+  font-size:max(28px, 56 * var(--u));line-height:1;letter-spacing:-.03em;
+  color:var(--white);
+}
 @media(max-width:899px){
-  /* the heading joins the flow so it can't run into the stacked bottom block */
-  .whero{height:auto;min-height:100svh;padding:96px 24px 32px;}
-  .whero__center{position:relative;inset:auto;margin:0;width:auto;height:auto;flex:1;justify-content:center;padding:48px 0;}
-  .whero__lead{line-height:1.2;padding-bottom:0;}
-  .whero__bottom{flex-direction:column;align-items:stretch;gap:32px;}
-  .whero__list{width:100%;}
-}
-
-/* ---------- WORKS: project showcase ---------- */
-/* Three columns: the preview (left) and the copy (right) hold still in
-   screen-tall sticky columns, bottom-aligned; the strip of stills between them
-   is the only thing that scrolls. Its padding lets the first and last stills
-   reach the reading line (55% down, see works.js). */
-.wshow{
-  --u:min(100vw / 1920, 100vh / 977);
-  display:grid;grid-template-columns:51fr 19fr 30fr;
-  padding:0 40px;background:#101010;color:var(--white);
-}
-.wshow__preview,.wshow__info{
-  position:sticky;top:0;align-self:start;height:100vh;
-  display:flex;flex-direction:column;justify-content:flex-end;
-  padding-bottom:calc(40 * var(--u));
-}
-.wshow__frame{width:min(100%, 42vw);aspect-ratio:404/234;overflow:hidden;background:#1a1a1a;}
-.wshow__frame img{width:100%;height:100%;object-fit:cover;}
-
-.wshow__strip{display:flex;flex-direction:column;align-items:flex-start;gap:16px;padding:55vh 0 45vh;}
-.wshow__thumb{
-  display:block;width:clamp(48px,4.4vw,96px);padding:0;
-  opacity:.45;transform-origin:left center;
-  transition:transform .4s cubic-bezier(.2,.7,.2,1),opacity .4s ease;
-}
-/* a little more air where one project's stills hand over to the next */
-.wshow__thumb.is-first:not(:first-child){margin-top:calc(56 * var(--u));}
-/* capped at 6:5 so a portrait still can't grow into its neighbours */
-.wshow__thumb img{width:100%;height:auto;max-height:calc(clamp(48px,4.4vw,96px) * 1.2);object-fit:cover;}
-.wshow__thumb:hover{opacity:.8;}
-.wshow__thumb.is-active{opacity:1;transform:scale(1.35);}
-
-.wshow__desc{
-  max-width:21em;font-family:'DM Sans',var(--font-body);font-size:14px;line-height:1.35;color:var(--muted-3);
-}
-.wshow__visit{
-  align-self:flex-start;margin-top:20px;padding-bottom:4px;border-bottom:1px solid currentColor;
-  font-family:'DM Sans',var(--font-body);font-size:14px;transition:opacity .25s ease;
-}
-a.wshow__visit:hover{opacity:.7;}
-span.wshow__visit{border-bottom:0;font-family:var(--font-mono);font-size:12px;letter-spacing:.48px;text-transform:uppercase;color:var(--red);}
-.wshow__title{display:flex;align-items:flex-end;justify-content:space-between;gap:24px;margin-top:calc(48 * var(--u));}
-.wshow__name{
-  font-family:'DM Sans',var(--font-body);font-weight:500;
-  font-size:clamp(40px,6vw,128px);line-height:.85;letter-spacing:-.045em;white-space:nowrap;
-}
-.wshow__year{font-family:'DM Sans',var(--font-body);font-size:14px;}
-/* the copy steps in fresh each time the strip crosses into another project */
-@keyframes wshowIn{from{opacity:0;transform:translateY(10px);}}
-.wshow__info.is-swap > *{animation:wshowIn .5s cubic-bezier(.2,.7,.2,1) both;}
-.wshow__info.is-swap > :nth-child(2){animation-delay:.04s;}
-.wshow__info.is-swap > :nth-child(3){animation-delay:.08s;}
-
-/* phones and small tablets: no preview; the project's name, year and link
-   pin under the nav and the stills run full width beneath them */
-@media(max-width:899px){
-  .wshow{grid-template-columns:minmax(0,1fr);padding:0 24px;}
-  .wshow__preview,.wshow__desc{display:none;}
-  .wshow__info{
-    grid-row:1;top:var(--nav-h);height:auto;z-index:2;
-    flex-direction:column-reverse;padding:16px 0;background:#101010;
+  .wstrip__sticky{
+    --u:calc(100vw / 430);
+    --card-w:88vw;
+    --card-h:calc(88vw * 552 / 960);
+    --strip-top:calc(50vh - 88vw * 552 / 960 / 2);
   }
-  .wshow__title{margin-top:0;}
-  .wshow__visit{margin-top:8px;}
-  .wshow__strip{grid-row:2;gap:12px;padding:16px 0 96px;}
-  .wshow__thumb,.wshow__thumb.is-active{width:100%;opacity:1;transform:none;}
-  .wshow__thumb.is-first:not(:first-child){margin-top:40px;}
-  .wshow__thumb img{max-height:none;aspect-ratio:16/10;}
+  .wstrip__title{left:20px;top:calc(var(--nav-h) + 16px);width:auto;right:20px;font-size:clamp(34px, 10vw, 56px);}
+  .wstrip__lead{left:20px;right:20px;top:auto;bottom:32px;width:auto;min-width:0;font-size:15px;}
+  .wstrip__now{right:auto;left:20px;top:calc(var(--strip-top) + var(--card-h) + 20px);font-size:28px;}
 }
 
 /* ---------- LOADING SCREEN (home) ---------- */
@@ -1854,3 +1885,7 @@ html.pt-in::view-transition-new(root){animation-name:page-rise;animation-duratio
 @media(prefers-reduced-motion:reduce){
   .sbar,.sbar__thumb{transition:none;}
 }
+
+/* the heading reveal's canvas (script.js): pinned over the heading while it
+   builds itself out of pixel blocks, then removed */
+.px-reveal{position:fixed;left:0;top:0;z-index:150;pointer-events:none;}
