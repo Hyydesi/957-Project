@@ -594,126 +594,200 @@ if (heroStage && heroMedia) {
     [splitR, splitB] = svg.querySelectorAll('feOffset');
   }
   let lastTv = -1;
-  // under the cursor the clip comes apart into pixels: every square in a
-  // small round the cursor takes the frame's colour there, splits into four
-  // and the quarters drift out from the cursor over the clip itself; as the
-  // cursor moves on they slow, come back together and the clip shows through
-  // again. Each square keeps an energy the cursor tops up and time drains;
-  // only lit squares are drawn, and the loop sleeps once they're all back.
-  // The canvas lies inside the clip, under the TV layer, so the pieces never
-  // leave the frame or change its shape.
+  // hovering the clip, a liquid stream of glyph tiles pours after the cursor
+  // (after React Bits Pro's Glyph Stream, written from scratch here). A nozzle
+  // chases the cursor on a soft spring, overshooting a little on sharp turns,
+  // and pours drops of liquid along its path — more and fatter the faster it
+  // moves — that flow on with some of its speed, slow, sag and evaporate.
+  // The drops are gathered onto a grid of small rounded tiles: a tile shows
+  // where enough liquid lies on it, so the stream reads as one body, and as
+  // the liquid ages it needs more to show, so the thinning tail pinches off
+  // into droplets. Fresh liquid is the site's red, ageing toward a pale pink,
+  // with light on its upper rim; every tile carries a character that keeps
+  // changing at the fresh head and settles in the tail. A click splashes a
+  // crown of drops. One canvas inside the clip, under the TV layer.
   if (tvVideo && matchMedia('(hover: hover)').matches && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
-    const CELL = 14;          // px
-    const REACH = 56;         // px around the cursor that comes apart
-    const DRIFT = 22;         // px the quarters travel at full energy
-    const DECAY = 0.93;       // energy kept per frame
-    const shatter = document.createElement('canvas');
-    shatter.className = 'hero__shatter';
-    shatter.setAttribute('aria-hidden', 'true');
-    tvVideo.after(shatter);
-    const sctx = shatter.getContext('2d');
-    const sample = document.createElement('canvas');
-    const pctx = sample.getContext('2d', { willReadFrequently: true });
-    let cols = 0, rows = 0, W = 0, H = 0, dpr = 1;
-    let energy = new Float32Array(0);
-    let dirX = new Float32Array(0);   // which way each square's pieces drift:
-    let dirY = new Float32Array(0);   // away from where the cursor struck it
-    const live = new Set();
-    let raf = 0;
-    let pointer = null;
+    const CELL = 14;          // px, one tile
+    const GAP = 2;            // px between tiles
+    const RADIUS = 2;         // px, a tile's corners
+    const GLYPH = 0.56;       // character size against the tile
+    const LIFE = 0.85;        // s before liquid has evaporated
+    const SMOOTH = 0.45;      // 0 glued to the cursor … 1 slow and fluid
+    const WOBBLE = 0.35;      // overshoot on sharp turns
+    const MOMENTUM = 0.7;     // share of the stroke's speed the liquid keeps
+    const VISCOSITY = 0.15;   // drag on the liquid
+    const THICK = 0.7;        // the stream's width
+    const BREAKUP = 0.9;      // how hard the ageing tail pinches into droplets
+    const SOFT = 0.5;         // fade at the stream's edge
+    const SHEEN = 0.45;       // light on the upper rim
+    const SCRAMBLE = 8;       // character changes a second at the head
+    const SPLASH = 1.2;       // size and reach of a click's splash
+    const HEAD = [216, 0, 0], TAIL = [255, 170, 160];
+    const CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    const PITCH = CELL + GAP;
+    const canvas = document.createElement('canvas');
+    canvas.className = 'hero__glyphs';
+    canvas.setAttribute('aria-hidden', 'true');
+    tvVideo.after(canvas);
+    const ctx = canvas.getContext('2d');
+    const font = getComputedStyle(document.documentElement).getPropertyValue('--font-nav').trim() || 'monospace';
+    let W = 0, H = 0, dpr = 1, cols = 0, rows = 0;
+    let dens = new Float32Array(0), ageSum = new Float32Array(0);
+    let glyph = new Uint8Array(0), nextAt = new Float32Array(0);
+    const drops = [];
+    const nozzle = { x: 0, y: 0, vx: 0, vy: 0 };
+    const ptr = { x: 0, y: 0 };
+    let over = false, raf = 0, last = 0;
 
     const fit = () => {
-      const w = heroMedia.clientWidth;
-      const h = heroMedia.clientHeight;
+      const w = heroMedia.clientWidth, h = heroMedia.clientHeight;
       if (w === W && h === H) return;
       W = w; H = h;
       dpr = Math.min(window.devicePixelRatio || 1, 2);
-      shatter.width = Math.round(W * dpr);
-      shatter.height = Math.round(H * dpr);
-      cols = Math.ceil(W / CELL);
-      rows = Math.ceil(H / CELL);
-      sample.width = cols * 2;
-      sample.height = rows * 2;
-      energy = new Float32Array(cols * rows);
-      dirX = new Float32Array(cols * rows);
-      dirY = new Float32Array(cols * rows);
-      live.clear();
+      canvas.width = Math.round(W * dpr);
+      canvas.height = Math.round(H * dpr);
+      cols = Math.ceil(W / PITCH);
+      rows = Math.ceil(H / PITCH);
+      dens = new Float32Array(cols * rows);
+      ageSum = new Float32Array(cols * rows);
+      glyph = new Uint8Array(cols * rows).map(() => Math.random() * CHARS.length);
+      nextAt = new Float32Array(cols * rows);
     };
 
-    // the frame at two samples a square, cropped as object-fit: cover crops it
-    const grab = () => {
-      const vw = tvVideo.videoWidth, vh = tvVideo.videoHeight;
-      if (!vw || tvVideo.readyState < 2) return false;
-      const scale = Math.max(W / vw, H / vh);
-      const sw = W / scale, sh = H / scale;
-      pctx.drawImage(tvVideo, (vw - sw) / 2, (vh - sh) / 2, sw, sh, 0, 0, sample.width, sample.height);
-      return true;
+    const pour = (x, y, vx, vy, r) => drops.push({ x, y, vx, vy, r, t: 0 });
+    const splash = (x, y) => {
+      for (let i = 0; i < 28; i++) {
+        const a = (i / 28) * Math.PI * 2 + Math.random() * 0.2;
+        const v = (260 + Math.random() * 340) * SPLASH;
+        pour(x, y, Math.cos(a) * v, Math.sin(a) * v - 120, CELL * (0.7 + Math.random() * 0.5) * SPLASH);
+      }
+      pour(x, y, 0, 0, CELL * 2.2 * SPLASH);
     };
 
-    const strike = (i, e, dx, dy) => {
-      if (e <= energy[i]) return;
-      energy[i] = e;
-      dirX[i] = dx;
-      dirY[i] = dy;
-      live.add(i);
-    };
-
-    const frame = () => {
+    const frame = (now) => {
       raf = 0;
-      if (pointer) {
-        const c0 = Math.max(0, Math.floor((pointer.x - REACH) / CELL));
-        const c1 = Math.min(cols - 1, Math.floor((pointer.x + REACH) / CELL));
-        const r0 = Math.max(0, Math.floor((pointer.y - REACH) / CELL));
-        const r1 = Math.min(rows - 1, Math.floor((pointer.y + REACH) / CELL));
-        for (let r = r0; r <= r1; r++) {
-          for (let c = c0; c <= c1; c++) {
-            const ox = (c + 0.5) * CELL - pointer.x, oy = (r + 0.5) * CELL - pointer.y;
-            const d = Math.hypot(ox, oy);
-            if (d > REACH) continue;
-            strike(r * cols + c, 1 - d / REACH, ox / (d || 1), oy / (d || 1));
-          }
+      const dt = last ? Math.min(0.05, (now - last) / 1000) : 1 / 60;
+      last = now;
+      fit();
+
+      // the nozzle chases the cursor on a spring and pours along its path
+      if (over) {
+        const k = 40 + 260 * (1 - SMOOTH);
+        const damp = 2 * Math.sqrt(k) * (1 - WOBBLE * 0.6);
+        nozzle.vx += ((ptr.x - nozzle.x) * k - nozzle.vx * damp) * dt;
+        nozzle.vy += ((ptr.y - nozzle.y) * k - nozzle.vy * damp) * dt;
+        const fx = nozzle.x, fy = nozzle.y;
+        nozzle.x += nozzle.vx * dt;
+        nozzle.y += nozzle.vy * dt;
+        const speed = Math.hypot(nozzle.vx, nozzle.vy);
+        // fast strokes swell the stream, slow ones thin it to a fine line
+        const r = CELL * (0.5 + THICK * 1.5) * Math.min(1.6, Math.max(0.35, speed / 700));
+        const steps = Math.max(1, Math.ceil(Math.hypot(nozzle.x - fx, nozzle.y - fy) / (CELL * 0.4)));
+        for (let s = 1; s <= steps; s++) {
+          const f = s / steps;
+          pour(fx + (nozzle.x - fx) * f, fy + (nozzle.y - fy) * f,
+            nozzle.vx * MOMENTUM * 0.3 + (Math.random() - 0.5) * 30,
+            nozzle.vy * MOMENTUM * 0.3 + (Math.random() - 0.5) * 30, r);
         }
       }
-      sctx.setTransform(1, 0, 0, 1, 0, 0);
-      sctx.clearRect(0, 0, shatter.width, shatter.height);
-      if (!live.size || !grab()) { if (live.size) raf = requestAnimationFrame(frame); return; }
-      const px = pctx.getImageData(0, 0, sample.width, sample.height).data;
-      sctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      const half = CELL / 2;
-      live.forEach((i) => {
-        const e = energy[i];
-        const c = i % cols, r = (i / cols) | 0;
-        const x = c * CELL, y = r * CELL;
-        // nothing is blacked out behind a square: its pieces just shift over
-        // the clip, so no dark disc forms round the cursor
-        for (let q = 0; q < 4; q++) {
-          const qx = q & 1, qy = q >> 1;
-          const s = (r * 2 + qy) * sample.width + (c * 2 + qx);
-          const away = DRIFT * e * e * (0.6 + 0.8 * (((i * 7 + q * 13) % 10) / 10));
-          const size = half * (1 - 0.35 * e);
-          sctx.fillStyle = `rgb(${px[s * 4]},${px[s * 4 + 1]},${px[s * 4 + 2]})`;
-          sctx.fillRect(
-            x + qx * half + (half - size) / 2 + dirX[i] * away + (qx - 0.5) * away * 0.5,
-            y + qy * half + (half - size) / 2 + dirY[i] * away + (qy - 0.5) * away * 0.5,
-            size, size,
-          );
+
+      // the liquid flows on, slows, sags and evaporates
+      const drag = Math.exp(-dt * (1.5 + VISCOSITY * 12));
+      for (let i = drops.length - 1; i >= 0; i--) {
+        const d = drops[i];
+        d.t += dt;
+        if (d.t >= LIFE) { drops.splice(i, 1); continue; }
+        d.vx *= drag;
+        d.vy = d.vy * drag + 140 * dt;
+        d.x += d.vx * dt;
+        d.y += d.vy * dt;
+      }
+
+      // gathered onto the tiles
+      dens.fill(0);
+      ageSum.fill(0);
+      drops.forEach((d) => {
+        const age = d.t / LIFE;
+        const rr = d.r * (1 - 0.45 * age);
+        const w = 1 - age * age;
+        const c0 = Math.max(0, Math.floor((d.x - rr) / PITCH)), c1 = Math.min(cols - 1, Math.floor((d.x + rr) / PITCH));
+        const r0 = Math.max(0, Math.floor((d.y - rr) / PITCH)), r1 = Math.min(rows - 1, Math.floor((d.y + rr) / PITCH));
+        for (let r = r0; r <= r1; r++) {
+          for (let c = c0; c <= c1; c++) {
+            const dx = (c + 0.5) * PITCH - d.x, dy = (r + 0.5) * PITCH - d.y;
+            const q = (dx * dx + dy * dy) / (rr * rr);
+            if (q >= 1) continue;
+            const v = (1 - q) * (1 - q) * w;
+            const i = r * cols + c;
+            dens[i] += v;
+            ageSum[i] += v * age;
+          }
         }
-        energy[i] = e * DECAY;
-        if (energy[i] < 0.03) { energy[i] = 0; live.delete(i); }
       });
-      raf = requestAnimationFrame(frame);
+
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ctx.clearRect(0, 0, W, H);
+      ctx.font = `600 ${Math.round(CELL * GLYPH * 1.25)}px ${font}`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      const t = now / 1000;
+      for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < cols; c++) {
+          const i = r * cols + c;
+          const v = dens[i];
+          if (v < 0.2) continue;
+          const age = ageSum[i] / v;
+          // older liquid needs more to show, so the tail breaks into drops
+          const th = 0.32 + BREAKUP * 0.45 * age;
+          const a = Math.min(1, Math.max(0, (v - th) / (0.06 + SOFT * 0.5)));
+          if (a <= 0.01) continue;
+          // light on the upper rim: no liquid on the tile above
+          const up = r > 0 ? dens[i - cols] : 0;
+          const rim = up < th ? SHEEN * 0.45 : 0;
+          const col = HEAD.map((h, n) => Math.round(Math.min(255, h + (TAIL[n] - h) * age + 255 * rim)));
+          const x = c * PITCH + GAP / 2, y = r * PITCH + GAP / 2;
+          ctx.fillStyle = `rgba(${col[0]},${col[1]},${col[2]},${a.toFixed(3)})`;
+          ctx.beginPath();
+          if (ctx.roundRect) ctx.roundRect(x, y, CELL, CELL, RADIUS); else ctx.rect(x, y, CELL, CELL);
+          ctx.fill();
+          // the characters keep changing at the fresh head; the tail settles
+          if (age < 0.4 && t >= nextAt[i]) {
+            glyph[i] = Math.random() * CHARS.length;
+            nextAt[i] = t + (0.5 + Math.random()) / SCRAMBLE;
+          }
+          ctx.fillStyle = `rgba(255,255,255,${(0.82 * a).toFixed(3)})`;
+          ctx.fillText(CHARS[glyph[i]], x + CELL / 2, y + CELL / 2 + 0.5);
+        }
+      }
+
+      if (over || drops.length) raf = requestAnimationFrame(frame);
+      else last = 0;
     };
     const wake = () => { if (!raf) raf = requestAnimationFrame(frame); };
 
-    sticky.addEventListener('pointermove', (e) => {
+    const locate = (e) => {
       const box = heroMedia.getBoundingClientRect();
       const x = e.clientX - box.left, y = e.clientY - box.top;
-      if (x < 0 || y < 0 || x > box.width || y > box.height) { pointer = null; return; }
+      return { x, y, inside: x >= 0 && y >= 0 && x <= box.width && y <= box.height };
+    };
+    sticky.addEventListener('pointermove', (e) => {
+      const p = locate(e);
+      if (p.inside) {
+        // a fresh stroke starts from where the cursor came in
+        if (!over) { nozzle.x = p.x; nozzle.y = p.y; nozzle.vx = 0; nozzle.vy = 0; }
+        ptr.x = p.x; ptr.y = p.y;
+      }
+      if (p.inside !== over) over = p.inside;
+      if (over) { fit(); wake(); }
+    });
+    sticky.addEventListener('pointerleave', () => { over = false; });
+    sticky.addEventListener('pointerdown', (e) => {
+      const p = locate(e);
+      if (!p.inside) return;
       fit();
-      pointer = { x, y };
+      splash(p.x, p.y);
       wake();
     });
-    sticky.addEventListener('pointerleave', () => { pointer = null; });
   }
 
   const setTv = (k) => {
@@ -897,10 +971,13 @@ if (heroStage && heroMedia) {
 // to go fainter), and waits again — every cell on its own clock, so the field
 // is never still and never all there. Under the cursor the words light up
 // white and fade back once it moves on; an empty cell types itself in when
-// hovered. Drawn on a canvas; it only runs while the stage is on screen.
+// hovered — except where the cursor is over the page's own type and controls
+// (the nav, and whatever `avoid` names: on the hero its title, lead and
+// media list), which stay clear of the glow. Drawn on a canvas; it only runs
+// while the stage is on screen.
 // One canvas per stage — under the home hero, and under the home Works
 // section, where it rides along at screen height as the section scrolls by.
-const wordField = (field, stage) => {
+const wordField = (field, stage, avoid = '') => {
   if (!field || !field.getContext) return;
   const ctx = field.getContext('2d');
   const PHRASE = 'NINEFIVE SEVEN';
@@ -1051,14 +1128,29 @@ const wordField = (field, stage) => {
   const stop = () => { if (raf) cancelAnimationFrame(raf); raf = 0; };
   const restart = () => { build(); stop(); run(); };
 
-  // the canvas sits under the rest of the stage, so the stage hears the cursor
+  // the canvas sits under everything, so the window hears the cursor; over
+  // the nav or any of the stage's own type (a little round each), nothing
+  // lights up
   if (stage && matchMedia('(hover: hover)').matches) {
-    stage.addEventListener('pointermove', (e) => {
-      const box = field.getBoundingClientRect();
-      pointer = { x: e.clientX - box.left, y: e.clientY - box.top };
-      run();
+    const PAD = 10;
+    const shields = () => [
+      ...document.querySelectorAll('.nav__logo, .nav__links, .nav__actions, .nav__menu'),
+      ...(avoid ? stage.querySelectorAll(avoid) : []),
+    ];
+    const shielded = (x, y) => shields().some((el) => {
+      const r = el.getBoundingClientRect();
+      return r.width && x >= r.left - PAD && x <= r.right + PAD && y >= r.top - PAD && y <= r.bottom + PAD;
     });
-    stage.addEventListener('pointerleave', () => { pointer = null; run(); });
+    window.addEventListener('pointermove', (e) => {
+      if (!onScreen) return;
+      const box = field.getBoundingClientRect();
+      const inside = e.clientX >= box.left && e.clientX <= box.right && e.clientY >= box.top && e.clientY <= box.bottom;
+      const next = inside && !shielded(e.clientX, e.clientY) ? { x: e.clientX - box.left, y: e.clientY - box.top } : null;
+      if (!next && !pointer) return;
+      pointer = next;
+      run();
+    }, { passive: true });
+    document.addEventListener('pointerleave', () => { pointer = null; run(); });
   }
 
   build();
@@ -1078,7 +1170,8 @@ const wordField = (field, stage) => {
     }).observe(field);
   }
 };
-wordField(document.getElementById('heroField'), document.getElementById('heroField')?.parentElement);
+wordField(document.getElementById('heroField'), document.getElementById('heroField')?.parentElement,
+  '.hero__social, .hero__title, .hero__lead');
 wordField(document.getElementById('worksField'), document.getElementById('works'));
 
 // ---------- Core keyword field: nudot-style dual wave (scroll-driven) ----------

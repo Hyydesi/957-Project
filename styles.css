@@ -324,9 +324,9 @@ button{font:inherit;background:none;border:none;color:inherit;cursor:pointer;}
 .hero__shade{position:absolute;inset:0;background:#000;opacity:0;}
 /* the bowed-in clip's depth: its middle lies further back, a touch darker,
    the edges (nearer) lighter; fades out as the clip flattens (script.js) */
-/* the pixels the clip comes apart into under the cursor (script.js): a
-   canvas inside the clip, so the pieces keep to the frame and its shape */
-.hero__shatter{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;}
+/* the stream of glyph tiles that pours after the cursor over the clip
+   (script.js): a canvas inside the clip, so it keeps to the frame's shape */
+.hero__glyphs{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;}
 
 /* the old-TV layer over the clip at rest: grain (the element's own
    background), scanlines with a faint flicker, and a band of light rolling
@@ -546,6 +546,8 @@ html.svc-snap-native{scroll-snap-type:y proximity;}
   --cw:calc(var(--ch) * .7913);
   --ct:20.3vh;
   position:sticky;top:0;height:100vh;overflow:hidden;
+  /* clip, not hidden: the off-screen cards must never let focus scroll it sideways */
+  overflow:clip;
   background:var(--bg-dark);color:var(--white);
 }
 /* darkens under Process as it slides over (services.js sets --svc-cover) */
@@ -1420,17 +1422,16 @@ html.svc-snap-native{scroll-snap-type:y proximity;}
 }
 
 /* ---------- WORKS: card strip (Figma 1539:249) ---------- */
-/* One pinned screen over a full-screen still: the heading top-left, a strip
-   of 960×552 project cards (the frame's 730×419, scaled up) across the middle
+/* One pinned screen over a red ASCII glow: the heading top-left, a strip
+   of 780×448 project cards across the middle
    that the wheel or a swipe carries round in an endless loop, the lead
    bottom-left under the heading, and the name of the project in the middle
    bottom-right. --u is one design px of the 1920×977 frame. works.js stands
-   the cards in 3D (flat in the middle, set back and turned toward the edges),
-   flies them in on arrival, and draws the still (typed out live as moving
-   ASCII from bg-block.jpg) and the cards together into
-   a WebGL canvas whose two side edges bulge toward the viewer (fisheye), the
-   real cards left on top unseen as the links; without WebGL the real cards
-   and the plain still show. */
+   the cards as a skewed carousel (flat in the middle, each step out turned
+   60° and shrunk),
+   flies them in on arrival and draws them on a WebGL canvas, the real cards
+   left on top unseen as the links (without WebGL the real cards show).
+   Behind, React Bits' Gradient ASCII glows in the brand's reds. */
 .wstrip{position:relative;height:100vh;background:#101010;}
 /* the page doesn't scroll: the strip takes the wheel and swipes itself */
 .works-page{overscroll-behavior:none;}
@@ -1441,13 +1442,16 @@ html.svc-snap-native{scroll-snap-type:y proximity;}
 .works-page .nav__menu i{background:var(--white);}
 .wstrip__sticky{
   --u:min(100vw / 1920, 100vh / 977);
-  /* a third up on the frame's 730×419, the strip lifted to stay centred */
-  --card-w:calc(960 * var(--u));
-  --card-h:calc(552 * var(--u));
-  --strip-top:calc(250 * var(--u));
+  /* the frame's 730×419 cards, a touch up, the strip centred */
+  --card-w:calc(780 * var(--u));
+  --card-h:calc(448 * var(--u));
+  --strip-top:calc(302 * var(--u));
   position:sticky;top:0;height:100vh;overflow:hidden;
+  /* clip, not hidden: the off-screen cards must never let focus scroll it sideways */
+  overflow:clip;
 }
-.wstrip__bg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0;opacity:.65;}
+.wstrip__bg{position:absolute;inset:0;z-index:0;pointer-events:none;}
+.wstrip__bg .gradient-ascii-canvas{position:absolute;inset:0;display:block;width:100%;height:100%;}
 .wstrip__title{
   position:absolute;z-index:3;left:40px;top:calc(103 * var(--u));
   /* 9.07em is the frame's 580px at 64px: "everything" always drops to the second line */
@@ -1456,17 +1460,16 @@ html.svc-snap-native{scroll-snap-type:y proximity;}
   font-size:max(32px, 56 * var(--u));line-height:1.125;letter-spacing:-.03em;
   color:var(--white);
 }
-/* the cards stand in 3D: works.js places, sets back and turns each one */
+/* the cards stand in 3D: works.js places each one and turns it through its
+   own perspective (a skewed carousel) */
 .wstrip__track{
   position:absolute;z-index:2;left:0;right:0;top:var(--strip-top);height:var(--card-h);
-  perspective:calc(1500 * var(--u));perspective-origin:50% 50%;
-  transform-style:preserve-3d;
 }
 .wcard{
   position:absolute;left:0;top:0;display:block;
   width:var(--card-w);height:var(--card-h);
-  overflow:hidden;background:#d9d9d9;
-  transform-origin:50% 50%;backface-visibility:hidden;
+  overflow:hidden;background:#d9d9d9;border-radius:max(6px, 10 * var(--u));
+  transform-origin:50% 50%;
   will-change:transform;
 }
 .wcard img{display:block;width:100%;height:100%;object-fit:cover;}
@@ -1477,11 +1480,10 @@ html.svc-snap-native{scroll-snap-type:y proximity;}
   text-transform:uppercase;text-shadow:0 1px 8px rgba(0,0,0,.45);
 }
 .wstrip__gl{position:absolute;z-index:1;inset:0;width:100%;height:100%;pointer-events:none;}
-/* a light black over the still (and its fisheye), under the cards and type */
+/* a light black over the still, under the cards and type */
 .wstrip__shade{position:absolute;inset:0;z-index:1;background:rgba(0,0,0,.08);pointer-events:none;}
-/* with the canvas drawing the still and the cards through the fisheye, the
-   real still and shade step aside and the real cards stay only as links */
-.wstrip__sticky.is-gl .wstrip__bg,
+/* with the canvas drawing the cards, the shade steps aside and the real
+   cards stay only as links */
 .wstrip__sticky.is-gl .wstrip__shade{visibility:hidden;}
 .wstrip__sticky.is-gl .wcard{opacity:0;}
 .wstrip__lead{
@@ -1490,24 +1492,37 @@ html.svc-snap-native{scroll-snap-type:y proximity;}
   font-family:'Roboto',var(--font-body);font-size:max(14px, 20 * var(--u));line-height:1.1;
   color:var(--white);
 }
+/* under the row: previous, a dash for each project (the one in the middle
+   lit), next */
+.wstrip__controls{
+  position:absolute;z-index:3;left:50%;transform:translateX(-50%);
+  top:calc(var(--strip-top) + var(--card-h) + 28 * var(--u));
+  display:flex;align-items:center;gap:14px;color:var(--white);
+}
+.wstrip__step{display:grid;place-items:center;width:28px;height:28px;color:rgba(255,255,255,.6);transition:color .2s;}
+.wstrip__step:hover{color:var(--white);}
+.wstrip__step svg{width:14px;height:14px;}
+.wstrip__dots{display:flex;align-items:center;gap:6px;}
+.wstrip__dot{width:14px;height:14px;padding:6px 0;background:rgba(255,255,255,.3) content-box;transition:width .3s,background-color .3s;}
+.wstrip__dot.is-active{width:26px;background-color:var(--white);}
 /* bottom-right, level with the lead: the name of the project in the middle */
 .wstrip__now{
   position:absolute;z-index:3;right:calc(68 * var(--u));top:calc(847 * var(--u));
   margin:0;text-align:right;white-space:nowrap;
   font-family:var(--font-display);font-weight:400;text-transform:uppercase;
-  font-size:max(28px, 56 * var(--u));line-height:1;letter-spacing:-.03em;
+  font-size:max(36px, 96 * var(--u));line-height:1;letter-spacing:-.03em;
   color:var(--white);
 }
 @media(max-width:899px){
   .wstrip__sticky{
     --u:calc(100vw / 430);
-    --card-w:88vw;
-    --card-h:calc(88vw * 552 / 960);
-    --strip-top:calc(50vh - 88vw * 552 / 960 / 2);
+    --card-w:74vw;
+    --card-h:calc(74vw * 448 / 780);
+    --strip-top:calc(50vh - 74vw * 448 / 780 / 2);
   }
   .wstrip__title{left:20px;top:calc(var(--nav-h) + 16px);width:auto;right:20px;font-size:clamp(34px, 10vw, 56px);}
   .wstrip__lead{left:20px;right:20px;top:auto;bottom:32px;width:auto;min-width:0;font-size:15px;}
-  .wstrip__now{right:auto;left:20px;top:calc(var(--strip-top) + var(--card-h) + 20px);font-size:28px;}
+  .wstrip__now{right:auto;left:20px;top:calc(var(--strip-top) + var(--card-h) + 64px);font-size:40px;}
 }
 
 /* ---------- LOADING SCREEN (home) ---------- */

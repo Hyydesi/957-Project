@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=Roboto:wght@400;500;600;700&family=Roboto+Mono:wght@400;500;600&family=DM+Sans:wght@400;500;700&family=Geist+Mono:wght@400&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=173">
+<link rel="stylesheet" href="styles.css?v=184">
 <script src="page-transition.js?v=2"></script>
 </head>
 <body class="works-page">
@@ -58,18 +58,26 @@
 <main>
 
   <!-- WORK (Figma 1539:249) — the heading top-left over a full-screen still,
-       an endless loop of project cards across the middle that the wheel or a
-       swipe carries round, and the lead bottom-right. The cards fly in from
-       the right on arrival and bend at both screen edges (fisheye, works.js) -->
+       an endless skewed carousel of project cards across the middle that the
+       wheel, a drag or the arrows move a card at a time, the lead bottom-left
+       and the project in the middle bottom-right (works.js) -->
   <section class="wstrip" id="wStrip" data-theme="dark">
     <div class="wstrip__sticky">
-      <img class="wstrip__bg" src="assets/works/bg-code.jpg" data-ascii-src="assets/works/bg-block.jpg" alt="" data-cms-src="works.hero.bg" data-cms-label="Ảnh nền" data-cms-group="Works hero">
+      <!-- the glow behind: React Bits' Gradient ASCII in the brand's reds
+           (gradient-ascii.js, started by works.js) -->
+      <div class="wstrip__bg" aria-hidden="true"></div>
       <h1 class="whero__title wstrip__title" data-cms="works.hero.title" data-cms-label="Tiêu đề" data-cms-group="Works hero">Handpicked from everything we've built</h1>
-      <!-- the cards themselves (links, filled from projects.js); drawn through
-           the fisheye canvas on top where WebGL is available -->
+      <!-- the cards themselves (links, filled from projects.js); drawn on the
+           canvas instead where WebGL is available -->
       <div class="wstrip__track" id="wStripTrack"></div>
       <canvas class="wstrip__gl" id="wStripGl" aria-hidden="true"></canvas>
       <span class="wstrip__shade" aria-hidden="true"></span>
+      <!-- previous / next and a dot for each project (works.js) -->
+      <div class="wstrip__controls">
+        <button type="button" class="wstrip__step" data-step="-1" aria-label="Previous project"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M10 3 5 8l5 5" fill="none" stroke="currentColor" stroke-width="1.5"/></svg></button>
+        <div class="wstrip__dots"></div>
+        <button type="button" class="wstrip__step" data-step="1" aria-label="Next project"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="m6 3 5 5-5 5" fill="none" stroke="currentColor" stroke-width="1.5"/></svg></button>
+      </div>
       <!-- the project nearest the middle (works.js) -->
       <p class="wstrip__now" aria-live="polite"></p>
       <p class="wstrip__lead" data-cms="works.hero.lead" data-cms-label="Mô tả" data-cms-group="Works hero">We are a design agency helping teams design, build, and scale digital products that actually work and drive real impact.</p>
@@ -80,8 +88,9 @@
 </main>
 
 <script src="projects.js?v=24"></script>
-<script src="script.js?v=95"></script>
-<script src="works.js?v=46"></script>
+<script src="script.js?v=99"></script>
+<script src="gradient-ascii.js?v=3"></script>
+<script src="works.js?v=59"></script>
 <script src="contact.js?v=6"></script>
 </body>
 </html>
