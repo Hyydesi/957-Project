@@ -205,6 +205,8 @@ window.createSvcMetal = function createSvcMetal(canvas) {
     words(title, box, silver);
     words(cardEl.querySelector('.svc-card__desc'), box, '#f2f3f5');
     px.shadowColor = 'transparent';
+    // the pixel icon, held on the frame it had, cell by cell where the page lays it out
+    if (window.svcPixel) window.svcPixel.paint(px, cardEl, box);
     gl.bindTexture(gl.TEXTURE_2D, tex);
     gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, false);
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, print);

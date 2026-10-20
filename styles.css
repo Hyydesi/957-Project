@@ -621,6 +621,23 @@ html.svc-snap-native{scroll-snap-type:y proximity;}
   position:absolute;left:0;right:0;bottom:8.5cqh;margin:0 auto;width:80cqw;
   font-family:var(--font-nav);font-size:3cqh;line-height:1.3;text-align:center;
 }
+/* the pixel icon under the title (svc-pixel.js): without script it sits in the
+   gap at 30% of the card's height; with script it is resized to whole CSS
+   pixels per cell, so it stays sharp, and flickers on with the keywords */
+.svc-card__icon{
+  position:absolute;left:50%;top:64cqh;width:30cqh;height:30cqh;transform:translate(-50%,-50%);
+  pointer-events:none;
+}
+.svc-card__icon svg{display:block;width:100%;height:100%;image-rendering:pixelated;}
+.svc-card__icon.is-js{opacity:0;}
+.svc-card__icon.is-in{animation:svcIconIn .32s steps(1,end) forwards;}
+.svc-card__icon.is-out{animation:svcIconOut .22s steps(1,end) forwards;}
+@keyframes svcIconIn{0%{opacity:0}18%{opacity:1}30%{opacity:.15}48%{opacity:1}62%{opacity:.4}78%,100%{opacity:1}}
+@keyframes svcIconOut{0%{opacity:1}25%{opacity:.2}45%{opacity:1}70%,100%{opacity:0}}
+@media (prefers-reduced-motion: reduce){
+  .svc-card__icon.is-in{animation:none;opacity:1;}
+  .svc-card__icon.is-out{animation:none;opacity:0;}
+}
 
 /* Without WebGL, the stand-in for svc-metal.js's slab. Hovered (on a mouse,
    while the room is at rest), the open card turns into a slab of brushed

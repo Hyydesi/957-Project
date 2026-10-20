@@ -553,6 +553,7 @@
     return order.map((_, n) => order.indexOf(n) * spread + rand(0, spread * 0.6));
   };
   const lightUp = (i) => {
+    if (window.svcPixel) window.svcPixel.light(i, true);   // the pixel icon flickers on with the keywords
     const s = services[i];
     const delays = stagger(s.kws, 0.06);
     s.kws.forEach((k, n) => setKw(k, reduce ? 'lit' : 'in', delays[n]));
@@ -560,6 +561,7 @@
     s.echoes.forEach((e) => { e.nextAt = now + rand(250, 1500); });
   };
   const lightDown = (i) => {
+    if (window.svcPixel) window.svcPixel.light(i, false);
     const s = services[i];
     const delays = stagger(s.all, 0.02);
     s.all.forEach((k, n) => {
@@ -852,6 +854,8 @@
     if (!running) return;
     measure();
     shine();     // before place(), so the edges meet the card where it leans this frame
+    // the pixel icon loops only on the open card with the room at rest, and holds its frame on the metal
+    if (window.svcPixel) window.svcPixel.state(shown ? open : -1, atRest(), glCard >= 0 || metal >= 0);
     place();
     updateOpen();
     glitch(now);
