@@ -855,6 +855,12 @@ if (heroStage && heroMedia) {
   let travel = 0;
   let drift = 0;
   let introExit = 0;
+  // after the copy: a screen held still, then a screen the Core slides up over
+  // (it must match .cf-stage's margin-top in the stylesheet)
+  const HOLD_VH = 1, SLIDE_VH = 1;
+  const COVER_DIM = 0.6;   // how far the frame darkens under the Core, as the Core does under Our Service
+  let hold = 0;
+  let slideH = 0;
 
   const measure = () => {
     vw = sticky.clientWidth;
@@ -878,7 +884,13 @@ if (heroStage && heroMedia) {
     // from just below the screen until the last line sits at COPY_END
     travel = vh * (1 - COPY_END) + copy.offsetHeight;
 
-    heroStage.style.height = `${vh + growH + growW + veil + travel}px`;
+    // desktop only (the Core is pinned there): once the copy is read the frame
+    // holds for HOLD_VH, then for SLIDE_VH more while the Core slides up over it
+    // (.cf-stage starts SLIDE_VH early) and the frame darkens underneath
+    const pinned = window.innerWidth >= 720;
+    hold = pinned ? HOLD_VH * vh : 0;
+    slideH = pinned ? SLIDE_VH * vh : 0;
+    heroStage.style.height = `${vh + growH + growW + veil + travel + hold + slideH}px`;
     if (anchor) anchor.style.top = `${growH + growW}px`;
 
     // where each word sits inside the copy; a little of its x is folded in so
@@ -932,6 +944,11 @@ if (heroStage && heroMedia) {
     setTv(1 - f * f * (3 - 2 * f));
 
     shade.style.opacity = VEIL_OPACITY * clamp01((y - growH - growW) / veil);
+
+    // the Core sliding over: the whole frame darkens (easeInOutCubic, as the Core under Our Service)
+    const cover = slideH ? clamp01((y - growH - growW - veil - travel - hold) / slideH) : 0;
+    const c = cover < 0.5 ? 4 * cover * cover * cover : 1 - Math.pow(-2 * cover + 2, 3) / 2;
+    sticky.style.opacity = (1 - c * COVER_DIM).toFixed(3);
 
     const copyTop = vh - Math.min(travel, Math.max(0, y - growH - growW - veil));
     copy.style.transform = `translate3d(0,${copyTop}px,0)`;
@@ -1277,13 +1294,21 @@ if (cfField) {
   let velocity = 0;        // smoothed px per frame, signed (down is positive)
 
   // How far it can climb each way without a wingtip leaving the slot: half the
-  // slot, less half the butterfly (0.26 of the clip's square at its 1.9×
-  // scale), less the speed kick, less what a full bank swings a corner out by.
+  // slot, less half the butterfly, less the speed kick, less what a full bank
+  // swings a corner out by. The butterfly is now drawn as ASCII by
+  // fx-tracking.js in a square as wide as the slot allows (at most 56vh), and
+  // kept within 10% of that square's edge — so at most 0.4 of the square
+  // either side of its centre (its CORE_ASCII clipSize / keepMargin).
   let riseRoom = 0;
+  // On desktop the butterfly is drawn over the whole pinned section, centred on
+  // the screen (it flies in to the middle as the section slides up), so its
+  // room is half the screen rather than half the slot; it climbs from the
+  // middle up into that room (see `rise` in tick).
   const measureRise = () => {
     if (!panelEl || !panelVideo) return;
-    const clip = panelVideo.offsetHeight;
-    riseRoom = Math.max(0, panelEl.offsetHeight / 2 - clip * 0.26 - LAG_MAX - clip * 0.06 - 12);
+    const clip = Math.min(window.innerHeight * 0.56, panelEl.offsetWidth);
+    const room = window.innerWidth >= 720 ? window.innerHeight : panelEl.offsetHeight;
+    riseRoom = Math.max(0, room / 2 - clip * 0.4 - LAG_MAX - clip * 0.06 - 12);
   };
   measureRise();
   window.addEventListener('resize', measureRise);
@@ -1341,51 +1366,59 @@ if (cfField) {
     });
   }
 
-  // ---- nudot-style pinned entrance -------------------------------------
-  // The section is sticky inside a tall .cf-stage. The first stretch of the
-  // pinned scroll drives a bottom-up clip-path curtain (nudot's
-  // setDarkWrapperReveal: inset(H% 0 0 0) -> inset(0)), the next drives the
-  // wave, and the last screen is Our Service sliding up over it, the field
-  // darkening underneath. The stretches are in vh; the CSS height adds them up.
+  // ---- pinned stage: slides in over the hero ---------------------------
+  // The section is sticky inside a tall .cf-stage that starts a screen early
+  // (margin-top:-100vh), inside the hero's last 100vh: while the hero holds
+  // still and darkens (the hero stage in this file), the section slides up over
+  // it whole — the same way Our Service later slides up over this one. Once it
+  // is pinned, the next stretch drives the wave, and the last screen is Our
+  // Service sliding up over it, the field darkening underneath. The stretches
+  // are in vh; the CSS height adds them up.
   const stage = document.getElementById('cfStage');
-  const WIPE_VH = 33, WAVE_VH = 44, COVER_VH = 100;
-  const PIN_VH = WIPE_VH + WAVE_VH + COVER_VH;
-  const P_WIPE = WIPE_VH / PIN_VH;               // entrance curtain finishes here
-  const P_EXIT = (WIPE_VH + WAVE_VH) / PIN_VH;   // wave finishes here; Our Service slides over the rest
+  // the wave was 44vh; lengthened to 120vh 23/10/2026 so the field reads slower
+  const WAVE_VH = 120, COVER_VH = 100;
+  const PIN_VH = WAVE_VH + COVER_VH;
+  const P_EXIT = WAVE_VH / PIN_VH;   // wave finishes here; Our Service slides over the rest
   const clamp01 = (v) => Math.min(1, Math.max(0, v));
   const easeInOutCubic = (x) => (x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2);
   const stageActive = () => stage && window.innerWidth >= 720;
 
   let scrollProgress = 0;
-  // the butterfly's climb spans the curtain, the wave and the first half of
-  // Our Service sliding over — the part of the field still in view — not
-  // just the wave
-  const FLIGHT_END = (WIPE_VH + WAVE_VH + COVER_VH / 2) / PIN_VH;
+  // the butterfly's climb keeps the pace it had over the old 44vh wave and the
+  // first half of Our Service sliding over (94vh of scroll): with the longer
+  // wave it tops out partway through it and holds there
+  const FLIGHT_VH = 44 + COVER_VH / 2;
+  const FLIGHT_END = FLIGHT_VH / PIN_VH;
   let flightProgress = 0;
+  // While the section slides in, the butterfly flies in ahead of it from below:
+  // it starts ENTER_DROP of a screen lower than its seat and closes the gap
+  // (fast, then easing in) by the time the section lands, so it reads as
+  // flying up into the middle of the screen. 1:1 with the scroll, both ways.
+  // The ASCII canvas covers the whole section, so it is never cut by the slot.
+  const ENTER_DROP = 0.5;
+  const easeOutQuad = (x) => 1 - (1 - x) * (1 - x);
   const updateProgress = () => {
     if (stageActive()) {
       const r = stage.getBoundingClientRect();
-      const total = Math.max(1, r.height - window.innerHeight);
+      const vh = window.innerHeight;
+      const total = Math.max(1, r.height - vh);
       const p = clamp01(-r.top / total);
       flightProgress = clamp01(p / FLIGHT_END);
-      const wipe = easeInOutCubic(clamp01(p / P_WIPE));
-      corefieldEl.style.clipPath = `inset(${((1 - wipe) * 100).toFixed(2)}% 0 0 0)`;
-      corefieldEl.classList.toggle('is-revealed', wipe > 0.45);
-      // wave runs between the curtain and the exit
-      scrollProgress = clamp01((p - P_WIPE) / (P_EXIT - P_WIPE));
+      scrollProgress = clamp01(p / P_EXIT);
       // exit: the field darkens under Our Service as it slides over, the
       // way Our Service does under Process
       const exit = easeInOutCubic(clamp01((p - P_EXIT) / (1 - P_EXIT)));
       corefieldEl.style.opacity = (1 - exit * 0.6).toFixed(3);
+      const slide = clamp01(1 - r.top / vh);
+      const enter = stillWanted ? 0 : (1 - easeOutQuad(slide)) * ENTER_DROP * vh;
+      if (panelVideo) panelVideo.style.setProperty('--cf-enter', `${enter.toFixed(1)}px`);
     } else {
-      corefieldEl.style.clipPath = 'none';
       corefieldEl.style.opacity = '1';
+      if (panelVideo) panelVideo.style.setProperty('--cf-enter', '0px');
       const rect = corefieldEl.getBoundingClientRect();
       const vh = window.innerHeight;
       scrollProgress = clamp01((vh - rect.top) / (vh + rect.height));
       flightProgress = scrollProgress;
-      const inView = rect.top < vh * 0.65 && rect.bottom > vh * 0.35;
-      corefieldEl.classList.toggle('is-revealed', inView);
     }
   };
   window.addEventListener('scroll', updateProgress, { passive: true });
@@ -1426,7 +1459,9 @@ if (cfField) {
       if (rate === 0 ? panelVideo.playbackRate !== 0 : Math.abs(panelVideo.playbackRate - rate) > 0.02) setFlap(rate);
 
       smoothFlight += (flightProgress - smoothFlight) * SMOOTH;
-      const rise = (riseRoom * (1 - 2 * smoothFlight)).toFixed(1);
+      // desktop: from the middle of the screen, where it lands, up into the room
+      // above; phones: low in the slot up to high, as before
+      const rise = (stageActive() ? -riseRoom * smoothFlight : riseRoom * (1 - 2 * smoothFlight)).toFixed(1);
       if (rise !== lastRise) { panelVideo.style.setProperty('--cf-rise', `${rise}px`); lastRise = rise; }
       panelVideo.style.setProperty('--cf-lag', `${(-dir * eased * LAG_MAX).toFixed(1)}px`);
       panelVideo.style.setProperty('--cf-tilt', `${(dir * eased * TILT_MAX).toFixed(2)}deg`);
