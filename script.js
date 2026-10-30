@@ -1388,6 +1388,10 @@ if (cfField) {
   // first half of Our Service sliding over (94vh of scroll): with the longer
   // wave it tops out partway through it and holds there
   const FLIGHT_VH = 44 + COVER_VH / 2;
+  // where it lands on desktop, as a share of its room below the middle (0 is
+  // dead centre, 1 as low as it can sit with the wings still on screen);
+  // lowered 30/10/2026 so it has further to climb
+  const START_LOW = 0.85;
   const FLIGHT_END = FLIGHT_VH / PIN_VH;
   let flightProgress = 0;
   // While the section slides in, the butterfly flies in ahead of it from below:
@@ -1459,9 +1463,12 @@ if (cfField) {
       if (rate === 0 ? panelVideo.playbackRate !== 0 : Math.abs(panelVideo.playbackRate - rate) > 0.02) setFlap(rate);
 
       smoothFlight += (flightProgress - smoothFlight) * SMOOTH;
-      // desktop: from the middle of the screen, where it lands, up into the room
-      // above; phones: low in the slot up to high, as before
-      const rise = (stageActive() ? -riseRoom * smoothFlight : riseRoom * (1 - 2 * smoothFlight)).toFixed(1);
+      // desktop: lands below the middle of the screen (START_LOW of its room
+      // under it) and climbs up through the middle into the room above as the
+      // section is scrolled; phones: low in the slot up to high, as before
+      const rise = (stageActive()
+        ? riseRoom * (START_LOW - (1 + START_LOW) * smoothFlight)
+        : riseRoom * (1 - 2 * smoothFlight)).toFixed(1);
       if (rise !== lastRise) { panelVideo.style.setProperty('--cf-rise', `${rise}px`); lastRise = rise; }
       panelVideo.style.setProperty('--cf-lag', `${(-dir * eased * LAG_MAX).toFixed(1)}px`);
       panelVideo.style.setProperty('--cf-tilt', `${(dir * eased * TILT_MAX).toFixed(2)}deg`);
