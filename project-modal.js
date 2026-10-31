@@ -1,5 +1,6 @@
-// ---------- Project modal (works.html, Figma 1564:7519) ----------
-// A click on a card in the Work strip opens that project as a large card over
+// ---------- Project modal (index.html, works.html; Figma 1564:7519) ----------
+// A click on a project in Home's Work grid (or, on the Works page, on a card
+// with no case study page yet) opens it as a quick view: a large card over
 // the page, the page blurred behind it. The card is the case study in small:
 // a grey bar with the project's name across the top, the case study itself
 // scrolling underneath it, and down the right a dark column with the
@@ -8,7 +9,8 @@
 // the arrow keys) to bring the next project in; Esc, the cross at the top of
 // the side column or a click outside the card puts it all away.
 //
-// A project with a case study page (its href in projects.js) gets that page's
+// A project with a case study page (its href in projects.js) gets a white
+// "View full case study" button at the end of its bar, and that page's
 // own sections, fetched and dropped in (klever.html → its .kl sections, styled
 // by klever.css), so the modal and the page never drift apart. The rest get
 // their cover, description and a note that the case study is on its way.
@@ -46,7 +48,7 @@
     el.setAttribute('aria-label', p.name);
     el.innerHTML = `
       <div class="pcard__main">
-        <div class="pcard__bar"><span>${esc(p.name)}</span></div>
+        <div class="pcard__bar"><span>${esc(p.name)}</span>${p.href ? `<a class="pcard__full" href="${esc(p.href)}">View full case study</a>` : ''}</div>
         <h2 class="pcard__title"><span>${esc(p.title || p.name)}</span></h2>
         <div class="pcard__body"></div>
       </div>
@@ -61,7 +63,6 @@
           ${(p.listTags || []).length ? `<div class="kl-meta__row"><dt>Scope</dt><dd class="kl-meta__list">${p.listTags.map((t) => esc(sentence(t))).join('<br>')}</dd></div>` : ''}
         </dl>
         <p class="pcard__desc">${esc(p.desc || '')}</p>
-        ${p.href ? `<a class="pcard__link" href="${esc(p.href)}">Full case study →</a>` : ''}
       </aside>
       <button type="button" class="pcard__close" aria-label="Close"><img src="assets/modal/close.svg" alt=""></button>`;
     // until (or unless) a case study comes in: the cover and a note

@@ -6,8 +6,9 @@
 <title>NINEFIVESEVEN — Concept-driven design studio</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Anton&family=Roboto:wght@400;500;600;700&family=Roboto+Mono:wght@400;500;600&family=DM+Sans:wght@400;500&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=192">
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Roboto:wght@400;500;600;700&family=Roboto+Mono:wght@400;500;600&family=DM+Sans:wght@400;500;700&family=Chakra+Petch:wght@600&family=Geist:wght@400;500&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css?v=199">
+<link rel="stylesheet" href="klever.css?v=29">
 <script src="page-transition.js?v=2"></script>
 <!-- the loading screen plays when the site is opened or reloaded, not when
      arriving from another of its pages (the page transition covers that) -->
@@ -55,89 +56,89 @@
      outside the loader so the opening never cuts it -->
 <canvas class="load-globe" id="loadGlobe" aria-hidden="true"></canvas>
 
-<nav class="nav" id="nav" data-theme="dark">
-  <div class="nav__inner">
-    <a href="#top" class="nav__logo">
-      <img src="assets/logo-nav-white.svg" alt="NINEFIVESEVEN" class="nav__logo-img nav__logo-img--white">
-      <img src="assets/logo-nav-red.svg" alt="NINEFIVESEVEN" class="nav__logo-img nav__logo-img--red">
-    </a>
-    <div class="nav__links">
-      <a href="works.html">[01] WORKS</a>
-      <a href="#about">[02] ABOUT</a>
-      <div class="nav__actions">
-        <div class="nav__pills">
-          <button type="button" class="nav__pill nav__lang" id="langToggle" aria-label="Switch language"><span class="is-on" data-lang="en">EN</span><span class="nav__lang-sep">/</span><span data-lang="vn">VN</span></button>
-          <button type="button" class="nav__pill nav__pill--cta" data-contact-open>Start a project</button>
-        </div>
-        <button type="button" class="nav__menu" id="menuToggle" aria-label="Open menu"><i></i><i></i><i></i><i></i></button>
-      </div>
-    </div>
+<!-- RAIL (Figma 1557:3976): the red bar down the left edge — its darker head
+     grows with the page as you scroll, and the button at its foot opens the
+     menu (its two lines cross into a close) -->
+<aside class="rail" aria-label="Site">
+  <span class="rail__fill" id="railFill" aria-hidden="true"></span>
+  <a class="rail__logo" href="#top" aria-label="NINEFIVESEVEN — back to top"><img src="assets/home/rail-logo.svg" alt=""></a>
+  <button type="button" class="rail__menu" id="railMenu" aria-label="Open menu" aria-expanded="false" aria-controls="mpanel">
+    <i></i><i></i>
+  </button>
+</aside>
+
+<!-- NAV (Figma 1557:3976): a grey bar top-right with the three links and the
+     red call button; with the menu open it drops the bar and the button turns
+     white (Figma 1574:4469) -->
+<nav class="hnav" id="nav" data-theme="dark" aria-label="Primary">
+  <div class="hnav__links">
+    <a href="works.html" data-cms="nav.work" data-cms-label="Mục 1" data-cms-group="Nav">Work</a>
+    <a href="#about" data-cms="nav.studio" data-cms-label="Mục 2" data-cms-group="Nav">Studio</a>
+    <a href="#contact" data-cms="nav.pricing" data-cms-label="Mục 3" data-cms-group="Nav">Pricing</a>
   </div>
+  <button type="button" class="hnav__cta" data-contact-open data-cms="nav.cta" data-cms-label="Nút" data-cms-group="Nav">Book a call</button>
 </nav>
 
-<div class="menu-overlay" id="menuOverlay">
-  <div class="menu-overlay__panel" role="dialog" aria-label="Menu">
-    <button type="button" class="menu-overlay__close" id="menuClose" aria-label="Close menu"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></button>
-    <nav class="menu-overlay__links">
-      <a href="works.html" class="menu-link" data-cms="menu.link.work" data-cms-label="Mục 1" data-cms-group="Menu">Works</a>
-      <a href="#about" class="menu-link" data-cms="menu.link.about" data-cms-label="Mục 2" data-cms-group="Menu">About</a>
-      <a href="#services" class="menu-link" data-cms="menu.link.services" data-cms-label="Mục 3" data-cms-group="Menu">Services</a>
-      <a href="#process" class="menu-link" data-cms="menu.link.process" data-cms-label="Mục 4" data-cms-group="Menu">Process</a>
-      <a href="#contact" class="menu-link" data-contact-open data-cms="menu.link.contact" data-cms-label="Mục 5" data-cms-group="Menu">Start a project</a>
+<!-- MENU (Figma 1574:4469): a grey panel that opens out of the rail — a
+     MENU tab, the four big links and the socials at its foot -->
+<div class="mpanel" id="mpanel" role="dialog" aria-label="Menu" aria-hidden="true">
+  <p class="mpanel__tab">Menu</p>
+  <div class="mpanel__body">
+    <nav class="mpanel__links">
+      <a href="works.html" class="mpanel__link" data-cms="menu.link.work" data-cms-label="Mục 1" data-cms-group="Menu">Works</a>
+      <a href="#about" class="mpanel__link" data-cms="menu.link.about" data-cms-label="Mục 2" data-cms-group="Menu">About</a>
+      <a href="#services" class="mpanel__link" data-cms="menu.link.services" data-cms-label="Mục 3" data-cms-group="Menu">Services</a>
+      <a href="#contact" class="mpanel__link" data-contact-open data-cms="menu.link.contact" data-cms-label="Mục 4" data-cms-group="Menu">Book a call</a>
     </nav>
-    <div class="menu-overlay__extra">
-      <p class="menu-overlay__label" data-cms="menu.socialsLabel" data-cms-label="Tiêu đề nhóm phụ" data-cms-group="Menu">Socials</p>
-      <ul class="menu-overlay__sublinks">
-        <li><a href="#" class="menu-sublink" data-cms="menu.social1.name" data-cms-href="menu.social1.url" data-cms-label="Mạng xã hội 1" data-cms-group="Menu">Instagram</a></li>
-        <li><a href="#" class="menu-sublink" data-cms="menu.social2.name" data-cms-href="menu.social2.url" data-cms-label="Mạng xã hội 2" data-cms-group="Menu">X / Twitter</a></li>
-        <li><a href="#" class="menu-sublink" data-cms="menu.social3.name" data-cms-href="menu.social3.url" data-cms-label="Mạng xã hội 3" data-cms-group="Menu">Behance</a></li>
-        <li><a href="#" class="menu-sublink" data-cms="menu.social4.name" data-cms-href="menu.social4.url" data-cms-label="Mạng xã hội 4" data-cms-group="Menu">LinkedIn</a></li>
-        <li><a href="mailto:ninefiveseven@vn.com" class="menu-sublink" data-cms="menu.email" data-cms-href="menu.email.url" data-cms-label="Email" data-cms-group="Menu">ninefiveseven@vn.com</a></li>
-      </ul>
-    </div>
+    <ul class="mpanel__socials">
+      <li><a href="#" data-cms="menu.social1.name" data-cms-href="menu.social1.url" data-cms-label="Mạng xã hội 1" data-cms-group="Menu">Instagram</a></li>
+      <li><a href="#" data-cms="menu.social2.name" data-cms-href="menu.social2.url" data-cms-label="Mạng xã hội 2" data-cms-group="Menu">X / Twitter</a></li>
+      <li><a href="#" data-cms="menu.social3.name" data-cms-href="menu.social3.url" data-cms-label="Mạng xã hội 3" data-cms-group="Menu">Behance</a></li>
+      <li><a href="#" data-cms="menu.social4.name" data-cms-href="menu.social4.url" data-cms-label="Mạng xã hội 4" data-cms-group="Menu">LinkedIn</a></li>
+    </ul>
   </div>
 </div>
 
 <main id="top">
 
-  <!-- HERO + ABOUT — one pinned stage: the image above the heading grows to fill
-       the screen, then the about copy scrolls up over it (see the hero stage in script.js) -->
-  <section class="hero" id="hero" data-theme="dark">
-    <span class="hero__anchor" id="about" aria-hidden="true"></span>
-    <div class="hero__sticky">
-      <!-- the hidden field: NINEFIVE / SEVEN typing in and wiping out all
-           over the frame, far behind everything (see the hero field in script.js) -->
-      <canvas class="hero__field" id="heroField" aria-hidden="true"></canvas>
+  <!-- HERO + ABOUT: the hero holds still (sticky) while About comes over it -->
+  <div class="hxab">
+  <!-- HERO (Figma 1574:4234): the heading top-left, the lead bottom-left and,
+       on the right, the Dong Son drum showing through the 957 mark -->
+  <section class="hx" id="hero" data-theme="dark">
+    <div class="hx__drum" aria-hidden="true"></div>
+    <h1 class="hx__title" data-cms="hero.title" data-cms-label="Tiêu đề" data-cms-group="Hero">Designing ideas into scalable digital experiences</h1>
+    <p class="hx__lead" data-cms="hero.lead" data-cms-label="Mô tả" data-cms-group="Hero">We are a design agency helping teams design, build, and scale digital products that actually work and drive real impact.</p>
+  </section>
 
-      <!-- resting frame (Figma 1502:243): media links top-left, the clip in a
-           wide rounded slot centred above the type, the heading bottom-left and
-           the lead bottom-right, both starting on the same line -->
-      <div class="hero__intro">
-        <div class="hero__social">
-          <p class="hero__label">Media</p>
-          <ul class="hero__social-list">
-            <li><a href="#" data-cms-href="hero.media1.url" data-cms-label="Link media 1" data-cms-group="Hero"><span data-cms="hero.media1.name" data-cms-label="Tên media 1" data-cms-group="Hero">X</span></a></li>
-            <li><a href="#" data-cms-href="hero.media2.url" data-cms-label="Link media 2" data-cms-group="Hero"><span data-cms="hero.media2.name" data-cms-label="Tên media 2" data-cms-group="Hero">Behance</span></a></li>
-            <li><a href="#" data-cms-href="hero.media3.url" data-cms-label="Link media 3" data-cms-group="Hero"><span data-cms="hero.media3.name" data-cms-label="Tên media 3" data-cms-group="Hero">Instagram</span></a></li>
-            <li><a href="#" data-cms-href="hero.media4.url" data-cms-label="Link media 4" data-cms-group="Hero"><span data-cms="hero.media4.name" data-cms-label="Tên media 4" data-cms-group="Hero">Telegram</span></a></li>
-            <li><a href="#" data-cms-href="hero.media5.url" data-cms-label="Link media 5" data-cms-group="Hero"><span data-cms="hero.media5.name" data-cms-label="Tên media 5" data-cms-group="Hero">LinkedIn</span></a></li>
-          </ul>
+  <!-- ABOUT (Figma 1574:4128 → 1574:4366 → 1574:4420): one pinned screen,
+       laid over the held hero. A light wedge sweeps in over the hero with
+       ABOUT / NINEFIVE / SEVEN stepped across it (frame 1), the three lines
+       slide home to the left, then — scrolling on — the copy and button come
+       in on the right (frame 2), then the dark rises back from below along a
+       broken edge (frame 3). See the about stage in script.js -->
+  <section class="ab" id="about" data-theme="light">
+    <div class="ab__sticky">
+      <div class="ab__light" id="abLight">
+        <div class="ab__title" aria-label="About Ninefive Seven" role="img">
+          <img class="ab__line ab__line--1" src="assets/home/about-line-1.svg" alt="">
+          <img class="ab__line ab__line--2" src="assets/home/about-line-2.svg" alt="">
+          <img class="ab__line ab__line--3" src="assets/home/about-line-3.svg" alt="">
+          <!-- once the three lines are home, this clip shows through them (masked to
+               the letters, script.js fades it in) -->
+          <video class="ab__video" src="assets/home/about-video.mp4" muted loop playsinline preload="metadata" aria-hidden="true" data-cms-src="about.video" data-cms-label="Video trong chữ" data-cms-group="Giới thiệu"></video>
         </div>
-        <div class="hero__media-slot" aria-hidden="true"></div>
-        <h1 class="hero__title" data-cms="hero.title" data-cms-label="Tiêu đề" data-cms-group="Hero">Designing ideas into scalable digital experiences</h1>
-        <p class="hero__lead" data-cms="hero.lead" data-cms-label="Mô tả" data-cms-group="Hero">We are a design agency helping teams design, build, and scale digital products that actually work and drive real impact.</p>
-      </div>
-
-      <div class="hero__media" aria-hidden="true">
-        <video class="hero__video" src="assets/hero/hero-video.mp4" poster="assets/hero/hero-video.jpg" autoplay muted loop playsinline preload="auto" data-cms-src="hero.video" data-cms-label="Video nền" data-cms-group="Hero"></video>
-        <span class="hero__shade"></span>
-      </div>
-
-      <div class="hero__about">
-        <p class="hero__about-text" data-cms="about.paragraph" data-cms-type="text" data-cms-label="Đoạn giới thiệu studio" data-cms-group="Giới thiệu">957 is a concept-driven design studio founded in 2025 and based in Vietnam. Rooted in modernist design principles and graphic design tradition, our work combines typography, grid systems and motion to create digital experiences that balance clarity, usability and bold visual expression. Our team remains intentionally small, under 10 people, which allows creative direction to stay personal and decisions to stay sharp. Every project is led closely by the founders. No layers. No dilution.</p>
+        <div class="ab__copy">
+          <div class="ab__text">
+            <p class="ab__headline" data-cms="about.headline" data-cms-label="Câu chính" data-cms-group="Giới thiệu">We chase the stories that matter and craft them with precision, creativity, and care.</p>
+            <p class="ab__body" data-cms="about.paragraph" data-cms-type="text" data-cms-label="Đoạn giới thiệu studio" data-cms-group="Giới thiệu">957 is a concept-driven design studio founded in 2025 and based in Vietnam. Rooted in modernist design principles and graphic design tradition, our work combines typography, grid systems and motion to create digital experiences that balance clarity, usability and bold expression.</p>
+          </div>
+          <a class="ab__btn" href="works.html" data-cms="about.button" data-cms-label="Nút" data-cms-group="Giới thiệu">See our works</a>
+        </div>
       </div>
     </div>
   </section>
+  </div>
 
   <!-- THE CORE (keyword field) — pinned stage, curtain-wipe entrance (nudot-style) -->
   <div class="cf-stage" id="cfStage">
@@ -810,13 +811,14 @@
 
 <script src="https://cdn.jsdelivr.net/npm/lenis@1.1.13/dist/lenis.min.js"></script>
 <script src="projects.js?v=26"></script>
-<script src="script.js?v=105"></script>
+<script src="script.js?v=112"></script>
 <script src="fx-tracking.js?v=4"></script>
 <script src="footer-heat.js?v=3"></script>
 <script src="svc-pixel.js?v=6"></script>
 <script src="svc-metal.js?v=7"></script>
 <script src="services.js?v=44"></script>
-<script src="process.js?v=2"></script>
+<script src="process.js?v=3"></script>
+<script src="project-modal.js?v=8"></script>
 <script src="contact.js?v=6"></script>
 </body>
 </html>

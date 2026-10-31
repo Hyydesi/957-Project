@@ -251,7 +251,7 @@ const pixelReveal = (() => {
 
   // every h1/h2 plays once as it comes into view, unless its page starts it
   const manual = (el) => el.matches('.whero__title')
-    || (el.matches('.hero__title') && document.documentElement.classList.contains('is-loading'));
+    || (el.matches('.hero__title, .hx__title') && document.documentElement.classList.contains('is-loading'));
   const heads = Array.from(document.querySelectorAll('h1, h2')).filter((el) => !manual(el));
   if (!still && 'IntersectionObserver' in window && heads.length) {
     heads.forEach((el) => { el.style.visibility = 'hidden'; });
@@ -981,6 +981,140 @@ if (heroStage && heroMedia) {
   }
 }
 
+// ---------- Home: rail, menu and the about stage (Figma 1557:3976, 1574:4469) ----------
+// The rail's darker head grows with the page: from 150 design px at the top
+// to the rail's full height at the bottom. Its button opens the menu panel
+// out of the rail (CSS does the move off .is-menu-open on <html>); the big
+// links and the socials are wrapped so each rises in on its own beat, and a
+// big link plays the headings' pixel reveal when hovered.
+(function homeRail() {
+  const fill = document.getElementById('railFill');
+  const btn = document.getElementById('railMenu');
+  const panel = document.getElementById('mpanel');
+  if (!fill || !btn || !panel) return;
+  const root = document.documentElement;
+
+  let ticking = false;
+  const grow = () => {
+    ticking = false;
+    const rail = fill.parentElement.clientHeight;
+    const start = window.innerWidth < 900 ? 90 : 150 * Math.min(window.innerWidth / 1920, window.innerHeight / 999);
+    const max = document.documentElement.scrollHeight - window.innerHeight;
+    const p = max > 0 ? Math.min(1, Math.max(0, window.scrollY / max)) : 0;
+    fill.style.setProperty('--fill', `${(start + (rail - start) * p).toFixed(1)}px`);
+  };
+  const ask = () => { if (!ticking) { ticking = true; requestAnimationFrame(grow); } };
+  window.addEventListener('scroll', ask, { passive: true });
+  window.addEventListener('resize', ask);
+  grow();
+
+  panel.querySelectorAll('.mpanel__link').forEach((a, i) => {
+    a.style.setProperty('--i', i);
+    a.innerHTML = `<span>${a.innerHTML}</span>`;
+    // hovered, a title builds itself again out of pixel blocks, as the
+    // headings do
+    const word = a.firstElementChild;
+    a.addEventListener('mouseenter', () => {
+      if (word.dataset.pxBusy || !root.classList.contains('is-menu-open') || typeof pixelReveal !== 'function') return;
+      if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+      pixelReveal(word, { duration: 900, replay: true });
+    });
+  });
+  panel.querySelectorAll('.mpanel__socials a').forEach((a, i) => a.style.setProperty('--i', i));
+
+  const set = (open) => {
+    root.classList.toggle('is-menu-open', open);
+    btn.setAttribute('aria-expanded', String(open));
+    btn.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
+    panel.setAttribute('aria-hidden', String(!open));
+    if (typeof lenis !== 'undefined' && lenis) { if (open) lenis.stop(); else lenis.start(); }
+  };
+  btn.addEventListener('click', () => set(!root.classList.contains('is-menu-open')));
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && root.classList.contains('is-menu-open')) set(false); });
+  // a click anywhere off the panel, the rail and the nav closes it; a link closes it too
+  document.addEventListener('click', (e) => {
+    if (!root.classList.contains('is-menu-open')) return;
+    if (e.target.closest('.mpanel a, .hnav a')) { set(false); return; }
+    if (!e.target.closest('.mpanel, .rail, .hnav')) set(false);
+  });
+})();
+
+// The about stage: one screen pinned for three screens of scroll, laid over
+// the hero, which holds still underneath.
+//   0 – .3    the light wedge sweeps in slowly from the right over the hero,
+//             its edge leaning as in the frame (695.5 across for 999 down),
+//             and ABOUT / NINEFIVE / SEVEN slide home to the left with it as it
+//             goes, from stepped across it to stacked, one after another
+//   .37 – .43 with the title whole, the clip fades in inside its letters
+//   .38 – .58 only then, scrolling on, the headline, the copy and the button
+//             come in on the right, one after another
+//   .64 – .94 the dark rises back from below along the frame's broken edge
+//             (through 1574:4420) until the light is gone — over the stage's
+//             last screen, which the Core slides up over (its .cf-stage starts
+//             a screen early, at 2/3), so the Core follows the broken edge up
+(function aboutStage() {
+  const stage = document.getElementById('about');
+  const light = document.getElementById('abLight');
+  if (!stage || !light) return;
+  const lines = [...stage.querySelectorAll('.ab__line')];
+  const parts = [...stage.querySelectorAll('.ab__headline, .ab__body, .ab__btn')];
+  const video = stage.querySelector('.ab__video');
+  let onScreen = false;
+  if (video && 'IntersectionObserver' in window) {
+    new IntersectionObserver(([en]) => { onScreen = en.isIntersecting; ask(); }).observe(stage);
+  }
+  const STEP = [600, 827.17, 1113];          // how far right each line starts, design px
+  const smooth = (t) => { t = Math.min(1, Math.max(0, t)); return t * t * (3 - 2 * t); };
+  const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  let ticking = false;
+  const draw = () => {
+    ticking = false;
+    const r = stage.getBoundingClientRect();
+    const W = window.innerWidth, H = window.innerHeight;
+    const run = Math.max(1, r.height - H);
+    const p = still ? 0.55 : Math.min(1, Math.max(0, -r.top / run));
+    const aPx = W < 900 ? (W - 84) / 763 : Math.min(W / 1920, H / 999);
+
+    // the light: the wedge coming in, or the dark rising back
+    const e = smooth((p - 0.64) / 0.3);
+    let poly;
+    if (e > 0) {
+      const f = Math.min(1, e / 0.5), g = Math.max(0, (e - 0.5) / 0.5);
+      const yR = H * (1 - g);
+      const yA = (H + ((613 / 999) * H - H) * f) * (1 - g);
+      const yB = (H + ((763 / 999) * H - H) * f) * (1 - g);
+      const yL = H * (1 - f);
+      poly = `0px 0px, ${W}px 0px, ${W}px ${yR}px, ${(W * 1275.5 / 1920).toFixed(1)}px ${yA.toFixed(1)}px, ${(W * 302 / 1920).toFixed(1)}px ${yB.toFixed(1)}px, 0px ${yL.toFixed(1)}px`;
+    } else {
+      const lean = (695.5 / 999) * H;
+      const s = W + (-lean - W) * smooth(p / 0.3);
+      poly = `${s.toFixed(1)}px 0px, ${W}px 0px, ${W}px ${H}px, ${(s + lean).toFixed(1)}px ${H}px`;
+    }
+    light.style.clipPath = `polygon(${poly})`;
+
+    // the lines home, then the copy
+    lines.forEach((line, i) => {
+      const k = smooth((p - 0.04 - i * 0.03) / 0.27);
+      line.style.transform = `translate3d(${(STEP[i] * aPx * (1 - k)).toFixed(1)}px,${(-5 * aPx * (1 - k)).toFixed(1)}px,0)`;
+    });
+    parts.forEach((el, i) => el.style.setProperty('--in', smooth((p - 0.38 - i * 0.05) / 0.1).toFixed(3)));
+    // the clip inside the letters, once they're home; it only plays while shown
+    if (video) {
+      const vid = smooth((p - 0.37) / 0.06);
+      video.style.setProperty('--vid', vid.toFixed(3));
+      if (vid > 0 && onScreen) { if (video.paused) video.play().catch(() => {}); }
+      else if (!video.paused) video.pause();
+    }
+    // once the light covers the hero, the stage's own dark goes in under it
+    stage.classList.toggle('is-covered', p >= 0.3);
+  };
+  const ask = () => { if (!ticking) { ticking = true; requestAnimationFrame(draw); } };
+  window.addEventListener('scroll', ask, { passive: true });
+  window.addEventListener('resize', ask);
+  draw();
+})();
+
 // ---------- Word field: NINEFIVE SEVEN typing in and wiping out (hero, Works) ----------
 // A dense grid of faint mono "NINEFIVE SEVEN" under the whole stage. Each cell
 // runs its own loop: it waits, types the phrase in letter by letter (the newest
@@ -1384,14 +1518,18 @@ if (cfField) {
   const stageActive = () => stage && window.innerWidth >= 720;
 
   let scrollProgress = 0;
-  // the butterfly's climb keeps the pace it had over the old 44vh wave and the
-  // first half of Our Service sliding over (94vh of scroll): with the longer
-  // wave it tops out partway through it and holds there
-  const FLIGHT_VH = 44 + COVER_VH / 2;
+  // the butterfly climbs the whole way through the wave, so the further you
+  // scroll the higher it goes, and comes to rest up top as the wave ends,
+  // holding there while Our Service slides over (31/10/2026)
+  const FLIGHT_VH = WAVE_VH;
+  // where it ends up: its middle this far down the screen — high and centred,
+  // over the top of the two word columns
+  const END_AT = 0.22;
   // where it lands on desktop, as a share of its room below the middle (0 is
   // dead centre, 1 as low as it can sit with the wings still on screen);
-  // lowered 30/10/2026 so it has further to climb
-  const START_LOW = 0.85;
+  // lowered 30/10/2026 so it has further to climb, and again 31/10/2026 past
+  // its room, the tail of the wings dipping off the foot of the screen
+  const START_LOW = 1.25;
   const FLIGHT_END = FLIGHT_VH / PIN_VH;
   let flightProgress = 0;
   // While the section slides in, the butterfly flies in ahead of it from below:
@@ -1464,10 +1602,11 @@ if (cfField) {
 
       smoothFlight += (flightProgress - smoothFlight) * SMOOTH;
       // desktop: lands below the middle of the screen (START_LOW of its room
-      // under it) and climbs up through the middle into the room above as the
-      // section is scrolled; phones: low in the slot up to high, as before
+      // under it) and climbs up through the middle to END_AT of the screen as
+      // the wave runs; phones: low in the slot up to high, as before
+      const top = -window.innerHeight * (0.5 - END_AT);
       const rise = (stageActive()
-        ? riseRoom * (START_LOW - (1 + START_LOW) * smoothFlight)
+        ? riseRoom * START_LOW + (top - riseRoom * START_LOW) * smoothFlight
         : riseRoom * (1 - 2 * smoothFlight)).toFixed(1);
       if (rise !== lastRise) { panelVideo.style.setProperty('--cf-rise', `${rise}px`); lastRise = rise; }
       panelVideo.style.setProperty('--cf-lag', `${(-dir * eased * LAG_MAX).toFixed(1)}px`);
@@ -1657,6 +1796,18 @@ if (categoryFilter && yearFilter && worksGrid) {
       if (worksGrid.classList.contains('is-list')) return;
       scramblers.forEach((sc) => sc.run());
     });
+  });
+
+  // ---------- Works: a click on a project opens the quick view ----------
+  // (project-modal.js) over the page rather than leaving it; the full case
+  // study is a button away in the card's bar
+  worksGrid.addEventListener('click', (e) => {
+    const project = e.target.closest('.project');
+    if (!project || typeof window.openProjectModal !== 'function' || typeof PROJECTS === 'undefined') return;
+    const i = PROJECTS.findIndex((p) => p.code === project.dataset.code);
+    if (i < 0) return;
+    e.preventDefault();
+    window.openProjectModal(i);
   });
 
   // ---------- Works: LIST view row ----------
@@ -2118,9 +2269,13 @@ if (load && document.documentElement.classList.contains('is-loading')) {
   const SCRAMBLE_POOL = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
   const introTargets = [
     ...document.querySelectorAll('.nav__links > a, .nav__lang span, .nav__pill[data-contact-open]'),
-    ...document.querySelectorAll('.hero__label, .hero__social-list span, .hero__lead'),
+    ...document.querySelectorAll('.hnav__links a, .hnav__cta'),
+    ...document.querySelectorAll('.hero__label, .hero__social-list span, .hero__lead, .hx__lead'),
   ];
   introTargets.forEach((el) => { el.style.visibility = 'hidden'; });
+  // the rail, the nav bar and the drum stay away while the globe turns over
+  // the opened page; they come in as it blows apart (CSS: .is-intro-hold)
+  document.documentElement.classList.add('is-intro-hold');
   const navLogo = document.querySelector('.nav__logo');
   if (navLogo) navLogo.style.opacity = '0';
   const heroMedia = document.querySelector('.hero__media');
@@ -2156,7 +2311,7 @@ if (load && document.documentElement.classList.contains('is-loading')) {
   };
 
   // the hero title builds itself out of pixel blocks with the rest of the page
-  const heroTitle = document.querySelector('.hero__title');
+  const heroTitle = document.querySelector('.hero__title, .hx__title');
   if (heroTitle) heroTitle.style.visibility = 'hidden';
 
   const revealPage = () => {
@@ -2393,6 +2548,7 @@ if (load && document.documentElement.classList.contains('is-loading')) {
     requestAnimationFrame(zoom);
 
     setTimeout(runGlobe, GLOBE_FROM);
+    setTimeout(() => document.documentElement.classList.remove('is-intro-hold'), GLOBE_FROM + TURN_MS);
     setTimeout(revealPage, PAGE_AT);
     setTimeout(revealClip, CLIP_AT);
   };
