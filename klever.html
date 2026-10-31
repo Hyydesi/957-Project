@@ -7,52 +7,52 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=Roboto:wght@400;500;600;700&family=Roboto+Mono:wght@400;500;600&family=Chakra+Petch:wght@400;500;600;700&family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=184">
+<link rel="stylesheet" href="styles.css?v=199">
 <link rel="stylesheet" href="klever.css?v=29">
 <script src="page-transition.js?v=2"></script>
 </head>
 <body class="klever-page">
 
-<nav class="nav" id="nav" data-theme="light">
-  <div class="nav__inner">
-    <a href="index.html" class="nav__logo">
-      <img src="assets/logo-nav-white.svg" alt="NINEFIVESEVEN" class="nav__logo-img nav__logo-img--white">
-      <img src="assets/logo-nav-red.svg" alt="NINEFIVESEVEN" class="nav__logo-img nav__logo-img--red">
-    </a>
-    <div class="nav__links">
-      <a href="works.html">[01] WORKS</a>
-      <a href="index.html#about">[02] ABOUT</a>
-      <div class="nav__actions">
-        <div class="nav__pills">
-          <button type="button" class="nav__pill nav__lang" id="langToggle" aria-label="Switch language"><span class="is-on" data-lang="en">EN</span><span class="nav__lang-sep">/</span><span data-lang="vn">VN</span></button>
-          <button type="button" class="nav__pill nav__pill--cta" data-contact-open>Start a project</button>
-        </div>
-        <button type="button" class="nav__menu" id="menuToggle" aria-label="Open menu"><i></i><i></i><i></i><i></i></button>
-      </div>
-    </div>
+<!-- RAIL (Figma 1557:3976): the red bar down the left edge — its darker head
+     grows with the page as you scroll, and the button at its foot opens the
+     menu (its two lines cross into a close) -->
+<aside class="rail" aria-label="Site">
+  <span class="rail__fill" id="railFill" aria-hidden="true"></span>
+  <a class="rail__logo" href="index.html" aria-label="NINEFIVESEVEN — Home"><img src="assets/home/rail-logo.svg" alt=""></a>
+  <button type="button" class="rail__menu" id="railMenu" aria-label="Open menu" aria-expanded="false" aria-controls="mpanel">
+    <i></i><i></i>
+  </button>
+</aside>
+
+<!-- NAV (Figma 1557:3976): a grey bar top-right with the three links and the
+     red call button; with the menu open it drops the bar and the button turns
+     white (Figma 1574:4469) -->
+<nav class="hnav" id="nav" data-theme="dark" aria-label="Primary">
+  <div class="hnav__links">
+    <a href="works.html" data-cms="nav.work" data-cms-label="Mục 1" data-cms-group="Nav">Work</a>
+    <a href="index.html#about" data-cms="nav.studio" data-cms-label="Mục 2" data-cms-group="Nav">Studio</a>
+    <a href="index.html#contact" data-cms="nav.pricing" data-cms-label="Mục 3" data-cms-group="Nav">Pricing</a>
   </div>
+  <button type="button" class="hnav__cta" data-contact-open data-cms="nav.cta" data-cms-label="Nút" data-cms-group="Nav">Book a call</button>
 </nav>
 
-<div class="menu-overlay" id="menuOverlay">
-  <div class="menu-overlay__panel" role="dialog" aria-label="Menu">
-    <button type="button" class="menu-overlay__close" id="menuClose" aria-label="Close menu"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></button>
-    <nav class="menu-overlay__links">
-      <a href="works.html" class="menu-link" data-cms="menu.link.work" data-cms-label="Mục 1" data-cms-group="Menu">Works</a>
-      <a href="index.html#about" class="menu-link" data-cms="menu.link.about" data-cms-label="Mục 2" data-cms-group="Menu">About</a>
-      <a href="index.html#services" class="menu-link" data-cms="menu.link.services" data-cms-label="Mục 3" data-cms-group="Menu">Services</a>
-      <a href="index.html#process" class="menu-link" data-cms="menu.link.process" data-cms-label="Mục 4" data-cms-group="Menu">Process</a>
-      <a href="index.html#contact" class="menu-link" data-contact-open data-cms="menu.link.contact" data-cms-label="Mục 5" data-cms-group="Menu">Start a project</a>
+<!-- MENU (Figma 1574:4469): a grey panel that opens out of the rail — a
+     MENU tab, the four big links and the socials at its foot -->
+<div class="mpanel" id="mpanel" role="dialog" aria-label="Menu" aria-hidden="true">
+  <p class="mpanel__tab">Menu</p>
+  <div class="mpanel__body">
+    <nav class="mpanel__links">
+      <a href="works.html" class="mpanel__link" data-cms="menu.link.work" data-cms-label="Mục 1" data-cms-group="Menu">Works</a>
+      <a href="index.html#about" class="mpanel__link" data-cms="menu.link.about" data-cms-label="Mục 2" data-cms-group="Menu">About</a>
+      <a href="index.html#services" class="mpanel__link" data-cms="menu.link.services" data-cms-label="Mục 3" data-cms-group="Menu">Services</a>
+      <a href="#contact" class="mpanel__link" data-contact-open data-cms="menu.link.contact" data-cms-label="Mục 4" data-cms-group="Menu">Book a call</a>
     </nav>
-    <div class="menu-overlay__extra">
-      <p class="menu-overlay__label" data-cms="menu.socialsLabel" data-cms-label="Tiêu đề nhóm phụ" data-cms-group="Menu">Socials</p>
-      <ul class="menu-overlay__sublinks">
-        <li><a href="#" class="menu-sublink" data-cms="menu.social1.name" data-cms-href="menu.social1.url" data-cms-label="Mạng xã hội 1" data-cms-group="Menu">Instagram</a></li>
-        <li><a href="#" class="menu-sublink" data-cms="menu.social2.name" data-cms-href="menu.social2.url" data-cms-label="Mạng xã hội 2" data-cms-group="Menu">X / Twitter</a></li>
-        <li><a href="#" class="menu-sublink" data-cms="menu.social3.name" data-cms-href="menu.social3.url" data-cms-label="Mạng xã hội 3" data-cms-group="Menu">Behance</a></li>
-        <li><a href="#" class="menu-sublink" data-cms="menu.social4.name" data-cms-href="menu.social4.url" data-cms-label="Mạng xã hội 4" data-cms-group="Menu">LinkedIn</a></li>
-        <li><a href="mailto:ninefiveseven@vn.com" class="menu-sublink" data-cms="menu.email" data-cms-href="menu.email.url" data-cms-label="Email" data-cms-group="Menu">ninefiveseven@vn.com</a></li>
-      </ul>
-    </div>
+    <ul class="mpanel__socials">
+      <li><a href="#" data-cms="menu.social1.name" data-cms-href="menu.social1.url" data-cms-label="Mạng xã hội 1" data-cms-group="Menu">Instagram</a></li>
+      <li><a href="#" data-cms="menu.social2.name" data-cms-href="menu.social2.url" data-cms-label="Mạng xã hội 2" data-cms-group="Menu">X / Twitter</a></li>
+      <li><a href="#" data-cms="menu.social3.name" data-cms-href="menu.social3.url" data-cms-label="Mạng xã hội 3" data-cms-group="Menu">Behance</a></li>
+      <li><a href="#" data-cms="menu.social4.name" data-cms-href="menu.social4.url" data-cms-label="Mạng xã hội 4" data-cms-group="Menu">LinkedIn</a></li>
+    </ul>
   </div>
 </div>
 
@@ -348,7 +348,7 @@
 
 </main>
 
-<script src="script.js?v=99"></script>
+<script src="script.js?v=112"></script>
 <script src="footer-heat.js?v=3"></script>
 <script src="contact.js?v=6"></script>
 </body>

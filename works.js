@@ -133,7 +133,9 @@
   // ---- the loop's position: wheel, swipe and keys move a target the row
   // glides after ----
   let target = 0, pos = 0, speed = 0, last = 0;
-  const blocked = () => menu && menu.classList.contains('is-open');
+  const blocked = () => (menu && menu.classList.contains('is-open'))
+    || document.documentElement.classList.contains('is-menu-open')
+    || (typeof window.projectModalOpen === 'function' && window.projectModalOpen());
   // once input lets go, the row settles with a card in the middle
   let snapT = 0;
   const snapSoon = (ms) => {
@@ -200,6 +202,17 @@
     else if (['ArrowLeft', 'ArrowUp', 'PageUp'].includes(e.key)) go(-1);
     else return;
     e.preventDefault();
+  });
+  // a click on a card with a case study goes straight to the full page (its
+  // link); one without opens as a card over the page (project-modal.js). A
+  // drag that ends over a card was already swallowed above
+  track.addEventListener('click', (e) => {
+    const a = e.target.closest('.wcard');
+    if (!a || typeof window.openProjectModal !== 'function') return;
+    const card = cards.find((c) => c.el === a);
+    if (!card || PROJECTS[card.project].href) return;
+    e.preventDefault();
+    window.openProjectModal(card.project);
   });
   // the arrows and the dots under the row
   const controls = sticky.querySelector('.wstrip__controls');

@@ -22,7 +22,10 @@
 
   const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
   const pinQuery = matchMedia('(min-width: 900px) and (min-height: 560px)');
-  const TAIL = 0.6;   // scroll kept after the last step arrives, in steps (the CSS height allows for it)
+  // scroll kept after the last step arrives, in steps (the CSS height allows
+  // for it): 0.6 to let it settle, and on Home one more screen (100vh, at
+  // 85vh a step) for Works to slide up over the held stack
+  const TAIL = 0.6 + (document.body.classList.contains('home') ? 100 / 85 : 0);
   const HOLD = 0.2;   // share of each step's scroll, at either end, where the stack holds still
   const LIFT = 2;     // how far the covered step drifts up, in rows
   const DIM = 0.6;    // how dark the covered step gets

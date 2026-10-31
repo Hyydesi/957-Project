@@ -381,10 +381,11 @@ button{font:inherit;background:none;border:none;color:inherit;cursor:pointer;}
 .sr-word{display:inline-block;opacity:.35;filter:blur(4px);will-change:opacity,filter;}
 
 /* ---------- THE CORE (keyword field) ---------- */
-/* Entrance: the stage starts a screen early, inside the hero's last 100vh,
-   so the section slides up whole over the held, darkening hero frame — the
-   way Our Service later slides up over this one (the margin must match the
-   hero stage's SLIDE_VH in script.js). */
+/* Entrance: the stage starts a screen early, inside About's last 100vh,
+   so the section slides up whole over it — the
+   way Our Service later slides up over this one. Since the Home rebuild
+   (Figma 1557:3976) the section before it is About, whose last screen is
+   the dark rising back; the Core follows it up. */
 /* 320vh = the screen + 120vh of wave + 100vh for Our Service to slide up over
    it (script.js's WAVE_VH / COVER_VH) */
 .cf-stage{position:relative;z-index:4;height:320vh;margin-top:-100vh;}
@@ -1459,6 +1460,8 @@ html.svc-snap-native{scroll-snap-type:y proximity;}
 /* the works page drops the nav's difference blend: it sits plainly over the
    still */
 .works-page .nav{mix-blend-mode:normal;}
+/* clear of the rail on the left */
+.works-page .wstrip__title,.works-page .wstrip__lead{left:calc(var(--rail-clear) + 24px);}
 /* and its menu icon goes white over the dark still */
 .works-page .nav__menu i{background:var(--white);}
 .wstrip__sticky{
@@ -1474,7 +1477,8 @@ html.svc-snap-native{scroll-snap-type:y proximity;}
 .wstrip__bg{position:absolute;inset:0;z-index:0;pointer-events:none;}
 .wstrip__bg .gradient-ascii-canvas{position:absolute;inset:0;display:block;width:100%;height:100%;}
 .wstrip__title{
-  position:absolute;z-index:3;left:40px;top:calc(103 * var(--u));
+  /* level with the top of the rail and the nav bar */
+  position:absolute;z-index:3;left:40px;top:calc(16 * var(--u));
   /* 9.07em is the frame's 580px at 64px: "everything" always drops to the second line */
   width:9.07em;max-width:calc(100vw - 80px);
   font-family:var(--font-display);font-weight:400;text-transform:uppercase;
@@ -1543,7 +1547,234 @@ html.svc-snap-native{scroll-snap-type:y proximity;}
   }
   .wstrip__title{left:20px;top:calc(var(--nav-h) + 16px);width:auto;right:20px;font-size:clamp(34px, 10vw, 56px);}
   .wstrip__lead{left:20px;right:20px;top:auto;bottom:32px;width:auto;min-width:0;font-size:15px;}
+  .works-page .wstrip__title,.works-page .wstrip__lead{left:calc(var(--rail-clear) + 12px);}
   .wstrip__now{right:auto;left:20px;top:calc(var(--strip-top) + var(--card-h) + 64px);font-size:40px;}
+}
+
+/* ---------- HOME: rail, nav, menu, hero, about (Figma 1557:3976, 1574:4469) ---------- */
+/* --u is one design px of the 1920×999 frame. Phones get their own sizes
+   below. The rail and the nav stay put over the page; the menu panel opens
+   out of the rail. The Works and Klever pages wear the same rail, nav and
+   menu. */
+.home,.works-page,.klever-page{--u:min(100vw / 1920, 100vh / 999);--rail-clear:calc(112 * var(--u));}
+/* the Klever case study steps in clear of the rail */
+.klever-page main.kl{margin-left:var(--rail-clear);}
+/* everything after the hero and About (which are laid out around the rail)
+   starts clear of the rail: the rail's 16 + 80 and a 16 gap */
+.home main > :not(.hxab):not(.process),.home .sfooter{margin-left:var(--rail-clear);}
+/* Process keeps its full width, so the rules between its steps run edge to
+   edge; only its type steps in clear of the rail */
+.home .process__intro{padding-left:calc(var(--rail-clear) + 24px);}
+.home .process__stack{padding-left:0;padding-right:0;}
+.home .pstep__head,.home .pstep__body{padding-left:calc(var(--rail-clear) + 24px);padding-right:24px;}
+@media(min-width:900px){.home .process__intro{padding-left:calc(var(--rail-clear) + 40px);}}
+@media(min-width:900px) and (min-height:560px){
+  .home .process__stack{left:0;right:0;}
+  .home .pstep__head{padding-left:calc(var(--rail-clear) + 40px);padding-right:40px;}
+  .home .pstep__body{left:calc(var(--rail-clear) + 40px);right:40px;padding-left:0;padding-right:0;}
+  /* Process holds still for one more screen once its last step is in, and
+     Works slides up over it (process.js's TAIL counts that screen) */
+  .home .process__stage{height:calc(100vh + (var(--steps) - .4) * 85vh + 100vh);}
+  .home .works{margin-top:-100vh;}
+}
+
+/* the rail: red, its darker head (--fill, set by script.js from the scroll)
+   over the top, the menu button at its foot */
+.rail{
+  position:fixed;z-index:300;left:calc(16 * var(--u));top:calc(16 * var(--u));
+  width:calc(80 * var(--u));height:calc(100vh - 41 * var(--u));
+  background:var(--red-brand, #d90100);overflow:hidden;
+}
+.rail__fill{
+  position:absolute;left:0;top:0;width:100%;
+  height:var(--fill, calc(150 * var(--u)));background:#b50100;
+}
+.rail__logo{position:absolute;z-index:1;left:calc(12 * var(--u));top:calc(20 * var(--u));width:calc(56 * var(--u));display:block;}
+.rail__logo img{display:block;width:100%;height:auto;}
+.rail__menu{
+  position:absolute;left:0;bottom:calc(10 * var(--u));width:100%;height:calc(48 * var(--u));
+  display:block;cursor:pointer;
+}
+/* the two lines of the menu icon; open, they meet in the middle and cross */
+.rail__menu i{
+  position:absolute;left:50%;top:50%;width:calc(36 * var(--u));height:calc(3 * var(--u));min-height:2px;
+  border-radius:3px;background:var(--white);
+  transform:translate(-50%,-50%) translateY(calc(-3.75 * var(--u)));
+  transition:transform .5s cubic-bezier(.76,0,.24,1);
+}
+.rail__menu i:last-child{transform:translate(-50%,-50%) translateY(calc(3.75 * var(--u)));}
+.is-menu-open .rail__menu i:first-child{transform:translate(-50%,-50%) rotate(45deg);}
+.is-menu-open .rail__menu i:last-child{transform:translate(-50%,-50%) rotate(-45deg);}
+
+/* the nav: a grey bar top-right, the links in Anton, the red call button */
+.hnav{
+  position:fixed;z-index:300;top:calc(16 * var(--u));right:calc(28 * var(--u));
+  display:flex;align-items:center;gap:calc(60 * var(--u));padding-left:calc(32 * var(--u));
+  background:#4d4d4d;transition:background-color .4s ease;
+}
+.hnav__links{display:flex;align-items:center;gap:calc(60 * var(--u));}
+.hnav__links a,.hnav__cta{
+  font-family:var(--font-display);font-weight:400;text-transform:uppercase;white-space:nowrap;
+  font-size:calc(20 * var(--u));color:var(--white);
+  transition:font-size .4s cubic-bezier(.76,0,.24,1), color .3s ease, background-color .3s ease;
+}
+.hnav__links a:hover{color:#ff4d4c;}
+.hnav__cta{
+  display:flex;align-items:center;justify-content:center;
+  padding:calc(12 * var(--u)) calc(24 * var(--u));line-height:calc(20 * var(--u));
+  background:#d90100;border-radius:2px;cursor:pointer;
+}
+.hnav__cta:hover{background:#b50100;}
+/* with the menu open: no bar, bigger links, a white button */
+.is-menu-open .hnav{background:transparent;}
+.is-menu-open .hnav__links a{font-size:calc(24 * var(--u));}
+.is-menu-open .hnav__cta{background:var(--white);color:#101010;font-size:calc(16 * var(--u));}
+
+/* a menu title's pixel reveal (script.js) draws over the open panel */
+.is-menu-open .px-reveal{z-index:295;}
+/* the menu: a grey panel opening out of the rail, left to right */
+.mpanel{
+  position:fixed;z-index:290;left:calc(113 * var(--u));top:calc(16 * var(--u));
+  width:calc(717 * var(--u));height:calc(100vh - 41 * var(--u));
+  display:flex;flex-direction:column;
+  padding:calc(16 * var(--u)) calc(16 * var(--u)) calc(36 * var(--u));
+  background:#2c2c2c;overflow:hidden;
+  clip-path:inset(0 100% 0 0);visibility:hidden;
+  transition:clip-path .7s cubic-bezier(.76,0,.24,1), visibility 0s linear .7s;
+}
+.is-menu-open .mpanel{clip-path:inset(0 0 0 0);visibility:visible;transition:clip-path .8s cubic-bezier(.76,0,.24,1), visibility 0s;}
+.mpanel__tab{
+  margin:0;padding:calc(8 * var(--u));background:#525252;
+  font-family:'Roboto Mono',monospace;font-size:max(11px, 16 * var(--u));line-height:1;
+  text-transform:uppercase;color:var(--white);
+}
+.mpanel__body{
+  flex:1 1 auto;min-height:0;display:flex;flex-direction:column;justify-content:space-between;
+  padding:calc(12 * var(--u)) calc(32 * var(--u)) 0;
+}
+.mpanel__links{display:flex;flex-direction:column;align-items:flex-start;}
+/* each big link rises out of its own line as the panel opens */
+.mpanel__link{
+  display:block;overflow:hidden;
+  font-family:var(--font-display);font-weight:400;text-transform:uppercase;white-space:nowrap;
+  font-size:calc(120 * var(--u));line-height:1.2;letter-spacing:calc(-1.6 * var(--u));color:var(--white);
+}
+.mpanel__link > span{display:block;transform:translateY(105%);transition:transform .6s cubic-bezier(.76,0,.24,1), color .25s ease;}
+.mpanel__link:hover > span{color:#ff4d4c;}
+.is-menu-open .mpanel__link > span{transform:none;transition-delay:calc(.28s + var(--i, 0) * .07s), 0s;}
+.mpanel__socials{display:flex;flex-direction:column;gap:calc(6 * var(--u));margin:0;padding:0;list-style:none;}
+.mpanel__socials a{
+  display:block;font-family:var(--font-display);font-size:max(15px, 24 * var(--u));line-height:1.0625;color:var(--white);
+  opacity:0;transform:translateY(8px);transition:opacity .4s ease, transform .4s ease, color .25s ease;
+}
+.mpanel__socials a:hover{color:#ff4d4c;}
+.is-menu-open .mpanel__socials a{opacity:1;transform:none;transition-delay:calc(.55s + var(--i, 0) * .05s), calc(.55s + var(--i, 0) * .05s), 0s;}
+
+/* while the loader's globe turns over the opened page, the rail, the nav
+   bar and the drum hold back; as it blows apart (script.js drops
+   .is-intro-hold) the rail slides in from the left, the bar drops in and the
+   drum fades up */
+.rail,.hnav{transition:transform .9s cubic-bezier(.16,1,.3,1), opacity .6s ease;}
+.hnav{transition:transform .9s cubic-bezier(.16,1,.3,1), opacity .6s ease, background-color .4s ease;}
+.hx__drum{transition:opacity 1.4s ease;}
+.is-intro-hold .rail{transform:translateX(-130%);}
+.is-intro-hold .hnav{transform:translateY(-160%);opacity:0;}
+.is-intro-hold .hx__drum{opacity:0;}
+
+/* the hero: one dark screen, the heading top-left, the lead bottom-left,
+   the drum through the 957 mark on the right (screened over the dark) */
+.hxab{position:relative;}
+/* the hero holds still: sticky for as long as About runs over it */
+.hx{position:sticky;top:0;height:100vh;min-height:calc(999 * var(--u));overflow:hidden;background:#101010;isolation:isolate;}
+.hx__drum{
+  position:absolute;z-index:0;left:calc(266 * var(--u));top:calc(-397 * var(--u));
+  width:calc(1766 * var(--u));height:calc(1572 * var(--u));
+  background:url('assets/home/hero-drum.webp') center / 100% 100% no-repeat;
+  -webkit-mask:url('assets/home/hero-mask.svg') no-repeat;mask:url('assets/home/hero-mask.svg') no-repeat;
+  /* the mark: 1548×1259 at 287, 198 inside the drum's box */
+  -webkit-mask-size:87.674% 80.089%;mask-size:87.674% 80.089%;
+  -webkit-mask-position:131.85% 63.26%;mask-position:131.85% 63.26%;
+  mix-blend-mode:color-dodge;opacity:.8;pointer-events:none;
+}
+.hx__title{
+  position:absolute;z-index:1;left:calc(146 * var(--u));top:calc(57 * var(--u));width:calc(814 * var(--u));margin:0;
+  font-family:var(--font-display);font-weight:400;text-transform:uppercase;
+  font-size:calc(100 * var(--u));line-height:1;letter-spacing:calc(-3 * var(--u));color:var(--white);
+}
+.hx__lead{
+  position:absolute;z-index:1;left:calc(146 * var(--u));top:calc(795 * var(--u));width:calc(628 * var(--u));margin:0;
+  font-family:var(--font-body);font-weight:400;font-size:calc(32 * var(--u));line-height:1.0006;color:var(--white);
+}
+
+/* about: a pinned screen; script.js wipes the light in (clip-path), slides
+   the three title lines home and brings in the copy, then lets the dark
+   rise back. 400vh, laid a screen over the held hero (margin-top:-100vh).
+   --a is one design px of the about layout */
+.ab{position:relative;z-index:1;height:400vh;margin-top:-100vh;--a:var(--u);}
+/* clear over the hero until the light has covered it (.is-covered, from
+   script.js); dark after that, so the dark rising back is the page's own */
+.ab__sticky{position:sticky;top:0;height:100vh;overflow:hidden;overflow:clip;}
+.ab.is-covered .ab__sticky{background:#101010;}
+.ab__light{position:absolute;inset:0;background:#f0f0f0;clip-path:polygon(100% 0,100% 0,100% 100%,100% 100%);}
+.ab__title{position:absolute;left:calc(153 * var(--a));top:calc(126 * var(--a));width:calc(763 * var(--a));height:calc(757 * var(--a));}
+.ab__line{position:absolute;left:0;display:block;will-change:transform;}
+.ab__line--1{top:0;width:calc(572.213 * var(--a));height:calc(230.209 * var(--a));}
+.ab__line--2{top:calc(265.02 * var(--a));width:calc(756.519 * var(--a));height:calc(226.227 * var(--a));}
+.ab__line--3{top:calc(526 * var(--a));width:calc(546.007 * var(--a));height:calc(230.209 * var(--a));}
+/* the clip inside the letters: masked by the same three lines at the same
+   places, faded in by script.js (--vid) once they're home */
+.ab__video{
+  position:absolute;left:0;top:0;width:100%;height:100%;object-fit:cover;
+  opacity:var(--vid, 0);pointer-events:none;
+  -webkit-mask-image:url('assets/home/about-line-1.svg'),url('assets/home/about-line-2.svg'),url('assets/home/about-line-3.svg');
+  mask-image:url('assets/home/about-line-1.svg'),url('assets/home/about-line-2.svg'),url('assets/home/about-line-3.svg');
+  -webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;
+  -webkit-mask-size:calc(572.213 * var(--a)) calc(230.209 * var(--a)), calc(756.519 * var(--a)) calc(226.227 * var(--a)), calc(546.007 * var(--a)) calc(230.209 * var(--a));
+  mask-size:calc(572.213 * var(--a)) calc(230.209 * var(--a)), calc(756.519 * var(--a)) calc(226.227 * var(--a)), calc(546.007 * var(--a)) calc(230.209 * var(--a));
+  -webkit-mask-position:0 0, 0 calc(265.02 * var(--a)), 0 calc(526 * var(--a));
+  mask-position:0 0, 0 calc(265.02 * var(--a)), 0 calc(526 * var(--a));
+}
+.ab__copy{
+  position:absolute;left:calc(1106 * var(--u));top:calc(205 * var(--u));width:calc(665 * var(--u));height:calc(684 * var(--u));
+  display:flex;flex-direction:column;justify-content:space-between;align-items:flex-start;
+}
+.ab__text{display:flex;flex-direction:column;gap:calc(60 * var(--u));}
+.ab__headline{margin:0;font-family:var(--font-body);font-weight:700;font-size:calc(48 * var(--u));line-height:1.02;letter-spacing:calc(.48 * var(--u));color:#101010;}
+.ab__body{margin:0;width:calc(526 * var(--u));font-family:var(--font-body);font-weight:500;font-size:calc(24 * var(--u));line-height:1.24;letter-spacing:calc(.24 * var(--u));color:#adadad;}
+.ab__btn{
+  display:inline-flex;align-items:center;justify-content:center;height:calc(78 * var(--u));padding:0 calc(30 * var(--u));
+  background:#d90100;border-radius:2px;
+  font-family:var(--font-display);font-size:calc(36 * var(--u));text-transform:uppercase;color:var(--white);
+  transition:background-color .25s ease;
+}
+.ab__btn:hover{background:#b50100;}
+/* the copy's parts come in one after another (--in, 0..1 each, from script.js) */
+.ab__headline,.ab__body,.ab__btn{opacity:var(--in, 0);transform:translateY(calc((1 - var(--in, 0)) * 40px));}
+
+@media(max-width:899px){
+  .home,.works-page,.klever-page{--u:calc(100vw / 430);--rail-clear:56px;}
+  .rail{left:8px;top:8px;width:44px;height:calc(100vh - 16px);}
+  .rail__fill{height:var(--fill, 90px);}
+  .rail__logo{left:8px;top:12px;width:28px;}
+  .rail__menu{bottom:6px;height:40px;}
+  .rail__menu i{width:24px;height:2px;}
+  .hnav{top:8px;right:8px;padding-left:0;gap:0;background:transparent;}
+  .hnav__links{display:none;}
+  .hnav__cta,.is-menu-open .hnav__cta{font-size:14px;line-height:14px;padding:10px 14px;}
+  .mpanel{left:60px;top:8px;width:calc(100vw - 68px);height:calc(100vh - 16px);padding:10px 10px 24px;}
+  .mpanel__body{padding:12px 14px 0;}
+  .mpanel__link{font-size:clamp(44px, 15vw, 72px);letter-spacing:-.5px;}
+  .hx{min-height:0;}
+  .hx__title{left:68px;right:16px;top:64px;width:auto;font-size:clamp(40px, 11vw, 56px);letter-spacing:-1px;}
+  .hx__lead{left:68px;right:16px;top:auto;bottom:40px;width:auto;font-size:17px;line-height:1.25;}
+  .hx__drum{left:-30vw;top:22vh;width:160vw;height:calc(160vw * 1572 / 1766);}
+  .ab{--a:calc((100vw - 84px) / 763);}
+  .ab__title{left:68px;top:72px;}
+  .ab__copy{left:68px;right:16px;top:auto;bottom:32px;width:auto;height:auto;gap:24px;}
+  .ab__text{gap:14px;}
+  .ab__headline{font-size:22px;letter-spacing:0;}
+  .ab__body{width:auto;font-size:15px;letter-spacing:0;}
+  .ab__btn{height:48px;padding:0 18px;font-size:20px;}
 }
 
 /* ---------- LOADING SCREEN (home) ---------- */
@@ -1925,3 +2156,138 @@ html.pt-in::view-transition-new(root){animation-name:page-rise;animation-duratio
 /* the heading reveal's canvas (script.js): pinned over the heading while it
    builds itself out of pixel blocks, then removed */
 .px-reveal{position:fixed;left:0;top:0;z-index:150;pointer-events:none;}
+
+/* ---------- PROJECT MODAL (works.html, project-modal.js; Figma 1564:7519) ----------
+   The 1920×977 frame scaled by --u like the rest of Works: a 1639×810 card
+   per project in a row, the page blurred behind. Type is a step smaller than
+   the frame's, which read large at modal size. */
+.pmodal{
+  --u:min(100vw / 1920, 100vh / 977);
+  position:fixed;inset:0;z-index:180;overflow:hidden;outline:none;
+}
+.pmodal[hidden]{display:none;}
+.pmodal__backdrop{
+  position:absolute;inset:0;background:rgba(36,36,36,.5);
+  -webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);
+  opacity:0;transition:opacity .45s ease;
+}
+.pmodal.is-open .pmodal__backdrop{opacity:1;}
+.pmodal__track{
+  position:absolute;left:0;top:50%;
+  display:flex;align-items:center;column-gap:calc(40 * var(--u));
+  transform:translate3d(0,0,0);margin-top:calc(-435 * var(--u));
+  touch-action:pan-y;
+}
+.pmodal__track.is-gliding{transition:transform .7s cubic-bezier(.16,1,.3,1);}
+.pmodal.is-dragging{cursor:grabbing;user-select:none;-webkit-user-select:none;}
+.pmodal.is-dragging .pcard{pointer-events:none;}
+
+/* the card. Closed (and on the way in) it sits under the screen, turned the
+   way the Figma frame catches it mid-flight; open, it flies up flat. Its
+   neighbours follow a beat later. */
+.pcard{
+  --kl-bg:#101010;--kl-lime:#7DFF4E;--kl-forest:#003D12;--kl-col:min(1000px,calc(100% - 48px));
+  --font-heading:'Roboto',sans-serif;
+  position:relative;flex:none;
+  /* 60 design px taller than the Figma card's 810 */
+  width:calc(1639 * var(--u));height:calc(870 * var(--u));
+  display:grid;grid-template-columns:minmax(0,1fr) 27.2%;
+  background:#101010;color:var(--white);
+  border:1px solid #3d3d3d;overflow:hidden;
+  transform:translate3d(0,85vh,0) rotate(10.34deg);opacity:0;
+  transition:transform .6s cubic-bezier(.65,0,.35,1),opacity .3s ease .25s;
+  cursor:grab;
+}
+.pmodal.is-open .pcard{
+  transform:none;opacity:1;
+  transition:transform 1s cubic-bezier(.16,1,.3,1) .12s,opacity .35s ease .12s;
+}
+/* the neighbours sit back: smaller (shrunk toward the card in the middle, so
+   the gap to it holds) and dimmed */
+.pmodal.is-open .pcard:not(.is-current){
+  filter:brightness(.32);
+  transition:transform 1s cubic-bezier(.16,1,.3,1) .32s,opacity .35s ease .32s,filter .6s ease;
+}
+.pmodal.is-open .pcard.is-after{transform:scale(.86);transform-origin:left center;}
+.pmodal.is-open .pcard.is-before{transform:scale(.86);transform-origin:right center;}
+.pcard img{-webkit-user-drag:none;}
+
+.pcard__main{position:relative;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:none;}
+.pcard__main::-webkit-scrollbar{display:none;}
+.pcard__bar{
+  position:sticky;top:0;z-index:2;
+  display:flex;align-items:center;justify-content:space-between;gap:16px;
+  padding:8px;background:#424242;
+  font-family:'Roboto Mono',var(--font-mono);font-size:13px;line-height:1.2;text-transform:uppercase;
+}
+/* the way through to the whole case study, at the end of the bar */
+.pcard__full{
+  flex-shrink:0;margin:-8px -8px -8px 0;align-self:stretch;
+  display:flex;align-items:center;justify-content:center;padding:0 24px;min-width:min(240px, 40%);
+  background:var(--white);color:#101010;white-space:nowrap;
+  transition:background-color .25s ease, color .25s ease;
+}
+.pcard__full:hover{background:#d90100;color:var(--white);}
+/* full width of the column: project-modal.js sizes the span to fit */
+.pcard__title{
+  padding:calc(48 * var(--u)) calc(40 * var(--u)) 0;
+  font-family:var(--font-display);font-weight:400;text-transform:uppercase;
+  font-size:calc(150 * var(--u));line-height:.9;white-space:nowrap;overflow:hidden;
+}
+.pcard__title span{display:inline-block;}
+.pcard__cover{margin:calc(64 * var(--u)) calc(69 * var(--u)) 0;aspect-ratio:16/9;overflow:hidden;background:#1a1a1a;}
+.pcard__cover img{width:100%;height:100%;object-fit:cover;}
+.pcard__soon{
+  margin:24px calc(69 * var(--u)) calc(64 * var(--u));
+  font-family:var(--font-mono);font-size:12px;letter-spacing:.48px;text-transform:uppercase;color:var(--red);
+}
+.pcard__soon a{color:var(--white);}
+/* the case study page's own sections, a size down for the card */
+.pcard .pcard__case{padding-top:0;zoom:.82;}
+
+.pcard__side{
+  display:flex;flex-direction:column;gap:28px;
+  padding:calc(40 * var(--u)) calc(32 * var(--u));
+  background:#222;overflow-y:auto;scrollbar-width:none;
+}
+.pcard__side::-webkit-scrollbar{display:none;}
+/* the cross (Figma 1564:7902): a grey tile in the side column's top corner */
+.pcard__close{
+  position:absolute;z-index:3;top:calc(12 * var(--u));right:calc(11 * var(--u));
+  width:max(36px, 48 * var(--u));height:max(36px, 48 * var(--u));padding:0;
+  transition:opacity .2s ease;
+}
+.pcard__close img{display:block;width:100%;height:100%;}
+.pcard__close:hover{opacity:.8;}
+.pcard__close:focus{outline:none;}
+.pcard__close:focus-visible{outline:2px solid var(--white);outline-offset:2px;}
+.pcard__brand{display:flex;align-items:center;gap:6px;}
+.pcard__brand img{width:34px;height:34px;object-fit:contain;}
+.pcard__brand span{
+  font-family:'Chakra Petch',var(--font-body);font-weight:600;font-size:19px;
+  letter-spacing:.02em;text-transform:uppercase;
+}
+.pcard__meta.kl-meta{width:100%;}
+.pcard__meta .kl-meta__row{gap:24px;padding:13px 0 10px;border-bottom-color:#414141;font-size:14px;}
+.pcard__meta .kl-meta__row dt{width:96px;line-height:20px;}
+.pcard__meta .kl-meta__row dd{line-height:18px;}
+.pcard__meta .kl-meta__list{line-height:24px !important;}
+.pcard__meta .kl-meta__swatches span{width:18px;height:18px;}
+.pcard__desc{font-family:'Roboto',var(--font-body);font-weight:600;font-size:13px;line-height:1.3;color:#a1a1a1;}
+
+@media(max-width:899px){
+  .pmodal{--u:calc(100vw / 430);}
+  .pmodal__track{margin-top:0;top:72px;}
+  .pcard{
+    width:calc(100vw - 32px);height:calc(100svh - 96px);
+    display:block;overflow-y:auto;
+  }
+  .pcard__main{overflow:visible;}
+  .pcard__title{padding:28px 16px 0;}
+  .pcard .pcard__case{zoom:.7;}
+  .pcard__side{overflow:visible;padding:28px 16px 40px;}
+}
+@media(prefers-reduced-motion:reduce){
+  .pcard,.pmodal.is-open .pcard,.pmodal__track.is-gliding{transition:opacity .2s ease;transform:none;}
+}
+
