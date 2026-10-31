@@ -15,9 +15,9 @@
 //     into view they straighten, and halfway round they lie level between
 //     the two cards
 //   · it slides up over the Core as a bare dark screen.
-//     Whatever glide carried the page in stops there; the next scroll (the
-//     intro) brings the first card up from the foot of the screen, and once it
-//     is in place the edges flicker on, and its keywords with them
+//     Scrolling continues naturally; after a short lead-in the intro brings
+//     the first card up from the foot of the screen, with its edges and
+//     keywords flickering on alongside it
 //   · a tick per service along the foot of the screen keeps count
 //   · the room is seen through a lens that bends it toward the screen's
 //     corners (a fisheye, as on a curved screen): the edges and the keywords
@@ -68,7 +68,6 @@
   const SETTLE_DELAY = 140;   // ms of stillness before settling (keys, scrollbar)
   const SETTLE_TIME = 0.6;    // s the snap glide takes
   const PUSH = 0.15;          // share of the way to the next stop that commits to it
-  const HOLD = 450;           // ms the bare screen holds after landing, at the least
   const GESTURE_GAP = 180;    // ms without a wheel tick that ends a gesture (trackpads coast)
   const HYSTERESIS = 0.55;    // how far past halfway before the open service changes
   const AT_REST = 0.003;      // how close to its stop the room must be for the metal (0.27°)
@@ -148,7 +147,6 @@
       m.setAttribute('aria-hidden', 'true');
       stage.appendChild(m);
     };
-    mark('svc__snap svc__snap--start');
     for (let i = 0; i < N; i++) mark('svc__snap', i);
     mark('svc__snap svc__snap--end');
     document.documentElement.classList.add('svc-snap-native');
@@ -325,8 +323,7 @@
   let pos = 0;      // 0 … N-1
   let open = 0;
   let inView = false;
-  let landed = null;   // pinned at the top of the screen
-  let shown = null;    // the card is in place (the edges and keywords on)
+  let shown = null;    // the card is visible (the edges and keywords on)
   let reveal = -1;
   let cover = -1;
 
@@ -337,18 +334,18 @@
     const s = -r.top;
     pos = Math.min(N - 1, Math.max(0, (s - intro) / step));
     inView = r.top < window.innerHeight && r.bottom > 0;
-    const down = r.top <= 0.5;
-    if (down !== landed) {
-      if (down && landed === false) catchLanding();
-      landed = down;
-    }
-    // the intro: the first card rises from the foot of the screen
-    const v = Math.round(1000 * Math.min(1, Math.max(0, s / intro))) / 1000;
+    // Hold the first card briefly, then give it a long scroll range to rise.
+    // The longer intro is set on .svc-stage so this remains scroll-driven.
+    const lead = intro * 0.55;
+    const v = Math.round(1000 * Math.min(1, Math.max(0, (s - lead) / (intro - lead)))) / 1000;
     if (v !== reveal) {
       reveal = v;
       tickList.style.opacity = v;
     }
-    const on = v >= 1;
+    // Reveal the room as soon as the card starts rising, rather than waiting
+    // for the end of the intro. This keeps the card, wall edges, and keywords
+    // visually in one reveal.
+    const on = v > 0;
     if (on !== shown) {
       shown = on;
       room.classList.toggle('is-on', on);
@@ -356,7 +353,7 @@
         open = Math.round(pos);
         showOpen(open);
         lightUp(open);
-      } else if (landed !== null) {
+      } else {
         lightDown(open);
       }
     }
@@ -630,7 +627,9 @@
     const end = pts[pts.length - 1];
     const now = window.scrollY - top;
     const aim = (smoothScroll.targetScroll ?? window.scrollY) - top;
-    if (aim <= 1) { anchor = 0; return; }
+    // The empty lead-in is only for entering Service. On the way back up,
+    // don't turn it into a second stop between the first card and The Core.
+    if (aim < intro) { anchor = 0; return; }
     if (aim >= end - 1) { anchor = pts.length - 1; return; }
     let i = 0;
     while (i < pts.length - 2 && aim >= pts[i + 1]) i++;
@@ -653,41 +652,15 @@
       onComplete: () => { snapping = 0; },
     });
   };
-  // Landing: the glide that slid the section in would carry straight on past
-  // the bare screen. So it stops where the section lands, the wheel is shut
-  // off, and it only comes back once the screen has held for HOLD and the
-  // gesture that brought the page here has ended (a trackpad coasts on for a
-  // while after the fingers lift), so bringing the card up takes a fresh scroll.
-  let holding = false;
   let lastWheel = 0;
-  const catchLanding = () => {
-    if (!smoothScroll || touch || holding || performance.now() < snapping) return;
-    const top = stageY();
-    if ((smoothScroll.targetScroll ?? window.scrollY) - top <= 2) return; // it was stopping here anyway
-    holding = true;
-    anchor = 0;
-    clearTimeout(wheelTimer);
-    clearTimeout(settleTimer);
-    smoothScroll.stop();
-    smoothScroll.scrollTo(top, { duration: 0.35, force: true, easing: ease });
-    const from = performance.now();
-    const release = () => {
-      const now = performance.now();
-      if (now - from < HOLD || now - lastWheel < GESTURE_GAP) { setTimeout(release, 60); return; }
-      holding = false;
-      smoothScroll.start();
-    };
-    setTimeout(release, HOLD);
-  };
 
   if (!touch && smoothScroll) {
     window.addEventListener('wheel', () => {
       const t = performance.now();
       // a fresh gesture counts from wherever the page rests now (it may have
       // been reloaded mid-way, or moved by the keys or the scrollbar)
-      if (!holding && t - lastWheel > GESTURE_GAP && t >= snapping) anchor = nearestStop();
+      if (t - lastWheel > GESTURE_GAP && t >= snapping) anchor = nearestStop();
       lastWheel = t;
-      if (holding) return;
       snapping = 0; // the wheel takes over from a snap under way
       clearTimeout(wheelTimer);
       if (inView) wheelTimer = setTimeout(() => settle(true), WHEEL_IDLE);
@@ -699,7 +672,7 @@
       if (s <= 0) anchor = 0;
       else if (s >= pts[pts.length - 1]) anchor = pts.length - 1;
       clearTimeout(settleTimer);
-      if (inView && !holding) settleTimer = setTimeout(() => settle(false), SETTLE_DELAY);
+      if (inView) settleTimer = setTimeout(() => settle(false), SETTLE_DELAY);
     });
   }
 
