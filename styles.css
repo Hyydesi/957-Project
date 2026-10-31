@@ -1576,6 +1576,10 @@ html.svc-snap-native{scroll-snap-type:y proximity;}
      Works slides up over it (process.js's TAIL counts that screen) */
   .home .process__stage{height:calc(100vh + (var(--steps) - .4) * 85vh + 100vh);}
   .home .works{margin-top:-100vh;}
+  /* Works comes up as a bare screen first (its field, the filters, the
+     years); the cards wait a screen below and only rise in once it has
+     landed and the scroll carries on */
+  .home .works__grid:not(.is-list){margin-top:78vh;}
 }
 
 /* the rail: red, its darker head (--fill, set by script.js from the scroll)
