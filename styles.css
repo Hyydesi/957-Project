@@ -945,6 +945,7 @@ html.svc-snap-native{scroll-snap-type:y proximity;}
   .works__grid:not(.is-list) .project.pos-1{margin-left:8%;}
   .works__grid:not(.is-list) .project.pos-2{margin-left:40%;}
   .works__grid:not(.is-list) .project.pos-3{margin-left:15%;}
+  .works__grid:not(.is-list) .project.pos-4{margin-left:50%;}
   /* % margin resolves against container width, so spacing scales with the cards */
   .works__grid:not(.is-list) .project:not(.is-first){margin-top:5%;}
   .works__grid.is-list{gap:0;}
@@ -962,6 +963,7 @@ html.svc-snap-native{scroll-snap-type:y proximity;}
 .project[data-code="KLEVER"]{--accent:#7dff4e;--accent-ink:#0b0f08;}
 .project[data-code="SURFCASH"]{--accent:#002fe9;--accent-ink:var(--white);}
 .project[data-code="NEW_PAY"]{--accent:#f04a0a;--accent-ink:var(--white);}
+.project[data-code="SANKE_WALLET"]{--accent:#ff5a1f;--accent-ink:var(--white);}
 
 .project{
   position:relative;

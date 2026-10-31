@@ -106,4 +106,23 @@ const PROJECTS = [
     tags: ['COMPANY WEBSITE', 'MOBILE APP', 'CARD DESIGN', 'VISUAL IDENTITY'],
     listTitle: '[NEWPAY] A NEW WAY TO SPEND YOUR CRYPTO',
   },
+  {
+    code: 'SANKE_WALLET',
+    dot: '#FF5A1F',
+    listType: 'WEBSITE',
+    listTags: ['VISUAL IDENTITY', 'BLOCKCHAIN'],
+    name: 'Sanke Wallet',
+    year: '2025',
+    category: 'web visual',
+    image: 'assets/project-5.webp',
+    cover: 'assets/project-5.webp',
+    title: 'Sanke Wallet',
+    desc: 'Sanke is a browser-extension Web3 wallet powered by zkWeb: verify locally, transact privately, and stay invisible across any dApp.',
+    // TODO: no detail stills or logomark yet — the row reuses the card still
+    shots: [
+      'assets/project-5.webp',
+    ],
+    tags: ['WEBSITE DESIGN', 'VISUAL IDENTITY', 'BLOCKCHAIN'],
+    listTitle: '[SANKE] YOUR WEB3 WALLET FLOWS IN PRIVATE',
+  },
 ];
