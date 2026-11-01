@@ -426,6 +426,10 @@
   };
   let drawn = '';
   const place = () => {
+    // no size yet (loaded in a hidden or zero-size frame): the projection
+    // would divide by a zero depth and write NaN into the edges, so wait —
+    // dirty stays set, and the first real size draws everything
+    if (!W || !H || !depth) return;
     // nothing to do while the room stands still
     const key = `${pos}|${reveal}`;
     if (key === drawn && !dirty) return;
