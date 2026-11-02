@@ -75,7 +75,7 @@ class ScrambleText {
   }
 }
 
-document.querySelectorAll('.nav__links a, .menu-link, .menu-sublink').forEach((el) => {
+document.querySelectorAll('.nav__links a, .menu-link, .menu-sublink, .sfooter__social span, .sfooter__legal a').forEach((el) => {
   const scrambler = new ScrambleText(el);
   el.addEventListener('mouseenter', () => scrambler.run());
   el.addEventListener('focus', () => scrambler.run());
@@ -328,20 +328,215 @@ if (nav && themedSections.length) {
   }, { passive: true });
 })();
 
-// ---------- Home: curtain-reveal the fixed footer once its spacer enters the
-// viewport (mirror of the pinned hero above). Keeping the footer hidden until
-// then is what stops the bottom-fixed footer from covering the hero up top. An
-// IntersectionObserver drives it so it fires reliably under Lenis, native scroll
-// or none. ----------
-const revealFooterEl = document.querySelector('body.home .sfooter');
-const revealFooterSpacer = document.querySelector('body.home .sfooter__reveal');
-if (revealFooterEl && revealFooterSpacer && 'IntersectionObserver' in window) {
-  const footerObserver = new IntersectionObserver((entries) => {
+// ---------- Site footer: parallax, entrances, ticker, draggable windows.
+// Same recipe on every page. The wrap clips and .sfooter slides up inside it as
+// it scrolls in; native scroll events fire under Lenis too. ----------
+const sfooterWrap = document.querySelector('.sfooter-wrap');
+if (sfooterWrap && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
+  const sfooter = sfooterWrap.querySelector('.sfooter');
+  sfooterWrap.classList.add('is-armed');
+
+  let parallaxQueued = false;
+  const updateParallax = () => {
+    parallaxQueued = false;
+    const rect = sfooterWrap.getBoundingClientRect();
+    const vh = window.innerHeight;
+    const progress = Math.max(0, Math.min(1, (vh - rect.top) / Math.min(vh, rect.height)));
+    sfooter.style.transform = `translate3d(0,${(-55 * (1 - progress * progress)).toFixed(2)}%,0)`;
+  };
+  const queueParallax = () => {
+    if (parallaxQueued) return;
+    parallaxQueued = true;
+    requestAnimationFrame(updateParallax);
+  };
+  window.addEventListener('scroll', queueParallax, { passive: true });
+  window.addEventListener('resize', queueParallax);
+  updateParallax();
+
+  // entrances replay each time the footer comes back; the ticker and grain only
+  // run while it's on screen
+  const sfooterObserver = new IntersectionObserver((entries) => {
     entries.forEach((entry) => {
-      revealFooterEl.classList.toggle('is-revealing', entry.isIntersecting);
+      sfooterWrap.classList.toggle('is-visible', entry.isIntersecting);
+      if (entry.intersectionRatio >= 0.25) sfooterWrap.classList.add('is-in');
+      else if (!entry.isIntersecting) sfooterWrap.classList.remove('is-in');
     });
-  }, { rootMargin: '0px 0px 100px 0px' }); // arm just before .works uncovers it
-  footerObserver.observe(revealFooterSpacer);
+  }, { threshold: [0, 0.25] });
+  sfooterObserver.observe(sfooterWrap);
+
+  // Ticker: fill a list past the widest screen, then a second list makes the loop
+  // seamless. Copies are aria-hidden so the text is only read once.
+  const marquee = sfooter.querySelector('.sfooter__marquee');
+  const marqueeList = marquee.querySelector('.sfooter__marquee-list');
+  const marqueeItem = marqueeList.firstElementChild;
+  const fillTicker = () => {
+    const wanted = Math.max(window.innerWidth, window.screen.width, window.screen.height); // phones rotate
+    while (marqueeList.offsetWidth < wanted && marqueeItem.offsetWidth > 0) {
+      const copy = marqueeItem.cloneNode(true);
+      copy.setAttribute('aria-hidden', 'true');
+      marqueeList.appendChild(copy);
+    }
+    const twin = marqueeList.cloneNode(true);
+    twin.setAttribute('aria-hidden', 'true');
+    marquee.appendChild(twin);
+    const seconds = `${(marqueeList.offsetWidth / 75).toFixed(2)}s`; // 75px/s
+    marquee.querySelectorAll('.sfooter__marquee-list').forEach((list) => {
+      list.style.setProperty('--sf-marquee-dur', seconds);
+    });
+  };
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(fillTicker);
+  else fillTicker();
+
+  // Wordmark leans toward the cursor. The windows drag anywhere on the footer,
+  // tilt with the throw and pull a few pixels toward a resting cursor. Mouse only:
+  // on touch they're plain stacked cards and the page has to keep scrolling.
+  const canDrag = window.matchMedia('(hover:hover) and (pointer:fine) and (min-width:900px)');
+  const sfooterName = sfooter.querySelector('.sfooter__name');
+  sfooterName.addEventListener('mousemove', (event) => {
+    if (!canDrag.matches) return;
+    const rect = sfooterName.getBoundingClientRect();
+    const x = (event.clientX - rect.left - rect.width / 2) / (rect.width / 2);
+    const y = (event.clientY - rect.top - rect.height / 2) / (rect.height / 2);
+    sfooterName.style.transition = 'transform .1s ease-out';
+    sfooterName.style.transform = `perspective(1000px) scale(1.05) rotateX(${(-15 * y).toFixed(2)}deg) rotateY(${(15 * x).toFixed(2)}deg) skew(${(5 * x).toFixed(2)}deg,${(5 * y).toFixed(2)}deg)`;
+  });
+  sfooterName.addEventListener('mouseleave', () => {
+    sfooterName.style.transition = 'transform .6s cubic-bezier(.25,1,.5,1)';
+    sfooterName.style.transform = 'perspective(1000px)';
+  });
+
+  const DRAG_THRESHOLD = 8;
+  const MAGNET_PX = 5;
+  const clampTo = (min, max, v) => Math.max(min, Math.min(max, v));
+  const cards = sfooter.querySelectorAll('.sfooter__card');
+  let topCardZ = 5;
+
+  const selectCard = (card) => {
+    cards.forEach((other) => other.classList.toggle('is-selected', other === card));
+  };
+
+  const cardStates = [...cards].map((card) => {
+    const s = {
+      card, x: 0, y: 0,            // where it's been dragged to
+      mx: 0, my: 0, mxTo: 0, myTo: 0, // magnet
+      rot: 0, rotTo: 0, scale: 1, scaleTo: 1,
+      press: null, dragging: false, raf: null,
+    };
+
+    const render = () => {
+      s.mx += (s.mxTo - s.mx) * 0.18;
+      s.my += (s.myTo - s.my) * 0.18;
+      s.rot += (s.rotTo - s.rot) * 0.2;
+      s.rotTo *= 0.92; // the tilt lets go once the throw slows down
+      s.scale += (s.scaleTo - s.scale) * 0.2;
+      card.style.transform = `translate3d(${(s.x + s.mx).toFixed(2)}px,${(s.y + s.my).toFixed(2)}px,0) rotate(${s.rot.toFixed(2)}deg) scale(${s.scale.toFixed(3)})`;
+      const settled = !s.dragging
+        && Math.abs(s.mxTo - s.mx) < 0.05 && Math.abs(s.myTo - s.my) < 0.05
+        && Math.abs(s.rot) < 0.05 && Math.abs(s.scaleTo - s.scale) < 0.001;
+      if (settled) {
+        // land on exact values: a stray 0.04deg would leave the text soft
+        s.rot = 0;
+        s.scale = s.scaleTo;
+        card.style.transform = `translate3d(${(s.x + s.mxTo).toFixed(2)}px,${(s.y + s.myTo).toFixed(2)}px,0)`;
+      }
+      s.raf = settled ? null : requestAnimationFrame(render);
+    };
+    s.wake = () => { if (s.raf === null) s.raf = requestAnimationFrame(render); };
+
+    card.addEventListener('pointerenter', () => selectCard(card));
+    card.addEventListener('focusin', () => selectCard(card));
+    card.addEventListener('dragstart', (event) => event.preventDefault());
+
+    // tracked on the window: a quick flick leaves the card before the threshold
+    const onDragMove = (event) => {
+      const dx = event.clientX - s.press.px;
+      const dy = event.clientY - s.press.py;
+      if (!s.dragging && Math.hypot(dx, dy) >= DRAG_THRESHOLD) {
+        s.dragging = true;
+        s.scaleTo = 1.05;
+        s.mxTo = 0;
+        s.myTo = 0;
+        card.setPointerCapture(event.pointerId);
+        card.classList.add('is-dragging');
+        card.style.zIndex = ++topCardZ;
+      }
+      if (s.dragging) {
+        s.x = clampTo(s.press.minX, s.press.maxX, s.press.x + dx);
+        s.y = clampTo(s.press.minY, s.press.maxY, s.press.y + dy);
+        s.rotTo = clampTo(-14, 14, event.movementX * 0.8);
+        s.wake();
+      }
+    };
+
+    const release = () => {
+      window.removeEventListener('pointermove', onDragMove);
+      window.removeEventListener('pointerup', release);
+      window.removeEventListener('pointercancel', release);
+      if (s.dragging) {
+        // the press came down on a link? this drag must not also follow it
+        const swallowClick = (event) => {
+          event.preventDefault();
+          event.stopPropagation();
+        };
+        card.addEventListener('click', swallowClick, { capture: true, once: true });
+        setTimeout(() => card.removeEventListener('click', swallowClick, { capture: true }), 50);
+        card.classList.remove('is-dragging');
+      }
+      s.dragging = false;
+      s.press = null;
+      s.rotTo = 0;
+      s.scaleTo = 1;
+      s.wake();
+    };
+
+    card.addEventListener('pointerdown', (event) => {
+      if (!canDrag.matches || event.button !== 0) return;
+      const home = sfooter.getBoundingClientRect();
+      const left = home.left + parseFloat(getComputedStyle(card.parentElement).paddingLeft); // clear of the rail
+      const rect = card.getBoundingClientRect();
+      s.press = {
+        px: event.clientX, py: event.clientY, x: s.x, y: s.y,
+        minX: s.x - (rect.left - left), maxX: s.x + (home.right - rect.right),
+        minY: s.y - (rect.top - home.top), maxY: s.y + (home.bottom - rect.bottom),
+      };
+      window.addEventListener('pointermove', onDragMove);
+      window.addEventListener('pointerup', release);
+      window.addEventListener('pointercancel', release);
+    });
+
+    card.addEventListener('pointermove', (event) => {
+      if (!canDrag.matches || s.press) return;
+      const rect = card.getBoundingClientRect();
+      const pull = (offset, half) => {
+        const n = clampTo(-1, 1, offset / half);
+        return Math.sign(n) * Math.pow(Math.abs(n), 0.9) * MAGNET_PX;
+      };
+      s.mxTo = pull(event.clientX - rect.left - rect.width / 2, rect.width / 2);
+      s.myTo = pull(event.clientY - rect.top - rect.height / 2, rect.height / 2);
+      s.wake();
+    });
+
+    card.addEventListener('pointerleave', () => {
+      s.mxTo = 0;
+      s.myTo = 0;
+      s.wake();
+    });
+    return s;
+  });
+
+  // a resized window moves the goalposts: send the windows back to their spots
+  let lastFooterWidth = window.innerWidth;
+  window.addEventListener('resize', () => {
+    if (window.innerWidth === lastFooterWidth) return;
+    lastFooterWidth = window.innerWidth;
+    cardStates.forEach((s) => {
+      s.x = 0;
+      s.y = 0;
+      s.mxTo = 0;
+      s.myTo = 0;
+      s.card.style.transform = '';
+    });
+  });
 }
 
 // ---------- Custom scrollbar (desktop) ----------

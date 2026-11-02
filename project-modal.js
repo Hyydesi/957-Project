@@ -105,7 +105,7 @@
       const wrap = document.createElement('div');
       wrap.className = 'kl pcard__case';
       [...main.children].forEach((n) => {
-        if (n.matches('.kl-hero, .kl-more, .sfooter, footer, script')) return;
+        if (n.matches('.kl-hero, .kl-more, .sfooter-wrap, .sfooter, footer, script')) return;
         wrap.appendChild(document.importNode(n, true));
       });
       // page-relative asset paths stay right: the case study sits beside works.html

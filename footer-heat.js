@@ -213,6 +213,8 @@
       queued = requestAnimationFrame(build);
     };
     new ResizeObserver(rebuild).observe(name);
+    // the footer's entrance slides the marks into place: read them again once there
+    name.addEventListener('transitionend', (e) => { if (e.target.tagName === 'IMG') rebuild(); });
     imgs.forEach((img) => { if (!img.complete) img.addEventListener('load', rebuild, { once: true }); });
   }
 
