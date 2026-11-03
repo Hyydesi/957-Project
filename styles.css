@@ -529,8 +529,8 @@ button{font:inherit;background:none;border:none;color:inherit;cursor:pointer;}
    It slides up over the pinned Core as a new screen, solid edge and all, but
    bare: it starts a full screen early, inside the Core stage's last 100vh,
    and lands with only its heading on it. The next stretch of scroll (the
-   intro) brings the first card up from the foot of the screen; its grey edges
-   and keywords flicker on with it. After the last
+   intro) brings the first card up from the foot of the screen, and only once
+   it is in place do its grey edges and keywords flicker on. After the last
    service it holds one more screen (the tail), which is the scroll Process
    takes to slide up over it the same way. */
 .svc-stage{
@@ -556,6 +556,10 @@ html.svc-snap-native{scroll-snap-type:y proximity;}
   --ch:min(61.7vh, 40vw / .7913);
   --cw:calc(var(--ch) * .7913);
   --ct:20.3vh;
+  /* the card's middle: the middle of the screen clear of the rail (on a
+     desktop the section runs under the rail, so the room's edges and its
+     light reach the screen's own edge) */
+  --cx:50%;
   position:sticky;top:0;height:100vh;overflow:hidden;
   /* clip, not hidden: the off-screen cards must never let focus scroll it sideways */
   overflow:clip;
@@ -569,14 +573,22 @@ html.svc-snap-native{scroll-snap-type:y proximity;}
 .svc__sticky{position:absolute;inset:0;}
 /* the edges stay dark while the section slides in — they run off to the
    screen's corners, so its top edge would cut them short — and flicker on
-   with the first visible frame of the card (services.js sets .is-on) */
+   once the first card has risen into place (services.js sets .is-on) */
 .svc__room{position:absolute;inset:0;z-index:1;width:100%;height:100%;overflow:visible;pointer-events:none;opacity:0;}
 .svc__room.is-on{opacity:1;animation:fxFlicker .45s linear both;}
 /* the ceiling and floor edges: the grey the Works cards are outlined in */
 .svc__room path{fill:none;stroke:#525252;stroke-width:1.4;stroke-linejoin:round;vector-effect:non-scaling-stroke;}
+/* red light on the side walls, drawn in characters, hung on the room's walls
+   and turning with them (svc-ascii.js draws it into .svc__ascii). services.js
+   cuts the layer to the walls between the ceiling and floor edges, so it
+   keeps between them and its rim goes round with them. It flickers on with
+   the room */
+.svc__glow{position:absolute;inset:0;z-index:0;pointer-events:none;opacity:0;clip-path:inset(50%);}
+.svc__room.is-on ~ .svc__glow{opacity:1;animation:fxFlicker .45s linear both;}
+.svc__ascii{position:absolute;inset:0;width:100%;height:100%;}
 /* one tick per service along the foot of the screen, the open one red */
 .svc__ticks{
-  position:absolute;z-index:5;left:50%;bottom:clamp(20px,4vh,40px);transform:translateX(-50%);
+  position:absolute;z-index:5;left:var(--cx);bottom:clamp(20px,4vh,40px);transform:translateX(-50%);
   display:flex;gap:8px;list-style:none;
 }
 .svc__ticks li{width:24px;height:2px;background:#525252;transition:background-color .3s ease;}
@@ -585,7 +597,7 @@ html.svc-snap-native{scroll-snap-type:y proximity;}
 
 /* the card: services.js slides each one along with translate3d */
 .svc-card{
-  position:absolute;z-index:4;top:var(--ct);left:calc(50% - var(--cw) / 2);
+  position:absolute;z-index:4;top:var(--ct);left:calc(var(--cx) - var(--cw) / 2);
   width:var(--cw);height:var(--ch);
   container-type:size;
   will-change:transform;
@@ -778,6 +790,7 @@ html.svc-snap-native{scroll-snap-type:y proximity;}
   .svc-kw.is-in,.svc-kw.is-lit.is-glitch,.svc-kw.is-out,
   .svc__room.is-on{animation:none;}
   .svc-kw.is-in{opacity:1;}
+  .svc__room.is-on ~ .svc__glow{animation:none;}
 }
 
 /* ---------- PROCESS ---------- */
@@ -1715,7 +1728,11 @@ html.svc-snap-native{scroll-snap-type:y proximity;}
 .klever-page .sfooter-wrap{margin-left:calc(var(--rail-clear) * -1);}
 /* everything after the hero and About (which are laid out around the rail)
    starts clear of the rail: the rail's 16 + 80 and a 16 gap */
-.home main > :not(.hxab):not(.process):not(.sfooter-wrap){margin-left:var(--rail-clear);}
+.home main > :not(.hxab):not(.process):not(.sfooter-wrap):not(.svc-stage){margin-left:var(--rail-clear);}
+/* on a desktop Our Service runs under the rail too, edge to edge, and keeps
+   its card in the middle of the screen clear of the rail */
+@media(max-width:899px){.home main > .svc-stage{margin-left:var(--rail-clear);}}
+@media(min-width:900px){.home .svc{--cx:calc(50% + var(--rail-clear) / 2);}}
 /* Process keeps its full width, so the rules between its steps run edge to
    edge; only its type steps in clear of the rail */
 .home .process__intro{padding-left:calc(var(--rail-clear) + 24px);}

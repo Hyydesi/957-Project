@@ -9,20 +9,20 @@
 //     and squares up as it reaches the middle
 //   · a line joins each card to the next (top corner to top corner, bottom
 //     to bottom): the edges of the ceiling and the floor. With the next card
-//     round the corner they sweep off to the screen's corners in a soft
-//     curve, leaving the card almost level and steepening as they go, the
-//     way the room's edges run in the Figma frame; as the next card comes
-//     into view they straighten, and halfway round they lie level between
-//     the two cards
+//     round the corner they run straight out to the screen's corners; as the
+//     next card comes into view they swing onto the line between the two
+//     cards, and halfway round they lie level between them
 //   · it slides up over the Core as a bare dark screen.
-//     Scrolling continues naturally; after a short lead-in the intro brings
-//     the first card up from the foot of the screen, with its edges and
-//     keywords flickering on alongside it
+//     Scrolling continues naturally; after a short lead-in the first card
+//     peeks up from the foot of the screen, and from there it rises the rest
+//     of the way by itself and snaps into place, where its edges and
+//     keywords flicker on. Scrolling back up, it drops out of sight by
+//     itself onto the bare screen
 //   · a tick per service along the foot of the screen keeps count
 //   · the room is seen through a lens that bends it toward the screen's
-//     corners (a fisheye, as on a curved screen): the edges and the keywords
-//     are drawn bent, the middle — the card and a margin round it — is left
-//     untouched and sharp
+//     corners (a fisheye, as on a curved screen): the keywords are drawn in
+//     and shrunk toward the corners, the middle — the card and a margin round
+//     it — is left untouched and sharp. The edges stay straight
 //   · on a mouse, hovering the open card while the room is at rest turns it
 //     into a slab of brushed gunmetal that leans toward the cursor on a
 //     spring, with a light that follows it: drawn with WebGL over the card
@@ -69,6 +69,8 @@
   const SETTLE_TIME = 0.6;    // s the snap glide takes
   const PUSH = 0.15;          // share of the way to the next stop that commits to it
   const GESTURE_GAP = 180;    // ms without a wheel tick that ends a gesture (trackpads coast)
+  const LEAD = 0.55;          // share of the intro the screen stays bare before the first card shows
+  const RISE_TIME = 0.9;      // s the first card takes to rise the rest of the way by itself
   const HYSTERESIS = 0.55;    // how far past halfway before the open service changes
   const AT_REST = 0.003;      // how close to its stop the room must be for the metal (0.27°)
   const TILT = 10;            // deg the hovered card leans toward the cursor, at most
@@ -136,6 +138,11 @@
     });
     joins.push({ j, pair });
   }
+  // the red light on the side walls, drawn in characters (svc-ascii.js) and
+  // cut to the room's walls (styles.css)
+  const glow = section.querySelector('.svc__glow');
+  const asciiCanvas = glow && glow.querySelector('.svc__ascii');
+  const ascii = asciiCanvas && window.createSvcAscii ? window.createSvcAscii(asciiCanvas) : null;
 
   // the snap markers, for the touch scroll-snap: the bare screen, each
   // service, Process all the way up
@@ -173,6 +180,10 @@
     lens();
     dirty = true;
     if (metalGL) { metalGL.resize(W, H); glOff(true); }
+    if (ascii) {
+      ascii.resize(W, H);
+      ascii.grid(card.left, card.top, card.bottom, H);
+    }
     // every piece turns about the eye, wherever it sits on its wall
     services.forEach((s) => {
       s.card.style.transformOrigin = `${ex - card.left}px ${ey - card.top}px`;
@@ -197,11 +208,10 @@
   // filtered (a filter over the whole room re-ran on every flicker): each
   // point is drawn pulled in toward the eye by LENS × t², where t climbs from
   // nothing just outside the card's farthest corner to 1 at the screen's
-  // corners (r is the distance from the eye, 1 at a corner). So straight
-  // edges bow, the corners draw in, and the card and everything near it are
-  // untouched. The edges are bent point by point; a keyword, being small, is
-  // moved and shrunk as its middle would be, by a scale about the eye in
-  // front of its own turn.
+  // corners (r is the distance from the eye, 1 at a corner). So the corners
+  // draw in, and the card and everything near it are untouched. A keyword,
+  // being small, is moved and shrunk as its middle would be, by a scale about
+  // the eye in front of its own turn. The edges are left straight.
   let lensFrom = 1;
   const lens = () => {
     const R = (x, y) => Math.hypot((x - ex) / (W / 2), (y - ey) / (H / 2)) / Math.SQRT2;
@@ -212,11 +222,6 @@
     const r = Math.hypot((x - ex) / (W / 2), (y - ey) / (H / 2)) / Math.SQRT2;
     const t = Math.min(1.6, (r - lensFrom) / (1 - lensFrom));
     return t > 0 ? 1 - LENS * t * t : 1;
-  };
-  // a point as the lens shows it; b fades the bend (0 none, 1 all of it)
-  const warp = (x, y, b) => {
-    const f = 1 - (1 - lensK(x, y)) * b;
-    return [ex + (x - ex) * f, ey + (y - ey) * f];
   };
 
   // ---- keyword places ----------------------------------------------------
@@ -323,7 +328,7 @@
   let pos = 0;      // 0 … N-1
   let open = 0;
   let inView = false;
-  let shown = null;    // the card is visible (the edges and keywords on)
+  let shown = null;    // the card is in place (the edges and keywords on)
   let reveal = -1;
   let cover = -1;
 
@@ -336,16 +341,16 @@
     inView = r.top < window.innerHeight && r.bottom > 0;
     // Hold the first card briefly, then give it a long scroll range to rise.
     // The longer intro is set on .svc-stage so this remains scroll-driven.
-    const lead = intro * 0.55;
-    const v = Math.round(1000 * Math.min(1, Math.max(0, (s - lead) / (intro - lead)))) / 1000;
+    const lead = intro * LEAD;
+    const v =Math.round(1000 * Math.min(1, Math.max(0, (s - lead) / (intro - lead)))) / 1000;
     if (v !== reveal) {
       reveal = v;
       tickList.style.opacity = v;
     }
-    // Reveal the room as soon as the card starts rising, rather than waiting
-    // for the end of the intro. This keeps the card, wall edges, and keywords
-    // visually in one reveal.
-    const on = v > 0;
+    // the edges and keywords wait for the card, and flicker on the moment it
+    // lands: once what is left of its rise (eased, so the tail of the scroll
+    // barely moves it) is under a pixel
+    const on = H ? v > 0 && (1 - ease(v)) * (H - card.top) < 1 : v >= 0.99;
     if (on !== shown) {
       shown = on;
       room.classList.toggle('is-on', on);
@@ -454,29 +459,38 @@
     // the edges: wall j's right corners to wall j+1's left corners
     // only the joins beside the walls in view: with five services on a
     // square room's four walls, the far ones come round on top of the near
+    let walls = '';
+    lights.length = 0;
     joins.forEach((jn) => {
       if (Math.abs(jn.j + 0.5 - pos) > 1.5) {
         jn.pair.forEach((p) => { p.style.display = 'none'; });
         return;
       }
       const a0 = angle(jn.j), a1 = angle(jn.j + 1);
-      [card.top, card.bottom].forEach((y, n) => edge(jn.pair[n], y, a0, a1, near, jn.j));
+      const [t, b] = [card.top, card.bottom].map((y, n) => edge(jn.pair[n], y, a0, a1, near, jn.j));
+      // the wall between the two edges: their ends, round (along the
+      // screen's side, when they run off it)
+      if (t && b) {
+        const rim = t.rim && b.rim ? `L${xy(t.rim)}L${xy(b.rim)}` : '';
+        walls += `M${xy(t.P)}L${xy(t.E)}${rim}L${xy(b.E)}L${xy(b.P)}Z`;
+        // and the light on it (svc-ascii.js), its far end out at the screen's side
+        const lit = Math.min(t.lit, b.lit);
+        if (lit > 0.002) lights.push({ ft: t.far, nt: t.P, nb: b.P, fb: b.far, lit, id: jn.j });
+      }
     });
+    // the light shows only on those walls, so it keeps between the edges
+    // and its rim goes round with them
+    if (glow) glow.style.clipPath = walls ? `path('${walls}')` : 'inset(50%)';
+    if (ascii) ascii.walls(lights);
   };
   // One edge. Its base is the straight line from wall j's card corner to wall
   // j+1's, cut where it passes behind the eye; on screen it runs from the end
-  // in view (P) to where it leaves the screen (E). It is drawn as a soft curve
-  // between those two: a quadratic whose control point sits KX of the way
-  // from P to E across and only KY of the way up or down, so it leaves the
-  // card nearly level and steepens toward the screen's corner (with the Figma
-  // slope of ~0.34, ~0.14 at the card and ~0.45 at the corner). The curve is
-  // only as strong as the far end is out of sight — as the next card comes
-  // into view the edge straightens, and between two cards on screen it is a
-  // plain straight line. A phone keeps them straight: there is too little
-  // room between the card and the screen's side for a curve.
-  const KX = 0.355, KY = 0.146;
-  const EDGE_STEPS = 24;
-  const smooth = (t) => t * t * (3 - 2 * t);
+  // in view (P) to where it leaves the screen (E). It is drawn straight, and
+  // while the far end is out of sight E is pulled onto the screen's corner on
+  // that side, so the four edges frame the card from corner to corner. As
+  // the next card comes into view the pull lets go: the edge eases back onto
+  // the room's own line, and between two cards on screen it is that line. The lens leaves the edges
+  // alone, so they stay straight and reach the corners.
   const clip2 = (p, q, x0, y0, x1, y1) => {
     const dx = q[0] - p[0], dy = q[1] - p[1];
     let t0 = 0, t1 = 1;
@@ -488,40 +502,64 @@
     }
     return [[p[0] + t0 * dx, p[1] + t0 * dy], [p[0] + t1 * dx, p[1] + t1 * dy]];
   };
+  const PULL = 0.25;   // how far out of sight (× the screen's width) the far end must be for the full pull
+  const smooth = (t) => t * t * (3 - 2 * t);
   // how far a point lies outside the screen (0 inside it)
   const outside = (p) => Math.hypot(Math.max(0, -p[0], p[0] - W), Math.max(0, -p[1], p[1] - H));
   const edge = (path, y, a0, a1, near, j) => {
     const seg = clip(toEye(card.right, y, a0), toEye(card.left, y, a1), near);
-    if (!seg) { path.style.display = 'none'; return; }
+    if (!seg) { path.style.display = 'none'; return null; }
     let p = toScreen(seg[0]), f = toScreen(seg[1]);
     // the leaning card's corners, where it leans to
     if (lean3.card >= 0) {
       if (j === lean3.card) p = leaned(card.right, y);
       if (j + 1 === lean3.card) f = leaned(card.left, y);
     }
-    if (outside(p) > outside(f)) [p, f] = [f, p];
-    const shown = clip2(p, f, 0, 0, W, H);
-    if (!shown) { path.style.display = 'none'; return; }
-    const [P, E] = shown;
-    // measured against the nearer end too, so that when both ends are out
-    // of sight the curve has died away before they could swap places
-    const w = W < 900 ? 0 : Math.min(1, (outside(f) - outside(p)) / (W * 0.5));
-    const kx = 0.5 + (KX - 0.5) * w, ky = 0.5 + (KY - 0.5) * w;
-    const K = [P[0] + (E[0] - P[0]) * kx, P[1] + (E[1] - P[1]) * ky];
-    // through the lens, point by point; an end that is a card's corner stays
-    // put (the card isn't bent), the bend coming in over the first stretch
-    const atP = outside(p) === 0, atE = outside(f) === 0;
-    let d = '';
-    for (let i = 0; i <= EDGE_STEPS; i++) {
-      const t = i / EDGE_STEPS, u = 1 - t;
-      const x = u * u * P[0] + 2 * u * t * K[0] + t * t * E[0];
-      const y = u * u * P[1] + 2 * u * t * K[1] + t * t * E[1];
-      const b = (atP ? smooth(Math.min(1, t / 0.3)) : 1) * (atE ? smooth(Math.min(1, u / 0.3)) : 1);
-      const q = warp(x, y, b);
-      d += `${i ? 'L' : 'M'}${q[0].toFixed(1)} ${q[1].toFixed(1)}`;
+    // A card swung so far round that it is about to be hidden (part of it
+    // behind the eye) may still have its corner on screen. Its edge takes
+    // that end as the far one and runs on past it toward the screen's edge,
+    // all the way by the time the card goes: there is nothing left there to
+    // meet, and until then the stretch beyond the corner lies behind the
+    // card's own face. (A bare wall has no card: always all the way.)
+    let gp = going(j, a0), gf = going(j + 1, a1);
+    if (outside(p) > outside(f) || (outside(p) === outside(f) && gp > gf)) {
+      [p, f] = [f, p];
+      [gp, gf] = [gf, gp];
     }
+    const shown = clip2(p, f, 0, 0, W, H);
+    if (!shown) { path.style.display = 'none'; return null; }
+    let [P, E] = shown;
+    if (gf > 0 && !outside(f)) {
+      const run = clip2(P, [P[0] + (f[0] - P[0]) * 1e4, P[1] + (f[1] - P[1]) * 1e4], 0, 0, W, H);
+      if (run) E = [f[0] + (run[1][0] - f[0]) * gf, f[1] + (run[1][1] - f[1]) * gf];
+    }
+    // only as strong as the far end is out of sight (full while a card stands
+    // square, none once both ends are on screen), and measured against the
+    // nearer end too, so that when both ends are out of sight the pull has
+    // died away before they could swap places
+    const w = smooth(Math.min(1, (outside(f) - outside(p)) / (W * PULL)));
+    const C = [E[0] < P[0] ? 0 : W, y === card.top ? 0 : H];
+    const x1 = E[0] + (C[0] - E[0]) * w, y1 = E[1] + (C[1] - E[1]) * w;
     path.style.display = '';
-    path.setAttribute('d', d);
+    path.setAttribute('d', `M${P[0].toFixed(1)} ${P[1].toFixed(1)}L${x1.toFixed(1)} ${y1.toFixed(1)}`);
+    // where it leaves the screen, the wall it bounds goes on to the screen's
+    // corner on that side (it may leave through the top or the bottom)
+    const atRim = x1 <= 0.5 || x1 >= W - 0.5 || y1 <= 0.5 || y1 >= H - 0.5;
+    // the edge carried on to the screen's side (it may leave through the top
+    // or the bottom first), for the far end of the light on its wall; that
+    // light is as strong as the edge runs off the screen
+    const run = x1 - P[0];
+    const far = Math.abs(run) > 0.5 ? [C[0], P[1] + (y1 - P[1]) * (C[0] - P[0]) / run] : [x1, y1];
+    return { P, E: [x1, y1], rim: atRim ? C : null, far, lit: Math.max(w, gf) };
+  };
+  const xy = (p) => `${p[0].toFixed(1)} ${p[1].toFixed(1)}`;
+  // how far wall i's card is on its way to being hidden: 0 while it is well
+  // in front of the eye, 1 once it is hidden (or there is no card)
+  const GOING = 0.35;  // × the depth, before its hiding point, that it starts
+  const going = (i, a) => {
+    if (!services[i] || !services[i].shown) return 1;
+    const v = nearest(card.left, card.right, a) / depth;
+    return smooth(1 - Math.min(1, Math.max(0, (v - NEAR) / GOING)));
   };
 
   // ---- keyword flicker -------------------------------------------------
@@ -657,10 +695,44 @@
     });
   };
   let lastWheel = 0;
+  // The intro: once the first card peeks up from the foot of the screen on
+  // the way down, it rises the rest of the way by itself and the room snaps
+  // there; scrolling back up from it, it drops back out of sight the same
+  // way, onto the bare screen. The wheel is shut off meanwhile, and only comes
+  // back once the gesture that set it going has ended (a trackpad coasts on
+  // for a while after the fingers lift), so the next move takes a fresh scroll.
+  let rising = false;
+  const riseIn = (up) => {
+    rising = true;
+    anchor = up ? 1 : 0;
+    clearTimeout(wheelTimer);
+    clearTimeout(settleTimer);
+    snapping = performance.now() + 3000;
+    smoothScroll.stop();
+    const top = stageY();
+    // down, it only has to go as far as the card is out of sight: the screen
+    // stands still from there to the top of the stage, so the rest is a jump
+    smoothScroll.scrollTo(top + (up ? intro : intro * LEAD), {
+      duration: RISE_TIME,
+      easing: (t) => t,   // the card's own rise eases already
+      force: true,
+      onComplete: () => {
+        if (!up) smoothScroll.scrollTo(top, { immediate: true, force: true });
+        snapping = 0;
+        const release = () => {
+          if (performance.now() - lastWheel < GESTURE_GAP) { setTimeout(release, 60); return; }
+          rising = false;
+          smoothScroll.start();
+        };
+        release();
+      },
+    });
+  };
 
   if (!touch && smoothScroll) {
     window.addEventListener('wheel', () => {
       const t = performance.now();
+      if (rising) { lastWheel = t; return; }
       // a fresh gesture counts from wherever the page rests now (it may have
       // been reloaded mid-way, or moved by the keys or the scrollbar)
       if (t - lastWheel > GESTURE_GAP && t >= snapping) anchor = nearestStop();
@@ -671,10 +743,15 @@
     }, { passive: true });
     smoothScroll.on('scroll', () => {
       // outside the stops the page is free; remember which end it left by
+      if (rising) return;
       const s = window.scrollY - stageY();
       const pts = stops();
       if (s <= 0) anchor = 0;
       else if (s >= pts[pts.length - 1]) anchor = pts.length - 1;
+      if (s > intro * LEAD && s < intro - 2) {
+        if (smoothScroll.direction > 0) { riseIn(true); return; }
+        if (smoothScroll.direction < 0) { riseIn(false); return; }
+      }
       clearTimeout(settleTimer);
       if (inView) settleTimer = setTimeout(() => settle(false), SETTLE_DELAY);
     });
@@ -825,6 +902,8 @@
     b.style.setProperty('--svc-my', `${lean.my.toFixed(1)}%`);
   };
 
+  const lights = [];   // the walls the light is on (place() fills it)
+
   // ---- loop --------------------------------------------------------------
   let running = false;
   const tick = (now) => {
@@ -834,6 +913,8 @@
     // the pixel icon loops only on the open card with the room at rest, and holds its frame on the metal
     if (window.svcPixel) window.svcPixel.state(shown ? open : -1, atRest(), glCard >= 0 || metal >= 0);
     place();
+    // the light wavers while the room is lit (held still with reduced motion)
+    if (ascii && shown) ascii.draw(reduce ? 0 : now / 1000);
     updateOpen();
     glitch(now);
     echo(now);
