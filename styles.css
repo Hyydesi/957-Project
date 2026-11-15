@@ -433,7 +433,16 @@ button{font:inherit;background:none;border:none;color:inherit;cursor:pointer;}
   will-change:transform;
   cursor:default;user-select:none;
 }
-.cf__word.focused{color:#fff;}
+.cf__word.focused{color:#fff;font-weight:500;}
+/* The active pair gets the same red selection frame as the Core reference.
+   A pseudo-element keeps the frame out of layout, so the flowing word rows do
+   not jump when focus moves from one keyword to the next. */
+.cf__word.focused::after{
+  content:"";position:absolute;pointer-events:none;
+  inset:-.28em -.32em;
+  border:2px solid #f10a0a;
+  opacity:1;
+}
 
 .cf__center{display:flex;flex-direction:column;align-items:center;gap:28px;}
 /* the slot the stills used to sit in. No card any more: the butterfly is keyed
@@ -520,13 +529,12 @@ button{font:inherit;background:none;border:none;color:inherit;cursor:pointer;}
    It slides up over the pinned Core as a new screen, solid edge and all, but
    bare: it starts a full screen early, inside the Core stage's last 100vh,
    and lands with only its heading on it. The next stretch of scroll (the
-   intro) brings the first card up from the foot of the screen, and only once
-   it is in place do the grey edges and the keywords flicker on — so none of
-   the edges is ever cut off at the section's top edge. After the last
+   intro) brings the first card up from the foot of the screen; its grey edges
+   and keywords flicker on with it. After the last
    service it holds one more screen (the tail), which is the scroll Process
    takes to slide up over it the same way. */
 .svc-stage{
-  --n:5;--intro:70vh;--step:90vh;--tail:100vh;
+  --n:5;--intro:200vh;--step:90vh;--tail:100vh;
   position:relative;z-index:5;margin-top:-100vh;
   height:calc(100vh + var(--intro) + (var(--n) - 1) * var(--step) + var(--tail));
 }
@@ -561,7 +569,7 @@ html.svc-snap-native{scroll-snap-type:y proximity;}
 .svc__sticky{position:absolute;inset:0;}
 /* the edges stay dark while the section slides in — they run off to the
    screen's corners, so its top edge would cut them short — and flicker on
-   once it has landed (services.js sets .is-on) */
+   with the first visible frame of the card (services.js sets .is-on) */
 .svc__room{position:absolute;inset:0;z-index:1;width:100%;height:100%;overflow:visible;pointer-events:none;opacity:0;}
 .svc__room.is-on{opacity:1;animation:fxFlicker .45s linear both;}
 /* the ceiling and floor edges: the grey the Works cards are outlined in */
