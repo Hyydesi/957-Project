@@ -1224,7 +1224,53 @@ if (heroStage && heroMedia) {
     panel.setAttribute('aria-hidden', String(!open));
     if (typeof lenis !== 'undefined' && lenis) { if (open) lenis.stop(); else lenis.start(); }
   };
+  // case studies: the rail hides off the left edge and slides out while the
+  // pointer is on the edge strip or on the rail itself (CSS: .is-rail-peek)
+  if (document.body.classList.contains('klever-page')) {
+    const rail = fill.parentElement;
+    const edge = document.createElement('div');
+    edge.className = 'rail-edge';
+    edge.setAttribute('aria-hidden', 'true');
+    document.body.appendChild(edge);
+    let hideTimer = 0;
+    const peek = () => { clearTimeout(hideTimer); root.classList.add('is-rail-peek'); };
+    const unpeek = () => {
+      clearTimeout(hideTimer);
+      hideTimer = setTimeout(() => root.classList.remove('is-rail-peek'), 350);
+    };
+    [edge, rail].forEach((el) => {
+      el.addEventListener('mouseenter', peek);
+      el.addEventListener('mouseleave', unpeek);
+    });
+    // reaching it by keyboard brings it out too
+    rail.addEventListener('focusin', peek);
+    rail.addEventListener('focusout', unpeek);
+  }
+
   btn.addEventListener('click', () => set(!root.classList.contains('is-menu-open')));
+
+  // case studies: the hero title runs exactly as wide as the facts and the
+  // line under it, from the facts' left edge to the line's right edge
+  const heroTitle = document.querySelector('.kl-hero__title');
+  const heroCols = document.querySelector('.kl-hero__cols');
+  if (heroTitle && heroCols) {
+    const fitHero = () => {
+      const kids = [...heroCols.children].map((n) => n.getBoundingClientRect());
+      if (!kids.length) return;
+      const span = Math.max(...kids.map((r) => r.right)) - Math.min(...kids.map((r) => r.left));
+      const range = document.createRange();
+      range.selectNodeContents(heroTitle);
+      for (let i = 0; i < 2; i++) {
+        const w = range.getBoundingClientRect().width;
+        if (!w || !span) return;
+        const size = parseFloat(getComputedStyle(heroTitle).fontSize);
+        heroTitle.style.fontSize = `${(size * span / w).toFixed(2)}px`;
+      }
+    };
+    fitHero();
+    if (document.fonts) document.fonts.ready.then(fitHero);
+    window.addEventListener('resize', fitHero);
+  }
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && root.classList.contains('is-menu-open')) set(false); });
   // a click anywhere off the panel, the rail and the nav closes it; a link closes it too
   document.addEventListener('click', (e) => {
@@ -1480,7 +1526,7 @@ const wordField = (field, stage, avoid = '') => {
   if (stage && matchMedia('(hover: hover)').matches) {
     const PAD = 10;
     const shields = () => [
-      ...document.querySelectorAll('.nav__logo, .nav__links, .nav__actions, .nav__menu'),
+      ...document.querySelectorAll('.nav__logo, .nav__links, .nav__actions, .nav__menu, .hnav, .rail'),
       ...(avoid ? stage.querySelectorAll(avoid) : []),
     ];
     const shielded = (x, y) => shields().some((el) => {
@@ -1517,7 +1563,7 @@ const wordField = (field, stage, avoid = '') => {
   }
 };
 wordField(document.getElementById('heroField'), document.getElementById('heroField')?.parentElement,
-  '.hero__social, .hero__title, .hero__lead');
+  '.hx__title, .hx__lead');
 wordField(document.getElementById('worksField'), document.getElementById('works'));
 
 // ---------- Core keyword field: nudot-style dual wave (scroll-driven) ----------
