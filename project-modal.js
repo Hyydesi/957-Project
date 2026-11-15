@@ -30,6 +30,9 @@
   root.setAttribute('aria-label', 'Project');
   root.tabIndex = -1;
   root.hidden = true;
+  // Lenis leaves wheel and touch inside the dialog alone, so the open card's
+  // own column scrolls rather than the page behind it
+  root.setAttribute('data-lenis-prevent', '');
   root.innerHTML = `
     <div class="pmodal__backdrop"></div>
     <div class="pmodal__track"></div>`;
@@ -176,6 +179,8 @@
     [i, i + 1, i - 1].forEach((k) => cards[k] && loadCase(cards[k]));
     cards[i].el.querySelector('.pcard__main').scrollTop = 0;
     document.body.classList.add('is-pmodal-open');
+    // the page behind holds still while the card is up
+    if (typeof lenis !== 'undefined' && lenis) lenis.stop();
     // the card flies up from under the screen, turned, and settles flat in
     // the middle (Figma 1564:7668 is a frame of that flight)
     root.classList.remove('is-open');
@@ -191,6 +196,7 @@
     open = false;
     root.classList.remove('is-open');
     document.body.classList.remove('is-pmodal-open');
+    if (typeof lenis !== 'undefined' && lenis) lenis.start();
     const done = () => { if (!open) root.hidden = true; };
     if (still) done(); else setTimeout(done, 650);
     if (lastFocus && lastFocus.focus) lastFocus.focus({ preventScroll: true });

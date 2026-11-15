@@ -387,13 +387,12 @@ if (sfooterWrap && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
   if (document.fonts && document.fonts.ready) document.fonts.ready.then(fillTicker);
   else fillTicker();
 
-  // Wordmark leans toward the cursor. The windows drag anywhere on the footer,
-  // tilt with the throw and pull a few pixels toward a resting cursor. Mouse only:
-  // on touch they're plain stacked cards and the page has to keep scrolling.
+  // Wordmark leans toward the cursor (mouse only; in 3D footer-3d.js does it).
   const canDrag = window.matchMedia('(hover:hover) and (pointer:fine) and (min-width:900px)');
   const sfooterName = sfooter.querySelector('.sfooter__name');
   sfooterName.addEventListener('mousemove', (event) => {
-    if (!canDrag.matches) return;
+    // in 3D (footer-3d.js) the marks lean in their own space instead
+    if (!canDrag.matches || sfooterName.classList.contains('is-3d')) return;
     const rect = sfooterName.getBoundingClientRect();
     const x = (event.clientX - rect.left - rect.width / 2) / (rect.width / 2);
     const y = (event.clientY - rect.top - rect.height / 2) / (rect.height / 2);
@@ -405,138 +404,7 @@ if (sfooterWrap && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
     sfooterName.style.transform = 'perspective(1000px)';
   });
 
-  const DRAG_THRESHOLD = 8;
-  const MAGNET_PX = 5;
-  const clampTo = (min, max, v) => Math.max(min, Math.min(max, v));
-  const cards = sfooter.querySelectorAll('.sfooter__card');
-  let topCardZ = 5;
-
-  const selectCard = (card) => {
-    cards.forEach((other) => other.classList.toggle('is-selected', other === card));
-  };
-
-  const cardStates = [...cards].map((card) => {
-    const s = {
-      card, x: 0, y: 0,            // where it's been dragged to
-      mx: 0, my: 0, mxTo: 0, myTo: 0, // magnet
-      rot: 0, rotTo: 0, scale: 1, scaleTo: 1,
-      press: null, dragging: false, raf: null,
-    };
-
-    const render = () => {
-      s.mx += (s.mxTo - s.mx) * 0.18;
-      s.my += (s.myTo - s.my) * 0.18;
-      s.rot += (s.rotTo - s.rot) * 0.2;
-      s.rotTo *= 0.92; // the tilt lets go once the throw slows down
-      s.scale += (s.scaleTo - s.scale) * 0.2;
-      card.style.transform = `translate3d(${(s.x + s.mx).toFixed(2)}px,${(s.y + s.my).toFixed(2)}px,0) rotate(${s.rot.toFixed(2)}deg) scale(${s.scale.toFixed(3)})`;
-      const settled = !s.dragging
-        && Math.abs(s.mxTo - s.mx) < 0.05 && Math.abs(s.myTo - s.my) < 0.05
-        && Math.abs(s.rot) < 0.05 && Math.abs(s.scaleTo - s.scale) < 0.001;
-      if (settled) {
-        // land on exact values: a stray 0.04deg would leave the text soft
-        s.rot = 0;
-        s.scale = s.scaleTo;
-        card.style.transform = `translate3d(${(s.x + s.mxTo).toFixed(2)}px,${(s.y + s.myTo).toFixed(2)}px,0)`;
-      }
-      s.raf = settled ? null : requestAnimationFrame(render);
-    };
-    s.wake = () => { if (s.raf === null) s.raf = requestAnimationFrame(render); };
-
-    card.addEventListener('pointerenter', () => selectCard(card));
-    card.addEventListener('focusin', () => selectCard(card));
-    card.addEventListener('dragstart', (event) => event.preventDefault());
-
-    // tracked on the window: a quick flick leaves the card before the threshold
-    const onDragMove = (event) => {
-      const dx = event.clientX - s.press.px;
-      const dy = event.clientY - s.press.py;
-      if (!s.dragging && Math.hypot(dx, dy) >= DRAG_THRESHOLD) {
-        s.dragging = true;
-        s.scaleTo = 1.05;
-        s.mxTo = 0;
-        s.myTo = 0;
-        card.setPointerCapture(event.pointerId);
-        card.classList.add('is-dragging');
-        card.style.zIndex = ++topCardZ;
-      }
-      if (s.dragging) {
-        s.x = clampTo(s.press.minX, s.press.maxX, s.press.x + dx);
-        s.y = clampTo(s.press.minY, s.press.maxY, s.press.y + dy);
-        s.rotTo = clampTo(-14, 14, event.movementX * 0.8);
-        s.wake();
-      }
-    };
-
-    const release = () => {
-      window.removeEventListener('pointermove', onDragMove);
-      window.removeEventListener('pointerup', release);
-      window.removeEventListener('pointercancel', release);
-      if (s.dragging) {
-        // the press came down on a link? this drag must not also follow it
-        const swallowClick = (event) => {
-          event.preventDefault();
-          event.stopPropagation();
-        };
-        card.addEventListener('click', swallowClick, { capture: true, once: true });
-        setTimeout(() => card.removeEventListener('click', swallowClick, { capture: true }), 50);
-        card.classList.remove('is-dragging');
-      }
-      s.dragging = false;
-      s.press = null;
-      s.rotTo = 0;
-      s.scaleTo = 1;
-      s.wake();
-    };
-
-    card.addEventListener('pointerdown', (event) => {
-      if (!canDrag.matches || event.button !== 0) return;
-      const home = sfooter.getBoundingClientRect();
-      const left = home.left + parseFloat(getComputedStyle(card.parentElement).paddingLeft); // clear of the rail
-      const rect = card.getBoundingClientRect();
-      s.press = {
-        px: event.clientX, py: event.clientY, x: s.x, y: s.y,
-        minX: s.x - (rect.left - left), maxX: s.x + (home.right - rect.right),
-        minY: s.y - (rect.top - home.top), maxY: s.y + (home.bottom - rect.bottom),
-      };
-      window.addEventListener('pointermove', onDragMove);
-      window.addEventListener('pointerup', release);
-      window.addEventListener('pointercancel', release);
-    });
-
-    card.addEventListener('pointermove', (event) => {
-      if (!canDrag.matches || s.press) return;
-      const rect = card.getBoundingClientRect();
-      const pull = (offset, half) => {
-        const n = clampTo(-1, 1, offset / half);
-        return Math.sign(n) * Math.pow(Math.abs(n), 0.9) * MAGNET_PX;
-      };
-      s.mxTo = pull(event.clientX - rect.left - rect.width / 2, rect.width / 2);
-      s.myTo = pull(event.clientY - rect.top - rect.height / 2, rect.height / 2);
-      s.wake();
-    });
-
-    card.addEventListener('pointerleave', () => {
-      s.mxTo = 0;
-      s.myTo = 0;
-      s.wake();
-    });
-    return s;
-  });
-
-  // a resized window moves the goalposts: send the windows back to their spots
-  let lastFooterWidth = window.innerWidth;
-  window.addEventListener('resize', () => {
-    if (window.innerWidth === lastFooterWidth) return;
-    lastFooterWidth = window.innerWidth;
-    cardStates.forEach((s) => {
-      s.x = 0;
-      s.y = 0;
-      s.mxTo = 0;
-      s.myTo = 0;
-      s.card.style.transform = '';
-    });
-  });
+  // the Services and Socials windows stand still where the layout puts them
 }
 
 // ---------- Custom scrollbar (desktop) ----------
@@ -2458,8 +2326,8 @@ if (load && document.documentElement.classList.contains('is-loading')) {
   const MAX_MS = 10000;
   const HOLD = 92;
   const FULL_MS = 450;      // 100 on 957, a beat, before the way out
-  const PORTAL_MS = 1150;   // the zoom into the 957 mark, through to the Home page
-  const GLOBE_FROM = 700;   // the globe comes up as the page shows through
+  const RISE_MS = 1100;     // the dark rising over the landed cards, along the broken edge
+  const GLOBE_FROM = RISE_MS + 120; // the globe comes up on the dark once it's full
   const GLOBE_IN = 600;     // …growing in
   const TURN_MS = 1500;     // its half turn
   const BLAST_MS = 1600;    // then it blows apart, slowly
@@ -2722,73 +2590,47 @@ if (load && document.documentElement.classList.contains('is-loading')) {
     document.documentElement.classList.remove('is-loading');
     if (lenis) lenis.start();
 
-    // the way in to the Home page is a zoom into the 957 mark: the mark on the
-    // front card becomes a window onto the page (a hole in the loader in its
-    // shape, exactly where it's printed), and the whole loader — cards, type,
-    // window and all — is scaled up about the mark, the mark drifting to the
-    // middle of the screen as it comes. Slow to start,
-    // then rushing in, until the window is all there is; the loader lets go
-    // as the last of it passes.
-    const card = faces[2].getBoundingClientRect();
-    const mark = {
-      x: card.left + card.width * (145 / 276),
-      y: card.top + card.height * (437 / 550),
-      w: card.width * (112 / 276),
+    // the way in to the Home page: once the cards have landed on 957, the
+    // dark rises over the loader from below along a broken edge — the same
+    // edge the About stage brings its dark back on before the Core — until
+    // it fills the screen. The globe comes up and turns on the dark, and as
+    // it blows apart the dark lets go of the Home page under it (the hero is
+    // the same dark, so only its type and field come through).
+    const dark = document.createElement('div');
+    dark.className = 'load-dark';
+    dark.setAttribute('aria-hidden', 'true');
+    document.body.appendChild(dark);
+    const W = window.innerWidth, H = window.innerHeight;
+    const smooth = (t) => t * t * (3 - 2 * t);
+    const edge = (e) => {
+      // first the left side runs up and the edge breaks in two steps down to
+      // the right corner (f), then the whole edge rises off the top (g)
+      const f = Math.min(1, e / 0.5), g = Math.max(0, (e - 0.5) / 0.5);
+      const yR = H * (1 - g);
+      const yA = (H + ((613 / 999) * H - H) * f) * (1 - g);
+      const yB = (H + ((763 / 999) * H - H) * f) * (1 - g);
+      const yL = H * (1 - f);
+      return `polygon(0px ${H}px, ${W}px ${H}px, ${W}px ${yR.toFixed(1)}px, ${(W * 1275.5 / 1920).toFixed(1)}px ${yA.toFixed(1)}px, ${(W * 302 / 1920).toFixed(1)}px ${yB.toFixed(1)}px, 0px ${yL.toFixed(1)}px)`;
     };
-    mark.h = mark.w * (91 / 112);
-    load.style.setProperty('--mw', `${mark.w}px`);
-    load.style.setProperty('--mx', `${mark.x}px`);
-    load.style.setProperty('--my', `${mark.y}px`);
-    const AX = 15 / 112, AY = 20 / 91;  // a point inside the 9's stroke, in the mark's box
-    const box = heroMedia && heroMedia.getBoundingClientRect();
-    const C = box && box.width
-      ? { x: box.left + box.width / 2, y: box.top + box.height / 2 }
-      : { x: window.innerWidth / 2, y: window.innerHeight / 2 };
-    const ZOOM = 240;                   // how far in it goes
-    load.style.transformOrigin = '0 0';
-    load.style.willChange = 'transform';
-    // the mark stays white as the zoom gets going, then clears into the window
-    // (the loader's own copy is cut away by the window, so this one sits just
-    // outside it and is moved with it)
-    const cover = document.createElement('div');
-    cover.className = 'load-mark';
-    cover.setAttribute('aria-hidden', 'true');
-    const coverMark = document.createElement('img');
-    coverMark.src = 'assets/load/mark-957.svg';
-    coverMark.alt = '';
-    Object.assign(coverMark.style, { left: `${mark.x}px`, top: `${mark.y}px`, width: `${mark.w}px` });
-    cover.appendChild(coverMark);
-    document.body.appendChild(cover);
+    dark.style.clipPath = edge(0);
     const t0 = performance.now();
-    const zoom = (now) => {
-      const k = clamp01((now - t0) / PORTAL_MS);
-      const e = k * k * (3 - 2 * k);
-      const s = Math.pow(ZOOM, Math.pow(k, 2.2));
-      // it zooms about the middle of the mark, which drifts to the middle of
-      // the screen; only over the last stretch does the zoom shift onto the
-      // 9's stroke, so the screen ends up inside the window, not a counter
-      const late = Math.pow(k, 3);
-      const ax = mark.x + mark.w * (0.5 + (AX - 0.5) * late);
-      const ay = mark.y + mark.h * (0.5 + (AY - 0.5) * late);
-      const cx = ax + (C.x - ax) * e;
-      const cy = ay + (C.y - ay) * e;
-      const move = `translate(${cx - s * ax}px,${cy - s * ay}px) scale(${s})`;
-      load.style.transform = move;
-      cover.style.transform = move;
-      const clear = clamp01((k - 0.12) / 0.38);
-      cover.style.opacity = String(1 - clear * clear * (3 - 2 * clear));
-      load.style.opacity = String(1 - clamp01((k - 0.7) / 0.3));
-      if (k < 1) requestAnimationFrame(zoom);
-      else {
-        load.remove();
-        cover.remove();
-        window.dispatchEvent(new Event('scroll'));
-        window.dispatchEvent(new Event('resize'));
-      }
+    const rise = (now) => {
+      const k = clamp01((now - t0) / RISE_MS);
+      dark.style.clipPath = edge(smooth(k));
+      if (k < 1) { requestAnimationFrame(rise); return; }
+      dark.style.clipPath = 'none';
+      load.remove();
+      window.dispatchEvent(new Event('scroll'));
+      window.dispatchEvent(new Event('resize'));
     };
-    requestAnimationFrame(zoom);
+    requestAnimationFrame(rise);
 
     setTimeout(runGlobe, GLOBE_FROM);
+    // the dark goes as the globe breaks up
+    setTimeout(() => {
+      dark.classList.add('is-gone');
+      setTimeout(() => dark.remove(), 900);
+    }, GLOBE_FROM + TURN_MS);
     setTimeout(() => document.documentElement.classList.remove('is-intro-hold'), GLOBE_FROM + TURN_MS);
     setTimeout(revealPage, PAGE_AT);
     setTimeout(revealClip, CLIP_AT);
