@@ -7,8 +7,9 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=Roboto:wght@400;500;600;700&family=Roboto+Mono:wght@400;500;600&family=DM+Sans:wght@400;500;700&family=Chakra+Petch:wght@600&family=Geist:wght@400;500&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=200">
-<link rel="stylesheet" href="klever.css?v=29">
+<link rel="stylesheet" href="styles.css?v=205">
+<link rel="stylesheet" href="klever.css?v=30">
+<link rel="stylesheet" href="echo.css?v=17">
 <script src="page-transition.js?v=2"></script>
 <!-- the loading screen plays when the site is opened or reloaded, not when
      arriving from another of its pages (the page transition covers that) -->
@@ -103,10 +104,11 @@
 
   <!-- HERO + ABOUT: the hero holds still (sticky) while About comes over it -->
   <div class="hxab">
-  <!-- HERO (Figma 1574:4234): the heading top-left, the lead bottom-left and,
-       on the right, the Dong Son drum showing through the 957 mark -->
+  <!-- HERO (Figma 1574:4234): the heading top-left, the lead bottom-left,
+       the word field under both -->
   <section class="hx" id="hero" data-theme="dark">
-    <div class="hx__drum" aria-hidden="true"></div>
+    <!-- NINEFIVE SEVEN typing in and wiping out under the type, lit around the cursor -->
+    <canvas class="hx__field" id="heroField" aria-hidden="true"></canvas>
     <h1 class="hx__title" data-cms="hero.title" data-cms-label="Tiêu đề" data-cms-group="Hero">Designing ideas into scalable digital experiences</h1>
     <p class="hx__lead" data-cms="hero.lead" data-cms-label="Mô tả" data-cms-group="Hero">We are a design agency helping teams design, build, and scale digital products that actually work and drive real impact.</p>
   </section>
@@ -124,9 +126,6 @@
           <img class="ab__line ab__line--1" src="assets/home/about-line-1.svg" alt="">
           <img class="ab__line ab__line--2" src="assets/home/about-line-2.svg" alt="">
           <img class="ab__line ab__line--3" src="assets/home/about-line-3.svg" alt="">
-          <!-- once the three lines are home, this clip shows through them (masked to
-               the letters, script.js fades it in) -->
-          <video class="ab__video" src="assets/home/about-video.mp4" muted loop playsinline preload="metadata" aria-hidden="true" data-cms-src="about.video" data-cms-label="Video trong chữ" data-cms-group="Giới thiệu"></video>
         </div>
         <div class="ab__copy">
           <div class="ab__text">
@@ -810,15 +809,15 @@
 </main>
 
 <script src="https://cdn.jsdelivr.net/npm/lenis@1.1.13/dist/lenis.min.js"></script>
-<script src="projects.js?v=26"></script>
-<script src="script.js?v=112"></script>
+<script src="projects.js?v=27"></script>
+<script src="script.js?v=115"></script>
 <script src="fx-tracking.js?v=4"></script>
 <script src="footer-heat.js?v=3"></script>
 <script src="svc-pixel.js?v=6"></script>
 <script src="svc-metal.js?v=7"></script>
 <script src="services.js?v=44"></script>
 <script src="process.js?v=3"></script>
-<script src="project-modal.js?v=8"></script>
+<script src="project-modal.js?v=9"></script>
 <script src="contact.js?v=6"></script>
 </body>
 </html>

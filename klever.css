@@ -6,6 +6,9 @@
   background:var(--kl-bg);color:var(--white);--font-heading:'Roboto',sans-serif;
 }
 .kl{padding-top:var(--nav-h);}
+/* no word left alone on a paragraph's last line */
+.kl p{text-wrap:pretty;}
+.kl h1,.kl h2,.kl h3{text-wrap:balance;}
 
 /* HERO */
 .kl-hero{

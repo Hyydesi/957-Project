@@ -86,12 +86,16 @@
         .then((html) => new DOMParser().parseFromString(html, 'text/html')));
     }
     caseCache.get(p.href).then((doc) => {
-      const main = doc.querySelector('main.kl');
+      // a case study page marks what the card needs (data-case-title,
+      // -meta, -desc, -skip); klever.html predates the marks and is read by
+      // its classes
+      const main = doc.querySelector('main[data-case], main.kl');
       if (!main) throw new Error('no case study');
       const hero = main.querySelector('.kl-hero');
-      const title = hero && hero.querySelector('.kl-hero__title');
+      const pick = (mark, cls) => main.querySelector(`[${mark}]`) || (hero && hero.querySelector(cls));
+      const title = pick('data-case-title', '.kl-hero__title');
       if (title) { el.querySelector('.pcard__title span').textContent = title.textContent; fitTitle(card); }
-      const meta = hero && hero.querySelector('.kl-meta');
+      const meta = pick('data-case-meta', '.kl-meta');
       if (meta) {
         const dl = el.querySelector('.pcard__meta');
         dl.innerHTML = meta.innerHTML;
@@ -99,14 +103,19 @@
           n.removeAttribute('data-cms'); n.removeAttribute('data-cms-label'); n.removeAttribute('data-cms-group');
         });
       }
-      const desc = hero && hero.querySelector('.kl-hero__desc');
+      const desc = pick('data-case-desc', '.kl-hero__desc');
       if (desc) el.querySelector('.pcard__desc').textContent = desc.textContent;
       const body = el.querySelector('.pcard__body');
       const wrap = document.createElement('div');
-      wrap.className = 'kl pcard__case';
+      // the page's own main classes, so its stylesheet (loaded with the
+      // modal) styles the sections the same in here
+      wrap.className = `${main.className} pcard__case`;
       [...main.children].forEach((n) => {
-        if (n.matches('.kl-hero, .kl-more, .sfooter, footer, script')) return;
-        wrap.appendChild(document.importNode(n, true));
+        if (n.matches('.kl-hero, .kl-more, .sfooter, footer, script, [data-case-skip]')) return;
+        const copy = document.importNode(n, true);
+        // the facts already stand in the side column
+        copy.querySelectorAll('[data-case-meta]').forEach((m) => m.remove());
+        wrap.appendChild(copy);
       });
       // page-relative asset paths stay right: the case study sits beside works.html
       body.replaceChildren(wrap);
