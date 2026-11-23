@@ -124,7 +124,7 @@ const pixelReveal = (() => {
   // replay (on hover) hides the text by opacity rather than visibility, so the
   // heading keeps the cursor and doesn't read the replay as leaving and
   // coming back
-  const play = (el, { duration = 1100, delay = 0, replay = false } = {}) => new Promise((resolve) => {
+  const play = (el, { duration = 1100, delay = 0, replay = false, local = null } = {}) => new Promise((resolve) => {
     const show = () => {
       if (replay) el.style.opacity = '';
       else el.style.visibility = 'visible';
@@ -136,8 +136,22 @@ const pixelReveal = (() => {
     if (replay) el.style.opacity = '0';
     else el.style.visibility = 'hidden';
     setTimeout(() => {
-      const box = el.getBoundingClientRect();
-      const letters = lettersOf(el);
+      const host = local ? el.parentElement : document.body;
+      let box, letters, offset;
+      // Sample the unprojected text so the overlay can share the card's
+      // transform without applying its perspective twice.
+      const transforms = local?.map((node) => node.style.transform);
+      try {
+        local?.forEach((node) => { node.style.transform = 'none'; });
+        box = el.getBoundingClientRect();
+        letters = lettersOf(el);
+        if (local) {
+          const parent = host.getBoundingClientRect();
+          offset = { x: box.left - parent.left - host.clientLeft, y: box.top - parent.top - host.clientTop };
+        }
+      } finally {
+        local?.forEach((node, i) => { node.style.transform = transforms[i]; });
+      }
       if (!letters.length || !box.width) { show(); return; }
       const PAD = 6;
       const W = Math.ceil(box.width + PAD * 2);
@@ -210,13 +224,20 @@ const pixelReveal = (() => {
       cv.style.width = `${W}px`;
       cv.style.height = `${H}px`;
       cv.style.mixBlendMode = getComputedStyle(el).mixBlendMode;
-      document.body.appendChild(cv);
+      if (offset) {
+        cv.classList.add('px-reveal--local');
+        cv.style.left = `${offset.x - PAD}px`;
+        cv.style.top = `${offset.y - PAD}px`;
+      }
+      host.appendChild(cv);
       const ctx = cv.getContext('2d');
       const t0 = performance.now();
       const frame = (now) => {
-        // it rides along with the heading if the page moves meanwhile
-        const b = el.getBoundingClientRect();
-        cv.style.transform = `translate(${b.left - PAD}px,${b.top - PAD}px)`;
+        if (!offset) {
+          // The fixed overlay follows its heading if the page moves.
+          const b = el.getBoundingClientRect();
+          cv.style.transform = `translate(${b.left - PAD}px,${b.top - PAD}px)`;
+        }
         const u = ((now - t0) / duration) * END;
         ctx.setTransform(1, 0, 0, 1, 0, 0);
         ctx.clearRect(0, 0, cv.width, cv.height);

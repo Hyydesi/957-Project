@@ -23,10 +23,8 @@
 //     corners (a fisheye, as on a curved screen): the keywords are drawn in
 //     and shrunk toward the corners, the middle — the card and a margin round
 //     it — is left untouched and sharp. The edges stay straight
-//   · on a mouse, hovering the open card while the room is at rest turns it
-//     into a slab of brushed gunmetal that leans toward the cursor on a
-//     spring, with a light that follows it: drawn with WebGL over the card
-//     (svc-metal.js), or, without WebGL, faked in CSS on the card itself
+//   · hovering the open card while the room is at rest makes it lean toward
+//     the pointer and reveals inspect frames in the signal dashes
 //   · the open service's keywords hang on its wall, three either side of the
 //     card (above and below it on a phone), the two sides mirroring each
 //     other in the same places for every service. Echoes of the same six words
@@ -72,12 +70,11 @@
   const LEAD = 0.55;          // share of the intro the screen stays bare before the first card shows
   const RISE_TIME = 0.9;      // s the first card takes to rise the rest of the way by itself
   const HYSTERESIS = 0.55;    // how far past halfway before the open service changes
-  const AT_REST = 0.003;      // how close to its stop the room must be for the metal (0.27°)
-  const TILT = 10;            // deg the hovered card leans toward the cursor, at most
-  const TILT_PERSP = 1400;    // px, the perspective it leans under (svc-metal.js's and the CSS's)
-  const SPRING = 0.085;       // how hard the slab is pulled toward its lean, per frame
-  const DAMP = 0.8;           // how much of its swing it keeps, per frame (some overshoot)
-  const SLABS = 10;           // slices behind a hovered card, 2px apart: its thickness
+  const AT_REST = 0.003;      // how close to its stop the room must be for hover (0.27°)
+  const TILT_ANGLE = 10;      // degrees at the far edge of the card
+  const TILT_PERSPECTIVE = 1400;
+  const TILT_PULL = 0.085;
+  const TILT_DAMPING = 0.8;
   const LENS = 0.07;          // how far the lens pulls in at the very corners, as a share of the distance from the middle
   const ECHOES = 8;           // echoes per side (none on a phone)
 
@@ -100,6 +97,7 @@
   const services = items.map((item, i) => {
     const card = item.querySelector('.svc-card');
     const body = card.querySelector('.svc-card__body');
+    const title = body.querySelector('.svc-card__title');
     const list = item.querySelector('.svc-kws');
     const kws = [...list.querySelectorAll('.svc-kw')].map((el) => kwOf(el, i, {
       side: SIDES[0].includes(el.dataset.slot) ? 0 : 1,
@@ -114,7 +112,7 @@
       list.appendChild(el);
       return kwOf(el, i, { side, echo: true, dieAt: 0, nextAt: 0 });
     }));
-    return { card, body, kws, echoes, all: kws.concat(echoes), words, sizes: {}, shown: null };
+    return { card, body, title, kws, echoes, all: kws.concat(echoes), words, sizes: {}, shown: null };
   });
   const tickList = section.querySelector('.svc__ticks');
   const ticks = items.map(() => {
@@ -162,6 +160,7 @@
   // ---- sizes -----------------------------------------------------------
   let W = 0, H = 0, step = 1, intro = 1;
   let dirty = true;               // the room needs drawing again even if the scroll hasn't moved
+  let tiltDirty = false, tilt = null;
   let ex = 0, ey = 0, depth = 1;   // the eye, straight in front of the card's centre
   let card = { left: 0, top: 0, right: 0, bottom: 0 };
 
@@ -179,7 +178,9 @@
     room.setAttribute('viewBox', `0 0 ${W} ${H}`);
     lens();
     dirty = true;
-    if (metalGL) { metalGL.resize(W, H); glOff(true); }
+    resetTilt();
+    signal?.clear();
+    signal?.prepare(services[0].body);
     if (ascii) {
       ascii.resize(W, H);
       ascii.grid(card.left, card.top, card.bottom, H);
@@ -383,7 +384,7 @@
   // how far ahead of the eye a span [x0, x1] of a wall reaches, at its nearest
   const nearest = (x0, x1, a) => Math.min(toEye(x0, 0, a)[2], toEye(x1, 0, a)[2]);
   // the same turn in CSS: about the eye, seen from it (rotateY runs the other way)
-  const turn = (a) => (a === 0 ? '' :
+  const turn = (a) => (Math.abs(a) < 0.00001 ? '' :
     `perspective(${depth.toFixed(1)}px) translateZ(${depth.toFixed(1)}px) rotateY(${(-a * 180 / Math.PI).toFixed(3)}deg) translateZ(${(-depth).toFixed(1)}px)`);
   // a 3D segment cut where it passes behind the eye
   const clip = (p, q, near) => {
@@ -403,23 +404,16 @@
     el.style.visibility = on ? '' : 'hidden';
   };
 
-  // The lean of the hovered card (the WebGL slab's, or the CSS stand-in's),
-  // and where it puts a corner of the card on screen: turned about the middle
-  // of the face as rotateX(rx) rotateY(ry) under TILT_PERSP, as the slab is,
-  // so the edges can stay on its corners while it leans.
-  const lean3 = { rx: 0, ry: 0, card: -1 };
-  const setLean = (rx, ry, i) => {
-    if (rx === lean3.rx && ry === lean3.ry && i === lean3.card) return;
-    lean3.rx = rx; lean3.ry = ry; lean3.card = i;
-    dirty = true;
-  };
-  const leaned = (x, y) => {
-    const a = (lean3.rx * Math.PI) / 180, b = (lean3.ry * Math.PI) / 180;
+  // Project the face's CSS rotation before the room's wall turn so the
+  // ceiling and floor lines continue to meet the four card corners.
+  const cardCorner = (index, x, y, wallAngle) => {
+    if (tilt?.index !== index) return toEye(x, y, wallAngle);
+    const a = tilt.rx * Math.PI / 180, b = tilt.ry * Math.PI / 180;
     const ca = Math.cos(a), sa = Math.sin(a), cb = Math.cos(b), sb = Math.sin(b);
     const X = x - ex, Y = y - ey;
     const qx = cb * X, qy = sa * sb * X + ca * Y, qz = -ca * sb * X + sa * Y;
-    const k = TILT_PERSP / (TILT_PERSP - qz);
-    return [ex + qx * k, ey + qy * k];
+    const scale = TILT_PERSPECTIVE / (TILT_PERSPECTIVE - qz);
+    return toEye(ex + qx * scale, ey + qy * scale, wallAngle);
   };
 
   // a keyword's transform: its wall's turn, then the lens about the eye
@@ -437,23 +431,25 @@
     if (!W || !H || !depth) return;
     // nothing to do while the room stands still
     const key = `${pos}|${reveal}`;
-    if (key === drawn && !dirty) return;
+    const wallsMoved = key !== drawn || dirty;
+    if (!wallsMoved && !tiltDirty) return;
     drawn = key;
-    dirty = false;
+    dirty = tiltDirty = false;
     const near = NEAR * depth;
     // during the intro the first card is still on its way up from below
     const rise = reveal < 1 ? (1 - ease(Math.max(0, reveal))) * (H - card.top) : 0;
-    for (let i = 0; i < N; i++) {
-      const s = services[i];
-      const a = angle(i);
-      const facing = Math.abs(i - pos) < 1;
-      const cardOn = facing && nearest(card.left, card.right, a) > near;
-      show(s, s.card, cardOn);
-      if (cardOn) s.card.style.transform = rise ? `translate3d(0,${rise.toFixed(1)}px,0)` : turn(a);
-      s.all.forEach((k) => {
-        const on = facing && nearest(k.left, k.right, a) > near;
-        show(k, k.el, on);
-        if (on) k.el.style.transform = chip(k, a);
+    if (wallsMoved) {
+      services.forEach((s, i) => {
+        const a = angle(i);
+        const facing = Math.abs(i - pos) < 1;
+        const cardOn = facing && nearest(card.left, card.right, a) > near;
+        show(s, s.card, cardOn);
+        if (cardOn) s.card.style.transform = rise ? `translate3d(0,${rise.toFixed(1)}px,0)` : turn(a);
+        s.all.forEach((k) => {
+          const on = facing && nearest(k.left, k.right, a) > near;
+          show(k, k.el, on);
+          if (on) k.el.style.transform = chip(k, a);
+        });
       });
     }
     // the edges: wall j's right corners to wall j+1's left corners
@@ -507,14 +503,9 @@
   // how far a point lies outside the screen (0 inside it)
   const outside = (p) => Math.hypot(Math.max(0, -p[0], p[0] - W), Math.max(0, -p[1], p[1] - H));
   const edge = (path, y, a0, a1, near, j) => {
-    const seg = clip(toEye(card.right, y, a0), toEye(card.left, y, a1), near);
+    const seg = clip(cardCorner(j, card.right, y, a0), cardCorner(j + 1, card.left, y, a1), near);
     if (!seg) { path.style.display = 'none'; return null; }
     let p = toScreen(seg[0]), f = toScreen(seg[1]);
-    // the leaning card's corners, where it leans to
-    if (lean3.card >= 0) {
-      if (j === lean3.card) p = leaned(card.right, y);
-      if (j + 1 === lean3.card) f = leaned(card.left, y);
-    }
     // A card swung so far round that it is about to be hidden (part of it
     // behind the eye) may still have its corner on screen. Its edge takes
     // that end as the far one and runs on past it toward the screen's edge,
@@ -592,7 +583,6 @@
     return order.map((_, n) => order.indexOf(n) * spread + rand(0, spread * 0.6));
   };
   const lightUp = (i) => {
-    if (window.svcPixel) window.svcPixel.light(i, true);   // the pixel icon flickers on with the keywords
     const s = services[i];
     const delays = stagger(s.kws, 0.06);
     s.kws.forEach((k, n) => setKw(k, reduce ? 'lit' : 'in', delays[n]));
@@ -600,7 +590,6 @@
     s.echoes.forEach((e) => { e.nextAt = now + rand(250, 1500); });
   };
   const lightDown = (i) => {
-    if (window.svcPixel) window.svcPixel.light(i, false);
     const s = services[i];
     const delays = stagger(s.all, 0.02);
     s.all.forEach((k, n) => {
@@ -780,126 +769,69 @@
     });
   });
 
-  // ---- the metal card ----------------------------------------------------
-  // Only the open card, only on a mouse, only while the room is at rest. The
-  // cursor sets where the card should lean; the loop eases it there (and back
-  // to flat once the cursor leaves) and moves the highlight with it.
-  const canHover = matchMedia('(hover: hover) and (pointer: fine)').matches;
-  let hovered = -1;
-  const lean = { x: 0, y: 0, tx: 0, ty: 0, mx: 50, my: 30 };
+  // The pointer affects the open card only while the room is at rest.
+  const canHover = matchMedia('(any-hover: hover)').matches;
+  const signal = window.createSvcSignal?.(reduce || !canHover, services.map(({ body }) => body));
+  let hover = null, titleHover = -1;
   if (canHover) {
-    services.forEach((s, i) => {
-      s.card.addEventListener('pointermove', (e) => {
-        hovered = i;
-        // the card's resting box (the room is pinned and still whenever the
-        // metal is on), so it maps the cursor steadily without asking the page
-        const r = { left: card.left, top: card.top, width: card.right - card.left, height: card.bottom - card.top };
-        const u = Math.min(1, Math.max(0, (e.clientX - r.left) / r.width));
-        const v = Math.min(1, Math.max(0, (e.clientY - r.top) / r.height));
-        lean.tx = (u - 0.5) * 2;
-        lean.ty = (v - 0.5) * 2;
-        lean.mx = u * 100;
-        lean.my = v * 100;
-      });
-      s.card.addEventListener('pointerleave', () => { if (hovered === i) hovered = -1; });
+    services.forEach(({ card }, index) => {
+      const point = (event) => {
+        if (event.pointerType !== 'touch') hover = { index, x: event.clientX, y: event.clientY };
+      };
+      const leave = (event) => {
+        if (event.pointerType !== 'touch' && hover?.index === index) hover = null;
+      };
+      card.addEventListener('pointerenter', point);
+      card.addEventListener('pointermove', point);
+      card.addEventListener('pointerleave', leave);
+      card.addEventListener('pointercancel', leave);
     });
   }
-  // The WebGL slab: printed off the open card as the cursor comes onto it,
-  // shown over it while the card steps aside, leaning on a spring (so it
-  // carries on a touch and settles), and handed back once it is flat again.
-  // If the room starts to turn it is dropped at once.
-  const metalCanvas = section.querySelector('.svc__metal');
-  const metalGL = canHover && metalCanvas && window.createSvcMetal ? window.createSvcMetal(metalCanvas) : null;
-  // without it, the CSS stand-in: the card's own slices, finish and sheen
-  if (canHover && !metalGL) {
-    const layer = (cls, i) => {
-      const el = document.createElement('div');
-      el.className = cls;
-      el.setAttribute('aria-hidden', 'true');
-      if (i != null) el.style.setProperty('--i', i);
-      return el;
-    };
-    services.forEach(({ body }) => {
-      for (let n = SLABS; n >= 1; n--) body.prepend(layer('svc-card__slab', n));
-      body.insertBefore(layer('svc-card__metal'), body.querySelector('.svc-card__bar'));
-      body.appendChild(layer('svc-card__shine'));
-    });
-  }
-  let glCard = -1;   // the card the slab is standing in for
-  const swing = { x: 0, y: 0, vx: 0, vy: 0 };
-  const glOff = (cut) => {
-    if (glCard < 0) return;
-    services[glCard].card.classList.remove('is-gl');
-    metalCanvas.classList.toggle('is-cut', !!cut);
-    metalCanvas.classList.remove('is-on');
-    glCard = -1;
-    setLean(0, 0, -1);
-  };
-  // The metal waits until the room has truly stopped: a snap's last stretch
-  // still turns the card a degree or two, which would shift it sideways
-  // under the slab. (settled is looser, for the echoes.)
-  const atRest = () => settled && Math.abs(pos - open) < AT_REST;
-  const shineGL = () => {
-    if (!atRest()) {
-      if (glCard >= 0) { glOff(true); swing.x = swing.y = swing.vx = swing.vy = 0; }
-      return;
-    }
-    const want = hovered === open ? open : -1;
-    if (want >= 0 && glCard !== want) {
-      glOff(true);
-      // printed off the card standing square, whatever trace of a turn it
-      // still has, so the slab lands where the room's edges meet it
-      const c = services[want].card;
-      const turned = c.style.transform;
-      c.style.transform = 'none';
-      metalGL.prepare(c, section);
-      c.style.transform = turned;
-      metalGL.draw(-swing.y * TILT, swing.x * TILT, lean.mx / 100, lean.my / 100);
-      glCard = want;
-      metalCanvas.classList.remove('is-cut');
-      metalCanvas.classList.add('is-on');
-      services[want].card.classList.add('is-gl');
-    }
-    if (glCard < 0) return;
-    const tx = want >= 0 && !reduce ? lean.tx : 0, ty = want >= 0 && !reduce ? lean.ty : 0;
-    swing.vx = (swing.vx + (tx - swing.x) * SPRING) * DAMP;
-    swing.vy = (swing.vy + (ty - swing.y) * SPRING) * DAMP;
-    swing.x += swing.vx;
-    swing.y += swing.vy;
-    setLean(-swing.y * TILT, swing.x * TILT, glCard);
-    metalGL.draw(lean3.rx, lean3.ry, lean.mx / 100, lean.my / 100);
-    const still = Math.max(Math.abs(swing.x), Math.abs(swing.y), Math.abs(swing.vx), Math.abs(swing.vy)) < 0.002;
-    if (want < 0 && still) glOff(false);
+
+  const resetTilt = () => {
+    if (!tilt) return;
+    const { card, body } = services[tilt.index];
+    body.style.removeProperty('transform');
+    card.classList.remove('is-tilting');
+    tilt = null;
+    tiltDirty = true;
   };
 
-  let metal = -1;
-  let leaning = -1;   // the card still easing back to flat, if any
-  const shine = () => {
-    if (metalGL) { shineGL(); return; }
-    const on = hovered === open && atRest() ? open : -1;
-    if (on !== metal) {
-      if (metal >= 0) services[metal].card.classList.remove('is-metal');
-      if (on >= 0) services[on].card.classList.add('is-metal');
-      metal = on;
+  const updateTilt = (atRest, pointer, now) => {
+    if (!atRest || reduce) { resetTilt(); return; }
+    if (!pointer && !tilt) return;
+    const service = services[open];
+    if (tilt?.index !== open) {
+      resetTilt();
+      if (!pointer) return;
+      tilt = { index: open, bounds: service.card.getBoundingClientRect(), x: 0, y: 0, vx: 0, vy: 0, rx: 0, ry: 0, time: now };
     }
-    const tx = on >= 0 && !reduce ? lean.tx : 0, ty = on >= 0 && !reduce ? lean.ty : 0;
-    lean.x += (tx - lean.x) * 0.12;
-    lean.y += (ty - lean.y) * 0.12;
-    if (on >= 0) leaning = on;
-    if (leaning < 0) return;
-    const b = services[leaning].body;
-    if (Math.abs(lean.x) < 0.001 && Math.abs(lean.y) < 0.001 && on < 0) {
-      ['--svc-rx', '--svc-ry', '--svc-sheen'].forEach((p) => b.style.removeProperty(p));
-      leaning = -1;
-      setLean(0, 0, -1);
+
+    // The outer card supplies a stable hit area while its inner face tilts.
+    const { left, top, width, height } = tilt.bounds;
+    const normalize = (value, start, length) => Math.min(1, Math.max(-1, (value - start) / length * 2 - 1));
+    const targetX = pointer ? normalize(pointer.x, left, width) : 0;
+    const targetY = pointer ? normalize(pointer.y, top, height) : 0;
+    const frames = Math.min(1.5, (now - tilt.time) * 0.06);
+    const damping = TILT_DAMPING ** frames;
+    tilt.time = now;
+    tilt.vx = (tilt.vx + (targetX - tilt.x) * TILT_PULL * frames) * damping;
+    tilt.vy = (tilt.vy + (targetY - tilt.y) * TILT_PULL * frames) * damping;
+    tilt.x += tilt.vx * frames;
+    tilt.y += tilt.vy * frames;
+    if (!pointer && Math.max(Math.abs(tilt.x), Math.abs(tilt.y), Math.abs(tilt.vx), Math.abs(tilt.vy)) < 0.002) {
+      resetTilt();
       return;
     }
-    setLean(-lean.y * TILT, lean.x * TILT, leaning);
-    b.style.setProperty('--svc-ry', `${(lean.x * TILT).toFixed(2)}deg`);
-    b.style.setProperty('--svc-rx', `${(-lean.y * TILT).toFixed(2)}deg`);
-    b.style.setProperty('--svc-sheen', `${(lean.x * 25).toFixed(1)}deg`);
-    b.style.setProperty('--svc-mx', `${lean.mx.toFixed(1)}%`);
-    b.style.setProperty('--svc-my', `${lean.my.toFixed(1)}%`);
+
+    const rx = Math.round(-tilt.y * TILT_ANGLE * 1000) / 1000;
+    const ry = Math.round(tilt.x * TILT_ANGLE * 1000) / 1000;
+    if (rx === tilt.rx && ry === tilt.ry) return;
+    tilt.rx = rx;
+    tilt.ry = ry;
+    service.body.style.transform = `perspective(${TILT_PERSPECTIVE}px) rotateX(${rx}deg) rotateY(${ry}deg)`;
+    service.card.classList.toggle('is-tilting', rx !== 0 || ry !== 0);
+    tiltDirty = true;
   };
 
   const lights = [];   // the walls the light is on (place() fills it)
@@ -909,10 +841,19 @@
   const tick = (now) => {
     if (!running) return;
     measure();
-    shine();     // before place(), so the edges meet the card where it leans this frame
-    // the pixel icon loops only on the open card with the room at rest, and holds its frame on the metal
-    if (window.svcPixel) window.svcPixel.state(shown ? open : -1, atRest(), glCard >= 0 || metal >= 0);
+    const atRest = settled && Math.abs(pos - open) < AT_REST;
+    const pointer = hover?.index === open ? hover : null;
+    updateTilt(atRest, pointer, now);
     place();
+    signal?.update(atRest ? services[open].body : null, pointer, now);
+    const hovered = atRest && pointer ? open : -1;
+    if (hovered !== titleHover) {
+      titleHover = hovered;
+      if (hovered >= 0 && !reduce && typeof pixelReveal === 'function') {
+        const { title, body, card } = services[hovered];
+        if (title && !title.dataset.pxBusy) pixelReveal(title, { duration: 900, replay: true, local: [card, body] });
+      }
+    }
     // the light wavers while the room is lit (held still with reduced motion)
     if (ascii && shown) ascii.draw(reduce ? 0 : now / 1000);
     updateOpen();
@@ -925,7 +866,13 @@
     running = true;
     requestAnimationFrame(tick);
   };
-  const stop = () => { running = false; };
+  const stop = () => {
+    running = false;
+    hover = null;
+    titleHover = -1;
+    resetTilt();
+    signal?.clear();
+  };
 
   const onResize = () => { readSizes(); measure(); place(); };
   window.addEventListener('resize', onResize);
