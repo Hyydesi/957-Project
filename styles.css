@@ -1346,6 +1346,43 @@ html.svc-snap-native{scroll-snap-type:y proximity;}
   .works{padding-left:40px;padding-right:40px;}
 }
 
+/* ---------- CTA (home, after Works) ---------- */
+/* a screen of dark with the line in the middle, in the hero's display face,
+   and the red call button under it (the nav's, a size up) */
+.cta{
+  position:relative;z-index:7;
+  min-height:100vh;min-height:100svh;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:max(32px, 56 * var(--u, 1px));padding:120px 24px;
+  background:var(--bg-dark);color:var(--white);text-align:center;
+}
+.cta__title{
+  max-width:max(320px, 1400 * var(--u, 1px));margin:0;
+  font-family:var(--font-display);font-weight:400;text-transform:uppercase;
+  font-size:max(44px, 128 * var(--u, 1px));line-height:.95;letter-spacing:-.01em;
+  text-wrap:balance;
+}
+.cta__btn{
+  display:inline-flex;align-items:center;justify-content:center;
+  padding:max(14px, 20 * var(--u, 1px)) max(28px, 44 * var(--u, 1px));
+  border-radius:2px;background:#d90100;color:var(--white);cursor:pointer;
+  font-family:var(--font-display);font-weight:400;text-transform:uppercase;
+  font-size:max(18px, 32 * var(--u, 1px));line-height:1;
+  transition:background-color .25s ease, transform .25s ease;
+}
+.cta__btn:hover{background:#b50100;}
+.cta__btn:active{transform:scale(.98);}
+.cta__btn:focus-visible{outline:2px solid var(--white);outline-offset:3px;}
+@media(max-width:899px){
+  .cta{padding:96px 16px;}
+  .cta__title{font-size:clamp(40px, 12vw, 64px);}
+}
+
+/* the page behind the project modal holds still */
+body.is-pmodal-open{overflow:hidden;}
+.pmodal{overscroll-behavior:contain;}
+.pmodal .pcard__main,.pmodal .pcard__side{overscroll-behavior:contain;}
+
 /* ---------- SITE FOOTER ---------- */
 /* An old CRT left on: the dark screen holds the wordmark with two draggable
    windows floating beside it, a ticker, then the studio number cropped by the
@@ -1380,65 +1417,41 @@ html.svc-snap-native{scroll-snap-type:y proximity;}
 .sfooter__heat{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;}
 .sfooter__word{display:block;overflow:hidden;}
 .sfooter__word img{height:auto;width:var(--sf-title);}
+/* the marks in 3D silver (footer-3d.js): a canvas a little larger than the
+   marks, so they can lean, laid over the flat ones, which stay for the layout */
+.sfooter__gl{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);display:block;pointer-events:none;
+}
+.sfooter__name.is-3d .sfooter__word img{visibility:hidden;}
+.sfooter__name.is-3d .sfooter__heat{display:none;}
 
+/* the two windows: no card, just their type on the dark, still draggable */
 .sfooter__card{
   position:relative;z-index:4;
   width:100%;max-width:343px;padding:0 6px 6px;
-  background:#f7f7f7;border:1px solid var(--sf-border);border-radius:4px;
-  color:var(--sf-ink);font-family:var(--font-nav);
+  color:var(--white);font-family:var(--font-nav);
   text-transform:uppercase;
-}
-/* the two pairs of dots that say "pick me up" */
-.sfooter__grip{
-  display:block;width:8px;height:8px;margin:7px 1px;opacity:.35;
-  background:radial-gradient(circle,currentColor 1.5px,transparent 1.6px) 0 0/4px 4px;
 }
 .sfooter__card-head{
   display:flex;align-items:center;justify-content:space-between;padding:10px 12px;
-  background:#fff;border:1px solid var(--sf-border);border-radius:2px 2px 0 0;
+  border-bottom:1px solid var(--sf-line);
   font-size:13px;line-height:1;font-weight:500;
 }
 .sfooter__label{font:inherit;color:inherit;}
 .sfooter__services,.sfooter__socials{
   display:flex;flex-direction:column;gap:6px;padding:12px;list-style:none;
-  background:#fff;border:1px solid var(--sf-border);border-top:0;border-radius:0 0 2px 2px;
+  color:#bdbdbd;
   font-size:13px;line-height:1.2;
 }
 .sfooter__services li{display:flex;gap:8px;}
 /* services.js turns these into links to their stop on the home page */
 .sfooter__services li.is-link{cursor:pointer;transition:color .25s ease;}
 .sfooter__services li.is-link:hover,.sfooter__services li.is-link:focus-visible{color:var(--red);outline:none;}
-.sfooter__social{display:block;width:fit-content;}
-.sfooter__social::before,.sfooter__legal a::before{content:'[';}
-.sfooter__social::after,.sfooter__legal a::after{content:']';}
+.sfooter__social{display:block;width:fit-content;transition:color .2s ease;}
+.sfooter__social:hover{color:var(--white);}
+.sfooter__social::before{content:'[';}
+.sfooter__social::after{content:']';}
 
-/* selection frame, as in a design tool: red outline plus four corner handles */
-.sfooter__card::before,.sfooter__card::after{
-  content:'';position:absolute;pointer-events:none;
-  opacity:0;transition:opacity .2s ease;
-}
-.sfooter__card::before{inset:-2px;border:2px solid var(--red);border-radius:2px;}
-.sfooter__card::after{
-  inset:-6px;
-  background:
-    linear-gradient(var(--red),var(--red)) 0 0/9px 9px no-repeat,
-    linear-gradient(var(--red),var(--red)) 100% 0/9px 9px no-repeat,
-    linear-gradient(var(--red),var(--red)) 0 100%/9px 9px no-repeat,
-    linear-gradient(var(--red),var(--red)) 100% 100%/9px 9px no-repeat;
-}
-.sfooter__card:hover::before,.sfooter__card:hover::after,
-.sfooter__card:focus-within::before,.sfooter__card:focus-within::after,
-.sfooter__card.is-selected::before,.sfooter__card.is-selected::after{opacity:1;}
-.sfooter__card.is-dragging{cursor:grabbing;filter:drop-shadow(0 12px 24px rgba(0,0,0,.28));}
 
-.sfooter__legal{
-  display:flex;flex-wrap:wrap;justify-content:center;gap:6px 16px;
-  font-family:var(--font-nav);font-size:13px;line-height:1.3;
-  text-transform:uppercase;text-align:center;
-}
-.sfooter__legal a{transition:color .2s ease;}
-.sfooter__legal a:hover{color:var(--red);}
-.sfooter__legal p{display:flex;flex-wrap:wrap;justify-content:center;gap:0 8px;}
 
 /* ticker: built from an endless pair of lists (JS adds the copies) */
 .sfooter__marquee{
@@ -1518,13 +1531,15 @@ html.svc-snap-native{scroll-snap-type:y proximity;}
 /* Phones keep the windows side by side once there's room for both */
 @media(min-width:560px) and (max-width:899px){
   .sfooter__stage{flex-direction:row;flex-wrap:wrap;justify-content:center;align-items:flex-start;}
-  .sfooter__name,.sfooter__legal{flex:1 0 100%;}
+  .sfooter__name{flex:1 0 100%;}
   .sfooter__card{flex:1 1 0;}
 }
 
 /* Desktop: the wordmark holds the middle and the windows float free of the flow */
 @media(min-width:900px){
-  .sfooter{--sf-title:min(40.8vw,52.8vh);}
+  /* the wordmark a size up and sitting a little low, under the windows' line */
+  .sfooter{--sf-title:min(47vw,60.7vh);}
+  .sfooter__name{top:3.5vh;}
   .sfooter__stage{
     justify-content:center;
     min-height:clamp(460px,65vh,900px);
@@ -1532,31 +1547,21 @@ html.svc-snap-native{scroll-snap-type:y proximity;}
   }
   .sfooter__digits{height:clamp(200px,30vh,420px);height:clamp(200px,30svh,420px);}
   .sfooter__digit img{width:64%;}
-  .sfooter__card{
-    position:absolute;width:clamp(244px,18.5vw,370px);max-width:none;
-    cursor:grab;user-select:none;-webkit-user-select:none;touch-action:none;
-    will-change:transform;
-  }
-  .sfooter__card--services{left:calc(var(--rail-clear,0px) + 4%);top:49%;}
-  .sfooter__card--socials{right:4%;top:30%;}
+  /* fixed in place: Services low on the left, Socials low on the right */
+  .sfooter__card{position:absolute;width:clamp(244px,18.5vw,370px);max-width:none;}
+  .sfooter__card--services{left:calc(var(--rail-clear,0px) + 2%);top:58%;}
+  .sfooter__card--socials{right:1.6%;top:61%;}
   @media(max-width:1100px){
-    .sfooter{--sf-title:min(37.2vw,52.8vh);}
-    .sfooter__card--services{left:calc(var(--rail-clear,0px) + 2%);}
-    .sfooter__card--socials{right:3%;}
+    .sfooter{--sf-title:min(42.8vw,60.7vh);}
+    .sfooter__card--services{left:calc(var(--rail-clear,0px) + 1%);}
+    .sfooter__card--socials{right:1%;}
   }
   /* no room left between the windows: the wordmark gives way first */
   @media(max-width:999px){
-    .sfooter{--sf-title:min(31vw,52.8vh);}
+    .sfooter{--sf-title:min(35.6vw,60.7vh);}
   }
   .sfooter__card-head{font-size:clamp(12px,.85vw,15px);}
   .sfooter__services,.sfooter__socials{font-size:clamp(12px,.85vw,15px);}
-  .sfooter__legal{
-    position:absolute;left:0;right:0;bottom:0;
-    justify-content:flex-start;align-items:center;gap:6px 24px;
-    padding:16px 24px 16px calc(var(--rail-clear,0px) + 24px);
-    font-size:clamp(12px,.85vw,14px);
-  }
-  .sfooter__legal p{margin-left:auto;}
 }
 
 /* Entrances. Hidden only once JS has armed them, and never with reduced motion. */
@@ -1851,26 +1856,40 @@ html.svc-snap-native{scroll-snap-type:y proximity;}
    drum fades up */
 .rail,.hnav{transition:transform .9s cubic-bezier(.16,1,.3,1), opacity .6s ease;}
 .hnav{transition:transform .9s cubic-bezier(.16,1,.3,1), opacity .6s ease, background-color .4s ease;}
-.hx__drum{transition:opacity 1.4s ease;}
+.hx__field{transition:opacity 1.4s ease;}
 .is-intro-hold .rail{transform:translateX(-130%);}
 .is-intro-hold .hnav{transform:translateY(-160%);opacity:0;}
-.is-intro-hold .hx__drum{opacity:0;}
+.is-intro-hold .hx__field{opacity:0;}
+
+/* on the case studies the rail tucks away off the left edge: a thin grey
+   strip along the edge is all that shows, and touching it slides the rail
+   out (script.js sets .is-rail-peek on <html>); it slides back once the
+   pointer leaves. The open menu keeps it out. Screens without hover keep
+   the rail where it is. */
+.rail-edge{display:none;}
+@media(hover:hover) and (pointer:fine){
+  .klever-page main.kl{margin-left:0;}
+  .klever-page .rail{transition:transform .55s cubic-bezier(.16,1,.3,1), opacity .6s ease;}
+  html:not(.is-rail-peek):not(.is-menu-open) .klever-page .rail{transform:translateX(calc(-100% - 20 * var(--u)));}
+  .klever-page .rail-edge{
+    display:block;position:fixed;z-index:299;left:0;top:0;bottom:0;width:20px;
+  }
+  .klever-page .rail-edge::before{
+    content:"";position:absolute;left:0;top:calc(16 * var(--u));bottom:calc(25 * var(--u));width:4px;
+    background:#4d4d4d;transition:opacity .3s ease;
+  }
+  .is-rail-peek .klever-page .rail-edge::before,.is-menu-open .klever-page .rail-edge::before{opacity:0;}
+}
 
 /* the hero: one dark screen, the heading top-left, the lead bottom-left,
    the drum through the 957 mark on the right (screened over the dark) */
 .hxab{position:relative;}
 /* the hero holds still: sticky for as long as About runs over it */
 .hx{position:sticky;top:0;height:100vh;min-height:calc(999 * var(--u));overflow:hidden;background:#101010;isolation:isolate;}
-.hx__drum{
-  position:absolute;z-index:0;left:calc(266 * var(--u));top:calc(-397 * var(--u));
-  width:calc(1766 * var(--u));height:calc(1572 * var(--u));
-  background:url('assets/home/hero-drum.webp') center / 100% 100% no-repeat;
-  -webkit-mask:url('assets/home/hero-mask.svg') no-repeat;mask:url('assets/home/hero-mask.svg') no-repeat;
-  /* the mark: 1548×1259 at 287, 198 inside the drum's box */
-  -webkit-mask-size:87.674% 80.089%;mask-size:87.674% 80.089%;
-  -webkit-mask-position:131.85% 63.26%;mask-position:131.85% 63.26%;
-  mix-blend-mode:color-dodge;opacity:.8;pointer-events:none;
-}
+/* under the type: the old hero's word field, NINEFIVE SEVEN typing in and
+   wiping out all over the frame, lit white around the cursor (wordField,
+   script.js) */
+.hx__field{position:absolute;inset:0;z-index:0;display:block;width:100%;height:100%;pointer-events:none;}
 .hx__title{
   position:absolute;z-index:1;left:calc(146 * var(--u));top:calc(57 * var(--u));width:calc(814 * var(--u));margin:0;
   font-family:var(--font-display);font-weight:400;text-transform:uppercase;
@@ -1942,7 +1961,6 @@ html.svc-snap-native{scroll-snap-type:y proximity;}
   .hx{min-height:0;}
   .hx__title{left:68px;right:16px;top:64px;width:auto;font-size:clamp(40px, 11vw, 56px);letter-spacing:-1px;}
   .hx__lead{left:68px;right:16px;top:auto;bottom:40px;width:auto;font-size:17px;line-height:1.25;}
-  .hx__drum{left:-30vw;top:22vh;width:160vw;height:calc(160vw * 1572 / 1766);}
   .ab{--a:calc((100vw - 84px) / 763);}
   .ab__title{left:68px;top:72px;}
   .ab__copy{left:68px;right:16px;top:auto;bottom:32px;width:auto;height:auto;gap:24px;}
@@ -1956,7 +1974,7 @@ html.svc-snap-native{scroll-snap-type:y proximity;}
 /* Three Figma frames (1502:372 → 1502:397 → 1503:489), 1920×963, played as one
    move: the red sheet folds into the first card, a six-sided carousel of cards
    spins to 957 while the name parts to the edges, the name runs behind it at
-   100, then the 957 card turns into the hero clip. --u is one design px for
+   100, then the dark rises over it along a broken edge and the globe comes up. --u is one design px for
    the type; --cu one design px for the cards, kept larger on tall phones.
    Phases are classes set by script.js (is-part, is-lift, is-landing,
    is-landed, is-full, is-out); the spin
@@ -2085,29 +2103,21 @@ html.svc-snap-native{scroll-snap-type:y proximity;}
    cut in its shape, exactly where it's printed (script.js sets --mx/--my/--mw)
    — and script.js scales the whole loader up about it, so the window grows
    with the scene like a camera moving in. The type fades as it goes. */
-.load.is-out{
-  pointer-events:none;
-  -webkit-mask-image:linear-gradient(#000,#000),url("assets/load/mark-957.svg");
-  mask-image:linear-gradient(#000,#000),url("assets/load/mark-957.svg");
-  -webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;
-  -webkit-mask-size:100% 100%,var(--mw,0px) auto;mask-size:100% 100%,var(--mw,0px) auto;
-  -webkit-mask-position:0 0,var(--mx,50%) var(--my,50%);mask-position:0 0,var(--mx,50%) var(--my,50%);
-  -webkit-mask-composite:xor;mask-composite:exclude;
-}
+.load.is-out{pointer-events:none;}
 .load.is-out .load__name,
 .load.is-out .load__count,
 .load.is-out .load__tagline,
 .load.is-out .load__marquee{opacity:0;transition:opacity .35s ease;}
 
-/* a white copy of the 957 mark over the window as the zoom gets going, so it
-   reads as the printed mark first and only then clears into the window;
-   script.js moves it with the loader */
-.load-mark{position:fixed;inset:0;z-index:401;pointer-events:none;transform-origin:0 0;will-change:transform,opacity;}
-.load-mark img{position:absolute;display:block;height:auto;filter:invert(1);}
+/* the dark that rises over the landed cards along the About stage's broken
+   edge (script.js draws the edge), fills the screen under the globe, and lets
+   go of the Home page as the globe blows apart */
+.load-dark{position:fixed;inset:0;z-index:401;background:#101010;pointer-events:none;will-change:clip-path;transition:opacity .9s ease;}
+.load-dark.is-gone{opacity:0;}
 
 /* the globe over the Home page once it's open: red ASCII, half a turn, then
    blown apart; outside the loader so the opening never cuts it */
-.load-globe{display:none;position:fixed;inset:0;z-index:401;width:100%;height:100%;pointer-events:none;}
+.load-globe{display:none;position:fixed;inset:0;z-index:402;width:100%;height:100%;pointer-events:none;}
 .is-loading .load-globe,.load-globe.is-on{display:block;}
 
 @media(prefers-reduced-motion:reduce){
@@ -2338,7 +2348,9 @@ html.pt-in::view-transition-new(root){animation-name:page-rise;animation-duratio
    the frame's, which read large at modal size. */
 .pmodal{
   --u:min(100vw / 1920, 100vh / 977);
-  position:fixed;inset:0;z-index:180;overflow:hidden;outline:none;
+  /* over the rail and the nav (300), so they sink under the blur with the
+     rest of the page; under the loader (400) */
+  position:fixed;inset:0;z-index:350;overflow:hidden;outline:none;
 }
 .pmodal[hidden]{display:none;}
 .pmodal__backdrop{

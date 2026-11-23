@@ -7,12 +7,15 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=Roboto:wght@400;500;600;700&family=Roboto+Mono:wght@400;500;600&family=DM+Sans:wght@400;500;700&family=Chakra+Petch:wght@600&family=Geist:wght@400;500&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=215">
-<link rel="stylesheet" href="klever.css?v=29">
+<link rel="stylesheet" href="styles.css?v=220">
+<link rel="stylesheet" href="klever.css?v=30">
+<link rel="stylesheet" href="echo.css?v=17">
 <script src="page-transition.js?v=2"></script>
 <!-- the loading screen plays when the site is opened or reloaded, not when
      arriving from another of its pages (the page transition covers that) -->
-<script>(function(){try{var entry=performance.getEntriesByType('navigation')[0];var inSite=document.documentElement.classList.contains('pt-cover')||document.referrer&&new URL(document.referrer).origin===location.origin&&!(entry&&entry.type==='reload');if(!inSite&&!matchMedia('(prefers-reduced-motion: reduce)').matches)document.documentElement.classList.add('is-loading');}catch(e){}})();</script>
+<!-- the loading screen plays once, on the first visit of a browsing session;
+     a refresh, or coming back from another page, goes straight to the page -->
+<script>(function(){try{var seen=sessionStorage.getItem('957-loaded')==='1';var inSite=document.documentElement.classList.contains('pt-cover')||document.referrer&&new URL(document.referrer).origin===location.origin;if(!seen&&!inSite&&!matchMedia('(prefers-reduced-motion: reduce)').matches){document.documentElement.classList.add('is-loading');sessionStorage.setItem('957-loaded','1');}}catch(e){}})();</script>
 </head>
 <body class="home">
 
@@ -103,10 +106,11 @@
 
   <!-- HERO + ABOUT: the hero holds still (sticky) while About comes over it -->
   <div class="hxab">
-  <!-- HERO (Figma 1574:4234): the heading top-left, the lead bottom-left and,
-       on the right, the Dong Son drum showing through the 957 mark -->
+  <!-- HERO (Figma 1574:4234): the heading top-left, the lead bottom-left,
+       the word field under both -->
   <section class="hx" id="hero" data-theme="dark">
-    <div class="hx__drum" aria-hidden="true"></div>
+    <!-- NINEFIVE SEVEN typing in and wiping out under the type, lit around the cursor -->
+    <canvas class="hx__field" id="heroField" aria-hidden="true"></canvas>
     <h1 class="hx__title" data-cms="hero.title" data-cms-label="Tiêu đề" data-cms-group="Hero">Designing ideas into scalable digital experiences</h1>
     <p class="hx__lead" data-cms="hero.lead" data-cms-label="Mô tả" data-cms-group="Hero">We are a design agency helping teams design, build, and scale digital products that actually work and drive real impact.</p>
   </section>
@@ -124,9 +128,6 @@
           <img class="ab__line ab__line--1" src="assets/home/about-line-1.svg" alt="">
           <img class="ab__line ab__line--2" src="assets/home/about-line-2.svg" alt="">
           <img class="ab__line ab__line--3" src="assets/home/about-line-3.svg" alt="">
-          <!-- once the three lines are home, this clip shows through them (masked to
-               the letters, script.js fades it in) -->
-          <video class="ab__video" src="assets/home/about-video.mp4" muted loop playsinline preload="metadata" aria-hidden="true" data-cms-src="about.video" data-cms-label="Video trong chữ" data-cms-group="Giới thiệu"></video>
         </div>
         <div class="ab__copy">
           <div class="ab__text">
@@ -758,6 +759,13 @@
     </div>
   </section>
 
+  <!-- CTA: after Works, one line across the middle of the screen and the way
+       in to a call (the button opens the same contact form as the nav's) -->
+  <section class="cta" id="cta" data-theme="dark">
+    <h2 class="cta__title" data-cms="cta.title" data-cms-label="Tiêu đề" data-cms-group="CTA">Let's Better Customer Experiences Together</h2>
+    <button type="button" class="cta__btn" data-contact-open data-cms="cta.button" data-cms-label="Nút" data-cms-group="CTA">Book a call</button>
+  </section>
+
   <!-- FOOTER -->
   <!-- parallax: the wrap clips, .sfooter slides up inside it as it scrolls in -->
   <div class="sfooter-wrap">
@@ -782,7 +790,6 @@
       </div>
 
       <div class="sfooter__card sfooter__card--services">
-        <span class="sfooter__grip" aria-hidden="true"></span>
         <div class="sfooter__card-head">
           <p class="sfooter__label sfooter__swipe" data-cms="footer.servicesLabel" data-cms-label="Tiêu đề cột dịch vụ" data-cms-group="Footer">Services</p>
           <span aria-hidden="true">[+]</span>
@@ -796,8 +803,7 @@
         </ul>
       </div>
 
-      <div class="sfooter__card sfooter__card--socials is-selected">
-        <span class="sfooter__grip" aria-hidden="true"></span>
+      <div class="sfooter__card sfooter__card--socials">
         <div class="sfooter__card-head">
           <p class="sfooter__label sfooter__swipe" data-cms="footer.socialsLabel" data-cms-label="Tiêu đề cột mạng xã hội" data-cms-group="Footer">Socials</p>
           <span aria-hidden="true">[+]</span>
@@ -810,11 +816,6 @@
         </div>
       </div>
 
-      <div class="sfooter__legal">
-        <a href="#" data-cms="footer.legal1" data-cms-href="footer.legal1.url" data-cms-label="Link pháp lý 1" data-cms-group="Footer">Privacy policy</a>
-        <a href="#" data-cms="footer.legal2" data-cms-href="footer.legal2.url" data-cms-label="Link pháp lý 2" data-cms-group="Footer">Cookie policy</a>
-        <p><span data-cms="footer.copyright" data-cms-label="Dòng bản quyền" data-cms-group="Footer">957Studio @2026.</span><span data-cms="footer.rights" data-cms-label="Dòng quyền" data-cms-group="Footer">All rights reserved.</span></p>
-      </div>
     </div>
 
     <div class="sfooter__marquee">
@@ -842,17 +843,19 @@
 </main>
 
 <script src="https://cdn.jsdelivr.net/npm/lenis@1.1.13/dist/lenis.min.js"></script>
-<script src="projects.js?v=26"></script>
-<script src="script.js?v=113"></script>
+<script src="projects.js?v=27"></script>
+<script src="script.js?v=119"></script>
 <script src="fx-tracking.js?v=4"></script>
 <script src="footer-heat.js?v=4"></script>
-<script src="footer-digits.js?v=2"></script>
+<script src="footer-digits.js?v=3"></script>
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}</script>
+<script type="module" src="footer-3d.js?v=22"></script>
 <script src="svc-pixel.js?v=6"></script>
 <script src="svc-metal.js?v=7"></script>
 <script src="svc-ascii.js?v=4"></script>
 <script src="services.js?v=62"></script>
 <script src="process.js?v=3"></script>
-<script src="project-modal.js?v=9"></script>
+<script src="project-modal.js?v=11"></script>
 <script src="contact.js?v=6"></script>
 </body>
 </html>

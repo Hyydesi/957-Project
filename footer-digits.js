@@ -178,9 +178,12 @@
       }
     }
 
+    // the studio number is set in the site's red
+    const INK = getComputedStyle(document.documentElement).getPropertyValue('--red').trim() || '#d80000';
+
     function draw() {
       ctx.clearRect(0, 0, W, H);
-      ctx.fillStyle = '#fff';
+      ctx.fillStyle = INK;
       ctx.font = `${font}px 'Geist Mono', 'Roboto Mono', monospace`;
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';

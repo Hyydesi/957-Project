@@ -83,6 +83,7 @@ const PROJECTS = [
     ],
     tags: ['MOBILE APP', 'SOCIAL MEDIA APP', 'VISUAL IDENTITY'],
     listTitle: '[ECHO VERSE] PWA SOCIAL NETWORKING PLATFORM',
+    href: 'echo-verse.html',
   },
   {
     code: 'NEW_PAY',

@@ -1,0 +1,190 @@
+/* Echo Verse case study (echo-verse.html). It stands on the Klever frame
+   (klever.css): the dark page, hero, timeline band, 1000px story column and
+   related work all come from there, with Echo's orange in place of Klever's
+   lime. This file only adds what Klever has no piece for. The source images
+   carry their own light grounds, so each sits on the dark page as a rounded
+   card, as Klever's light cards do. */
+.ev{--kl-lime:#FF6B2C;--kl-forest:#3A1A0B;}
+:where(.ev) img,:where(.ev) video{display:block;max-width:100%;}
+.ev .kl-lead em,.ev .kl-explore__text em{color:var(--kl-lime);}
+
+/* ---- cover: the phone on its rock, centred on its own card ---- */
+.ev-cover{
+  position:relative;width:var(--kl-col);margin:100px auto 0;
+  aspect-ratio:1000/620;overflow:hidden;border-radius:24px;background:#1F1F1F;
+  margin-bottom:100px;
+}
+.ev-cover__bg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;}
+/* the phone stands 38.9% across its image */
+.ev-cover__phone{
+  position:absolute;bottom:0;left:calc(50% - 38.9% * .84);width:84%;max-width:none;height:auto;
+}
+
+/* ---- headings in sentence case, not capitals ---- */
+.ev .kl-headline,.ev .kl-timeline__head h2,.ev .kl-more h2,.ev .ev-display{text-transform:none;}
+
+/* ---- timeline: eight weeks in the band Klever draws seven in ---- */
+.ev-timeline .kl-gantt-scroll{margin-top:64px;}
+.ev-timeline .kl-gantt{height:620px;}
+.ev-timeline .kl-gantt__weeks{grid-template-columns:repeat(8,1fr);top:290px;}
+.ev-timeline .kl-gantt__weeks span{padding-left:30px;}
+.ev-timeline .kl-gantt__weeks span::before{left:20px;top:-290px;height:620px;}
+.ev-timeline .kl-gantt__bar{padding-right:20px;}
+
+/* ---- story ---- */
+/* the running text sits a little tighter than Klever's */
+.ev .kl-lead{line-height:1.3;}
+.ev .kl-explore__text{line-height:1.3;}
+.ev .kl-intro__text{line-height:1.3;}
+.ev .kl-hero__desc{line-height:1.25;}
+/* the four mission cards (Figma 636:36173), laid out on the frame's
+   2010-wide group: --g is one of its px */
+.ev-mcards{
+  --g:calc(100cqw / 2009.785);
+  position:relative;container-type:inline-size;width:100%;
+  margin:0;padding:0;list-style:none;
+}
+.ev-mcards{aspect-ratio:2009.785/716.09;}
+.ev-mcard{position:absolute;display:flex;align-items:center;justify-content:center;}
+.ev-mcard--1{left:0;top:calc(.01 * var(--g));width:calc(492.917 * var(--g));height:calc(576.514 * var(--g));}
+.ev-mcard--2{left:calc(518.25 * var(--g));top:calc(59.09 * var(--g));width:calc(495.932 * var(--g));height:calc(620.71 * var(--g));}
+.ev-mcard--3{left:calc(1018.41 * var(--g));top:0;width:calc(503.82 * var(--g));height:calc(647.891 * var(--g));}
+.ev-mcard--4{left:calc(1492.91 * var(--g));top:calc(59.09 * var(--g));width:calc(516.875 * var(--g));height:calc(656.995 * var(--g));}
+.ev-mcard__card{
+  position:relative;flex:none;overflow:hidden;
+  width:calc(454.969 * var(--g));height:calc(var(--h) * var(--g));
+  display:flex;flex-direction:column;gap:calc(56.889 * var(--g));
+  padding:calc(72.063 * var(--g));border-radius:calc(38.434 * var(--g));
+  transform:rotate(var(--r));
+}
+.ev-mcard--1 .ev-mcard__card{--h:545.278;--r:-4.11deg;}
+.ev-mcard--2 .ev-mcard__card{--h:589.717;--r:4.1deg;}
+.ev-mcard--3 .ev-mcard__card{--h:612.537;--r:-4.72deg;}
+.ev-mcard--4 .ev-mcard__card{--h:612.537;--r:6.04deg;}
+.ev-mcard__card--dark{background:#1b1b1b;--title:#f5e9df;--text:#afafaf;}
+.ev-mcard__card--orange{background:#ff723b;--title:#f5e9df;--text:#000;}
+.ev-mcard__card--yellow{background:#ffd268;--title:#4c2e1f;--text:#000;}
+.ev-mcard__card--mist{background:#f9f5f3;--title:#4c2e1f;--text:#000;--pill:#eaeaea;}
+/* the soft shape behind the words, each where the frame puts it */
+.ev-mcard__blob{position:absolute;max-width:none;height:auto;}
+.ev-mcard--1 .ev-mcard__blob{left:calc(304.58 * var(--g));top:calc(265.66 * var(--g));width:calc(189.641 * var(--g));transform:rotate(4.11deg);}
+.ev-mcard--2 .ev-mcard__blob{left:calc(266.85 * var(--g));top:calc(318.01 * var(--g));width:calc(215.819 * var(--g));transform:rotate(1.7deg);}
+.ev-mcard--3 .ev-mcard__blob{left:calc(272.2 * var(--g));top:calc(310.94 * var(--g));width:calc(237.048 * var(--g));transform:rotate(-.21deg);}
+.ev-mcard--4 .ev-mcard__blob{left:calc(266.1 * var(--g));top:calc(335.5 * var(--g));width:calc(221.536 * var(--g));transform:rotate(1.41deg);}
+.ev-mcard__top{position:relative;display:flex;align-items:center;justify-content:space-between;width:100%;}
+.ev-mcard__num{position:relative;display:flex;align-items:center;justify-content:center;width:calc(76.867 * var(--g));height:calc(76.867 * var(--g));}
+.ev-mcard__num img{position:absolute;inset:0;width:100%;height:100%;}
+.ev-mcard__num span{
+  position:relative;font-family:ui-rounded,'SF Pro Rounded',system-ui,sans-serif;
+  font-size:calc(34.59 * var(--g));line-height:1;color:#000;
+}
+.ev-mcard__go{
+  display:flex;align-items:center;justify-content:center;
+  height:calc(57.651 * var(--g));padding:0 calc(28.825 * var(--g));
+  border-radius:999px;background:var(--pill,#fff);
+}
+.ev-mcard__go img{width:calc(43.446 * var(--g));height:auto;}
+.ev-mcard__title{
+  position:relative;width:calc(var(--tw) * var(--g));
+  font-family:'Geist',var(--font-body);font-weight:400;
+  font-size:calc(39.111 * var(--g));line-height:1.1;letter-spacing:-.01em;color:var(--title);
+  text-wrap:balance;
+}
+.ev-mcard__text{
+  position:relative;width:calc(var(--pw) * var(--g));
+  font-family:'Geist',var(--font-body);font-size:calc(21.333 * var(--g));line-height:1.2;color:var(--text);
+}
+.ev-mcard--1{--tw:310.843;--pw:294.37;}
+.ev-mcard--2{--tw:281.778;--pw:329.584;}
+.ev-mcard--3{--tw:281.778;--pw:308.055;}
+.ev-mcard--4{--tw:260.314;--pw:308.055;}
+.ev-research{display:flex;align-items:center;justify-content:space-between;gap:48px;}
+.ev-research .kl-lead{max-width:560px;}
+.ev-research img{width:300px;flex-shrink:0;}
+
+.ev-mode{align-items:center;}
+.ev-mode__copy{display:flex;flex-direction:column;gap:32px;width:440px;max-width:100%;}
+.ev-mode__copy .kl-explore__text{width:auto;}
+/* the before/after labels are dark type, so the pair keeps a light card */
+.ev-mode__img{width:500px;max-width:100%;padding:32px;border-radius:24px;background:#EFEFEF;}
+.ev-mode__img img{width:100%;height:auto;}
+
+/* ---- the cards ---- */
+/* the cut-out pieces (assets/echo/cut) stand straight on the page */
+.ev-cut{position:relative;display:block;width:100%;height:auto;}
+/* the pieces that stand straight on the dark get room above and below */
+.ev-airy{margin:96px 0;}
+.ev-card{position:relative;display:block;width:100%;height:auto;border-radius:24px;overflow:hidden;background:#1F1F1F;}
+.ev-card--mist{background:#F0F0F0;}
+.ev-frame{position:relative;}
+.ev-frame > img{width:100%;height:auto;}
+.ev-inset{position:absolute;object-fit:cover;max-width:none;}
+/* the app's own screen laid over each playing clip, as on the source page */
+.ev-inset--ui{pointer-events:none;}
+/* the post types: the four screens and their labels lifted off the white
+   by a mask of rounded boxes (posts-mask.svg, measured on the 2784×1304
+   image), with room above and below; the two playing screens round the same */
+.ev-posts > img:not(.ev-inset){
+  -webkit-mask:url('assets/echo/posts-mask.svg?v=2') center / 100% 100% no-repeat;
+  mask:url('assets/echo/posts-mask.svg?v=2') center / 100% 100% no-repeat;
+}
+.ev-posts .ev-inset{border-radius:8.5% / 3.9%;}
+/* the wall's two playing screens round like the phones around them
+   (about 55 of the image's 2784 px; the wall is the container) */
+.ev-wall .ev-inset{border-radius:2cqw;}
+
+.kl-showcase__pair > .ev-tile{position:relative;aspect-ratio:496/440;}
+.ev-tile--white{background:#fff;}
+.ev-tile--sand{background:#F7F7F4;}
+.ev-tile--wide{aspect-ratio:1392/652;}
+.ev-fill{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;}
+.ev-contain{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;}
+/* the welcome clip runs larger than its tile, as on the source page, which
+   keeps the clip's own corner caption out of view */
+.ev-welcome{position:absolute;left:-18.9%;top:-5.2%;width:137.8%;height:110.2%;max-width:none;object-fit:cover;}
+.ev-interaction{position:absolute;left:-41.1%;top:-19.9%;width:182.3%;height:120.7%;max-width:none;object-fit:cover;}
+
+.ev-display{
+  font-family:var(--font-heading);font-weight:500;text-transform:uppercase;
+  font-size:clamp(22px,4.4cqw,44px);line-height:1;letter-spacing:-.02em;color:#101010;
+}
+.ev-profile{container-type:inline-size;}
+.ev-profile__copy{
+  position:absolute;left:0;right:0;top:12%;
+  display:flex;flex-direction:column;align-items:center;gap:16px;text-align:center;
+}
+.ev-profile__copy p{width:min(420px,80%);font-size:clamp(13px,1.6cqw,16px);line-height:1.25;color:#6b6b6b;}
+
+.ev-premium{container-type:inline-size;aspect-ratio:1392/736;background:#fff;}
+.ev-premium .ev-display{position:absolute;z-index:1;left:4%;top:9%;width:40%;}
+.ev-premium img{position:absolute;left:4.02%;top:17.8%;width:91.31%;height:auto;}
+
+.ev-wall{container-type:inline-size;background:#EAEAEA;}
+.ev-wall > img{width:100%;height:auto;}
+.ev-stickers{
+  position:absolute;container-type:inline-size;
+  display:grid;grid-template-columns:repeat(3,1fr);column-gap:9.76cqw;row-gap:4.07cqw;
+}
+.ev-stickers span{aspect-ratio:1;background:#181818;overflow:hidden;}
+.ev-stickers img{width:100%;height:100%;object-fit:cover;}
+.ev-more{
+  position:absolute;left:3.95%;top:80.1%;
+  font-family:var(--font-heading);font-weight:500;font-size:clamp(16px,2.6cqw,32px);line-height:1.25;color:#a8a8a8;
+}
+
+@media(max-width:700px){
+  .ev-airy{margin:48px 0;}
+  /* phones: the cards stand one under another, still tipped */
+  .ev-mcards{--g:calc(100cqw / 540);aspect-ratio:auto;display:flex;flex-direction:column;align-items:center;}
+  .ev-mcard{position:relative;flex:none;left:auto !important;top:auto !important;}
+  .ev-cover{margin-top:56px;margin-bottom:64px;aspect-ratio:4/5;}
+  /* on the tall card the phone is blown up so it reads, and stays centred */
+  .ev-cover__phone{width:190%;left:calc(50% - 38.9% * 1.9);}
+  .ev-research{flex-direction:column;align-items:flex-start;}
+  .ev-research img{width:200px;}
+  .ev-mode__img{padding:20px;}
+  .ev-profile__copy{position:static;padding:24px 16px;background:#F4F4F4;}
+  .ev-premium{aspect-ratio:auto;}
+  .ev-premium .ev-display{position:static;width:auto;padding:24px 16px 0;}
+  .ev-premium img{position:static;width:100%;margin-top:12px;}
+}
