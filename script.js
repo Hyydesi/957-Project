@@ -1169,6 +1169,70 @@ if (heroStage && heroMedia) {
   });
 })();
 
+function pixelWipeClip(progress, direction) {
+  // Top edges of the 16 equal-width columns in the 999px-tall Figma frame.
+  const columnTops = [448, 539, 748, 668, 580, 493, 606, 748, 895, 668, 585, 644, 725, 794, 907, 999];
+  // Each column has its own start and finish. Keep the right edge low
+  // while the first columns climb, then let the wave travel across.
+  const horizontal = direction === 'from-right';
+  const coverAfterEdge = direction !== 'above';
+  const viewportWidth = document.documentElement.clientWidth;
+  const cell = Math.max(10, Math.round(viewportWidth / 48));
+  // Calculate in strip coordinates, rotating rectangles onto rows for About's entrance.
+  const width = horizontal ? window.innerHeight : viewportWidth;
+  const height = horizontal ? viewportWidth : window.innerHeight;
+  const paths = [];
+  const rect = (x, y, w, h) => horizontal
+    ? `M${y} ${x}h${h}v${w}h${-h}Z`
+    : `M${x} ${y}h${w}v${h}h${-w}Z`;
+  const count = horizontal ? Math.ceil(width / cell) : columnTops.length;
+  for (let i = 0; i < count; i++) {
+    const left = horizontal ? i * cell : Math.round(width * i / count);
+    const right = horizontal ? Math.min(left + cell, width) : Math.round(width * (i + 1) / count);
+    let edge;
+    if (horizontal) {
+      const lean = 695.5 / 999;
+      edge = height + lean * (left + right) / 2 - (height + lean * width) * progress;
+    } else {
+      const delay = 0.52 * i / (columnTops.length - 1);
+      const t = Math.min(1, Math.max(0, (progress - delay) / 0.48));
+      const rise = t * t * (3 - 2 * t);
+      edge = height * (1 - rise) * (1 + (columnTops[i] / 999 - 0.7) * 2 * rise);
+    }
+    if (edge <= 0 || edge >= height) {
+      if ((edge <= 0) === coverAfterEdge) paths.push(rect(left, 0, right - left, height));
+      continue;
+    }
+    // Work on a fixed grid so individual blocks resolve in place in both directions.
+    const band = 4 * cell;
+    const row = Math.floor((edge - band) / cell) * cell;
+    const end = Math.ceil((edge + band) / cell) * cell;
+    if (coverAfterEdge && end < height) paths.push(rect(left, end, right - left, height - end));
+    if (!coverAfterEdge && row > 0) paths.push(rect(left, 0, right - left, row));
+    for (let x = left; x < right; x += cell) {
+      for (let y = Math.max(0, row); y < Math.min(end, height); y += cell) {
+        const seed = Math.imul(x + 17, 73856093) ^ Math.imul(y + 31, 19349663);
+        const noise = ((Math.imul(seed ^ (seed >>> 16), 1597334677) >>> 0) / 4294967296);
+        const jitter = Math.min(band, edge, height - edge) * (noise * 2 - 1);
+        const fraction = (y + cell - edge + jitter) / cell;
+        const size = Math.min(cell, right - x);
+        if (fraction <= 0 || fraction >= 1) {
+          if ((fraction >= 1) === coverAfterEdge) paths.push(rect(x, y, size, cell));
+        } else {
+          // The large tile breaks into four smaller tiles at the moving edge.
+          const half = cell / 2;
+          for (let n = 0; n < 4; n++) {
+            const dx = (n % 2) * half;
+            const dark = fraction >= (((n + Math.floor(noise * 4)) % 4) + 0.5) / 4;
+            if (dark === coverAfterEdge && dx < size) paths.push(rect(x + dx, y + Math.floor(n / 2) * half, Math.min(half, size - dx), half));
+          }
+        }
+      }
+    }
+  }
+  return paths.length ? `path('${paths.join('')}')` : 'inset(100% 0 0)';
+}
+
 // The about stage: one screen pinned for three screens of scroll, laid over
 // the hero, which holds still underneath.
 //   0 – .3    the light wedge sweeps in slowly from the right over the hero,
@@ -1178,16 +1242,13 @@ if (heroStage && heroMedia) {
 //   .37 – .43 with the title whole, the clip fades in inside its letters
 //   .38 – .58 only then, scrolling on, the headline, the copy and the button
 //             come in on the right, one after another
-//   .64 – .94 the dark rises back from below along the frame's broken edge
-//             (through 1574:4420) until the light is gone — over the stage's
-//             last screen, which the Core slides up over (its .cf-stage starts
-//             a screen early, at 2/3), so the Core follows the broken edge up
+//   .64 – .94 columns wipe away About from left to right as The Core enters.
 (function aboutStage() {
   const stage = document.getElementById('about');
   const light = document.getElementById('abLight');
   if (!stage || !light) return;
+  const core = document.querySelector('#cfStage .corefield');
   const lines = [...stage.querySelectorAll('.ab__line')];
-  const parts = [...stage.querySelectorAll('.ab__headline, .ab__body, .ab__btn')];
   const video = stage.querySelector('.ab__video');
   let onScreen = false;
   if (video && 'IntersectionObserver' in window) {
@@ -1206,29 +1267,31 @@ if (heroStage && heroMedia) {
     const p = still ? 0.55 : Math.min(1, Math.max(0, -r.top / run));
     const aPx = W < 900 ? (W - 84) / 763 : Math.min(W / 1920, H / 999);
 
-    // the light: the wedge coming in, or the dark rising back
-    const e = smooth((p - 0.64) / 0.3);
-    let poly;
-    if (e > 0) {
-      const f = Math.min(1, e / 0.5), g = Math.max(0, (e - 0.5) / 0.5);
-      const yR = H * (1 - g);
-      const yA = (H + ((613 / 999) * H - H) * f) * (1 - g);
-      const yB = (H + ((763 / 999) * H - H) * f) * (1 - g);
-      const yL = H * (1 - f);
-      poly = `0px 0px, ${W}px 0px, ${W}px ${yR}px, ${(W * 1275.5 / 1920).toFixed(1)}px ${yA.toFixed(1)}px, ${(W * 302 / 1920).toFixed(1)}px ${yB.toFixed(1)}px, 0px ${yL.toFixed(1)}px`;
+    const exit = Math.min(1, Math.max(0, (p - 0.69) / 0.28));
+    if (exit >= 1) {
+      light.style.clipPath = 'inset(0 0 100%)';
+    } else if (exit > 0) {
+      light.style.clipPath = pixelWipeClip(exit, 'above');
+    } else if (p < 0.3) {
+      light.style.clipPath = pixelWipeClip(smooth(p / 0.3), 'from-right');
     } else {
-      const lean = (695.5 / 999) * H;
-      const s = W + (-lean - W) * smooth(p / 0.3);
-      poly = `${s.toFixed(1)}px 0px, ${W}px 0px, ${W}px ${H}px, ${(s + lean).toFixed(1)}px ${H}px`;
+      light.style.clipPath = 'inset(0)';
     }
-    light.style.clipPath = `polygon(${poly})`;
+
+    // Ease the Core into view just before the column wave reaches its midpoint.
+    if (core) {
+      const entering = W >= 720 && !still && p > 2 / 3 && p < 1;
+      core.style.translate = entering
+        ? `0 ${(3 * p - 2) * H * (1 - smooth((p - 0.76) / 0.22))}px`
+        : '';
+    }
 
     // the lines home, then the copy
     lines.forEach((line, i) => {
       const k = smooth((p - 0.04 - i * 0.03) / 0.27);
       line.style.transform = `translate3d(${(STEP[i] * aPx * (1 - k)).toFixed(1)}px,${(-5 * aPx * (1 - k)).toFixed(1)}px,0)`;
     });
-    parts.forEach((el, i) => el.style.setProperty('--in', smooth((p - 0.38 - i * 0.05) / 0.1).toFixed(3)));
+    stage.classList.toggle('is-copy-visible', p >= 0.37);
     // the clip inside the letters, once they're home; it only plays while shown
     if (video) {
       const vid = smooth((p - 0.37) / 0.06);
@@ -2347,7 +2410,7 @@ if (load && document.documentElement.classList.contains('is-loading')) {
   const MAX_MS = 10000;
   const HOLD = 92;
   const FULL_MS = 450;      // 100 on 957, a beat, before the way out
-  const RISE_MS = 1100;     // the dark rising over the landed cards, along the broken edge
+  const RISE_MS = 1100;     // the dark rising over the landed cards, in staggered columns
   const GLOBE_FROM = RISE_MS + 120; // the globe comes up on the dark once it's full
   const GLOBE_IN = 600;     // …growing in
   const TURN_MS = 1500;     // its half turn
@@ -2611,33 +2674,16 @@ if (load && document.documentElement.classList.contains('is-loading')) {
     document.documentElement.classList.remove('is-loading');
     if (lenis) lenis.start();
 
-    // the way in to the Home page: once the cards have landed on 957, the
-    // dark rises over the loader from below along a broken edge — the same
-    // edge the About stage brings its dark back on before the Core — until
-    // it fills the screen. The globe comes up and turns on the dark, and as
-    // it blows apart the dark lets go of the Home page under it (the hero is
-    // the same dark, so only its type and field come through).
+    // The columns cover the loader before the globe appears over the hero.
     const dark = document.createElement('div');
     dark.className = 'load-dark';
     dark.setAttribute('aria-hidden', 'true');
     document.body.appendChild(dark);
-    const W = window.innerWidth, H = window.innerHeight;
-    const smooth = (t) => t * t * (3 - 2 * t);
-    const edge = (e) => {
-      // first the left side runs up and the edge breaks in two steps down to
-      // the right corner (f), then the whole edge rises off the top (g)
-      const f = Math.min(1, e / 0.5), g = Math.max(0, (e - 0.5) / 0.5);
-      const yR = H * (1 - g);
-      const yA = (H + ((613 / 999) * H - H) * f) * (1 - g);
-      const yB = (H + ((763 / 999) * H - H) * f) * (1 - g);
-      const yL = H * (1 - f);
-      return `polygon(0px ${H}px, ${W}px ${H}px, ${W}px ${yR.toFixed(1)}px, ${(W * 1275.5 / 1920).toFixed(1)}px ${yA.toFixed(1)}px, ${(W * 302 / 1920).toFixed(1)}px ${yB.toFixed(1)}px, 0px ${yL.toFixed(1)}px)`;
-    };
-    dark.style.clipPath = edge(0);
+    dark.style.clipPath = 'inset(100% 0 0)';
     const t0 = performance.now();
     const rise = (now) => {
       const k = clamp01((now - t0) / RISE_MS);
-      dark.style.clipPath = edge(smooth(k));
+      dark.style.clipPath = pixelWipeClip(k, 'below');
       if (k < 1) { requestAnimationFrame(rise); return; }
       dark.style.clipPath = 'none';
       load.remove();

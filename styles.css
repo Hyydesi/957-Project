@@ -395,7 +395,7 @@ button{font:inherit;background:none;border:none;color:inherit;cursor:pointer;}
   display:flex;
 }
 @media(max-width:719px){
-  .cf-stage{height:auto;margin-top:0;}
+  .cf-stage{height:auto;margin-top:-15vh;}
   .corefield{position:relative;height:auto;min-height:100vh;}
 }
 /* one definition, painted twice: over the section here, and again inside the
@@ -1846,7 +1846,7 @@ body.is-pmodal-open{overflow:hidden;}
 /* clear over the hero until the light has covered it (.is-covered, from
    script.js); dark after that, so the dark rising back is the page's own */
 .ab__sticky{position:sticky;top:0;height:100vh;overflow:hidden;overflow:clip;}
-.ab.is-covered .ab__sticky{background:#101010;}
+.ab.is-covered .ab__sticky{background:var(--bg-dark);}
 .ab__light{position:absolute;inset:0;background:#f0f0f0;clip-path:polygon(100% 0,100% 0,100% 100%,100% 100%);}
 .ab__title{position:absolute;left:calc(153 * var(--a));top:calc(126 * var(--a));width:calc(763 * var(--a));height:calc(757 * var(--a));}
 .ab__line{position:absolute;left:0;display:block;will-change:transform;}
@@ -1880,8 +1880,15 @@ body.is-pmodal-open{overflow:hidden;}
   transition:background-color .25s ease;
 }
 .ab__btn:hover{background:#b50100;}
-/* the copy's parts come in one after another (--in, 0..1 each, from script.js) */
-.ab__headline,.ab__body,.ab__btn{opacity:var(--in, 0);transform:translateY(calc((1 - var(--in, 0)) * 40px));}
+.ab__copy{visibility:hidden;}
+.ab.is-copy-visible .ab__copy{visibility:visible;}
+.ab.is-copy-visible :is(.ab__headline,.ab__body,.ab__btn){animation:about-copy-in .45s ease-out backwards;}
+.ab.is-copy-visible .ab__body{animation-delay:.08s;}
+.ab.is-copy-visible .ab__btn{animation-delay:.16s;}
+@keyframes about-copy-in{from{opacity:0;transform:translateY(24px);}to{opacity:1;transform:none;}}
+@media(prefers-reduced-motion:reduce){
+  .ab.is-copy-visible :is(.ab__headline,.ab__body,.ab__btn){animation:none;}
+}
 
 @media(max-width:899px){
   .home,.works-page,.klever-page{--u:calc(100vw / 430);--rail-clear:56px;}
@@ -1912,7 +1919,7 @@ body.is-pmodal-open{overflow:hidden;}
 /* Three Figma frames (1502:372 → 1502:397 → 1503:489), 1920×963, played as one
    move: the red sheet folds into the first card, a six-sided carousel of cards
    spins to 957 while the name parts to the edges, the name runs behind it at
-   100, then the dark rises over it along a broken edge and the globe comes up. --u is one design px for
+   100, then the dark rises over it in staggered columns and the globe comes up. --u is one design px for
    the type; --cu one design px for the cards, kept larger on tall phones.
    Phases are classes set by script.js (is-part, is-lift, is-landing,
    is-landed, is-full, is-out); the spin
