@@ -861,6 +861,7 @@ html.svc-snap-native{scroll-snap-type:y proximity;}
 /* ---------- WORKS ---------- */
 /* full-bleed like the hero: same edge padding, no centered max-width cap */
 .works{padding:56px 24px 120px;margin:0;position:relative;z-index:6;
+  min-height:100vh;min-height:100svh;
   background:var(--bg-dark);}
 /* the hero's word field behind the projects: the layer spans the section, the
    canvas inside it is one screen high and sticks to the top as the section
@@ -1166,6 +1167,7 @@ html.svc-snap-native{scroll-snap-type:y proximity;}
    GRID cards use for their annotations, and every other row drops to 50%.
    The name sits inside wrappers, so link / image are flattened with
    display:contents and each piece becomes a cell of the row. */
+.works__grid.is-list{background:var(--bg-dark) content-box;}
 .works__grid.is-list .project__img{
   aspect-ratio:auto;background:none;overflow:visible;position:static;
 }

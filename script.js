@@ -1953,13 +1953,50 @@ if (categoryFilter && yearFilter && worksGrid) {
 
   // ---------- Works: grid / list view toggle ----------
   const viewToggle = document.getElementById('viewToggle');
-  if (viewToggle) {
+  const worksSection = worksGrid.closest('.works');
+  const worksTopbar = viewToggle?.closest('.works__topbar');
+  let gridScrollOffset = 0;
+  if (viewToggle && worksTopbar) {
     viewToggle.addEventListener('click', (e) => {
       const btn = e.target.closest('button');
       if (!btn) return;
+      const showList = btn.dataset.view === 'list';
+      if (showList === worksGrid.classList.contains('is-list')) return;
+
+      const sectionTop = worksSection.getBoundingClientRect().top + window.scrollY;
+      const scrollOffset = window.scrollY - sectionTop;
+      const sectionStyle = getComputedStyle(worksSection);
+      const barStyle = getComputedStyle(worksTopbar);
+      const stickyTop = parseFloat(barStyle.top);
+      const stickyStart = parseFloat(sectionStyle.paddingTop) - stickyTop;
+      // Scroll positions can round to a whole pixel while the section is fractional.
+      const wasPinned = scrollOffset + 1 >= stickyStart;
+      if (showList) gridScrollOffset = scrollOffset;
+
       viewToggle.querySelectorAll('button').forEach((b) => b.classList.remove('is-active'));
       btn.classList.add('is-active');
-      worksGrid.classList.toggle('is-list', btn.dataset.view === 'list');
+      worksGrid.classList.toggle('is-list', showList);
+
+      // Past the sticky threshold, both destinations keep the controls pinned.
+      // Clamp the restored offset in case the filter or viewport shortened GRID.
+      let nextOffset = wasPinned ? stickyStart : scrollOffset;
+      if (!showList && wasPinned) {
+        const stickyEnd = worksSection.offsetHeight - parseFloat(sectionStyle.paddingBottom)
+          - worksTopbar.offsetHeight - parseFloat(barStyle.marginBottom) - stickyTop;
+        nextOffset = Math.max(stickyStart, Math.min(gridScrollOffset, stickyEnd));
+      }
+      const nextY = sectionTop + nextOffset;
+      if (lenis) {
+        lenis.resize();
+        lenis.scrollTo(nextY, { immediate: true });
+      } else {
+        window.scrollTo({ top: nextY, behavior: 'instant' });
+      }
+
+      updateYearSpy();
+      requestParallax();
+      revealDriver();
+      updateWeb();
     });
   }
 
@@ -2187,7 +2224,6 @@ if (categoryFilter && yearFilter && worksGrid) {
     webLines.set(project, line);
   });
   // inside .works for the same stacking-context reason as the hover line
-  const worksSection = worksGrid.closest('.works');
   worksSection.appendChild(webSvg);
 
   const updateWeb = () => {
@@ -2327,14 +2363,6 @@ if (categoryFilter && yearFilter && worksGrid) {
   window.addEventListener('resize', requestParallax);
   window.addEventListener('resize', revealDriver);
   window.addEventListener('resize', updateWeb);
-  const viewToggleEl = document.getElementById('viewToggle');
-  if (viewToggleEl) {
-    viewToggleEl.addEventListener('click', () => {
-      requestParallax();
-      revealDriver();
-      updateWeb();
-    });
-  }
   updateParallax();
   revealDriver();
   updateWeb();
